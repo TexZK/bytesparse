@@ -2,6 +2,26 @@
 Overview
 ********
 
+WORK IN PROGRESS
+================
+
+This repository was just created.
+Most (if not all) of the documentation is yet to be done.
+Links and other cloud/automated stuff are actually not working right now.
+
+I'm willing to provide at least the minimal support as soon as possible.
+
+Minimal to-do list:
+
+#. Setup and check basic `tox` environments
+#. Setup cloud/automated stuff
+#. Create some minimal documentation within this readme file
+#. Add docstrings at least to the Python implementation
+#. Add docstrings to the Cython implementation
+#. Implement missing tests
+#. Improve existing implementation
+
+
 .. start-badges
 
 .. list-table::
@@ -62,12 +82,6 @@ Overview
 Library to handle sparse bytes within a virtual memory space.
 
 * Free software: BSD 2-Clause License
-
-
-TO-DO
-============
-
-TO-DO
 
 
 Documentation
