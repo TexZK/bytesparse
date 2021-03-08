@@ -36,8 +36,10 @@ htmlcov
 
 # Translations
 *.mo
+src/*/*.html
+tests/*.html
 
-# Mr Developer
+# IDE
 .mr.developer.cfg
 .project
 .pydevproject
