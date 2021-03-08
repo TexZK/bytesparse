@@ -43,7 +43,7 @@ Value = int
 AnyBytes = Union[ByteString, bytes, bytearray, memoryview, Sequence[Value]]
 Data = bytearray
 
-Block = List[Any]  # [Address, Data]
+Block = List[Union[Address, Data]]  # typed as Tuple[Address, Data]
 BlockIndex = int
 BlockIterable = Iterable[Block]
 BlockSequence = Sequence[Block]

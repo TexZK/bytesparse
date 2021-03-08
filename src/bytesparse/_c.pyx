@@ -429,6 +429,7 @@ cdef Block_* Block_FromObject(addr_t address, object obj, bint nonnull) except N
             else:
                 return Block_Alloc(address, 0, False)
 
+
 cdef Block_* Block_Acquire(Block_* that) except NULL:
     if that:
         if that.references < SIZE_MAX:

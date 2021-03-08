@@ -39,14 +39,13 @@ from typing import Sequence
 from typing import Tuple
 from typing import Type
 from typing import Union
-from typing import cast as _cast
 
 Address = int
 Value = int
 AnyBytes = Union[ByteString, bytes, bytearray, memoryview, Sequence[Value]]
 Data = bytearray
 
-Block = List[Any]  # [Address, Data]
+Block = List[Union[Address, Data]]  # typed as Tuple[Address, Data]
 BlockIndex = int
 BlockIterable = Iterable[Block]
 BlockSequence = Sequence[Block]

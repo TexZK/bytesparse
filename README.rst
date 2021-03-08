@@ -62,7 +62,6 @@ Overview
 Library to handle sparse bytes within a virtual memory space.
 
 * Free software: BSD 2-Clause License
-* Icons based on the BlueSphere project: http://svgicons.sourceforge.net/
 
 
 TO-DO
