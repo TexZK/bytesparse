@@ -1,0 +1,16 @@
+[paths]
+source =
+   src/bytesparse
+   */site-packages/bytesparse
+
+[run]
+branch = true
+source =
+    bytesparse
+    tests
+parallel = true
+
+[report]
+show_missing = true
+precision = 2
+omit = *migrations*
