@@ -90,8 +90,10 @@ cdef extern from *:
 
     #define SIZE_MIN  ((size_t)0)
     #define SIZE_HMAX ((size_t)(SIZE_MAX >> 1))
-    #define SSIZE_MAX ((ssize_t)SIZE_HMAX)
-    #define SSIZE_MIN (-(ssize_t)SIZE_HMAX - (ssize_t)1)
+    #ifndef SSIZE_MAX
+        #define SSIZE_MAX ((ssize_t)SIZE_HMAX)
+        #define SSIZE_MIN (-(ssize_t)SIZE_HMAX - (ssize_t)1)
+    #endif
     #define MARGIN    (sizeof(size_t) >> 1)
 
     typedef uint_fast64_t addr_t;
