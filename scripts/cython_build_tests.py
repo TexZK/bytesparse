@@ -1,4 +1,5 @@
 import os
 
-os.chdir(os.path.join('..', 'tests'))
-os.system(r'cythonize -f -a -i _test_c.pyx')
+# working directory = repository root folder
+path = os.path.join('tests', '_test_c.pyx')
+os.system(r'cythonize -f -a -i ' + path)
