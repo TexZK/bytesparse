@@ -93,6 +93,8 @@ cdef extern from *:
     #define SIZE_HMAX ((size_t)(SIZE_MAX >> 1))
     #ifndef SSIZE_MAX
         #define SSIZE_MAX ((ssize_t)SIZE_HMAX)
+    #endif
+    #ifndef SSIZE_MIN
         #define SSIZE_MIN (-(ssize_t)SIZE_HMAX - (ssize_t)1)
     #endif
     #define MARGIN    (sizeof(size_t) >> 1)
