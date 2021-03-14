@@ -37,6 +37,10 @@ install:
   - '%PYTHON_HOME%\Scripts\easy_install --version'
   - '%PYTHON_HOME%\Scripts\pip --version'
   - '%PYTHON_HOME%\Scripts\tox --version'
+  - python -m pip install cython
+  - python -m cython --version
+  - python scripts/cython_build_src.py
+  - python scripts/cython_build_tests.py
 test_script:
   - '%WITH_COMPILER% %PYTHON_HOME%\Scripts\tox'
 

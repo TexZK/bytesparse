@@ -25,8 +25,6 @@ matrix:
         - TOXENV=pypy3,report,codecov
 before_install:
   - python --version
-  - python -m pip install Cython
-  - python -m cython --version
   - uname -a
   - lsb_release -a
 install:
@@ -35,6 +33,10 @@ install:
   - easy_install --version
   - pip --version
   - tox --version
+  - python -m pip install Cython
+  - python -m cython --version
+  - python scripts/cython_build_src.py
+  - python scripts/cython_build_tests.py
 script:
   - tox -v
 after_failure:
