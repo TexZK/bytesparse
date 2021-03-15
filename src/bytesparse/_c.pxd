@@ -76,13 +76,14 @@ from cpython.mem cimport PyMem_Malloc
 from cpython.mem cimport PyMem_Realloc
 from cpython.ref cimport PyObject
 from libc.stdint cimport int_fast64_t
-from libc.stdint cimport uintptr_t
 from libc.stdint cimport uint_fast64_t
+from libc.stdint cimport uintptr_t
 from libc.string cimport memcmp
 from libc.string cimport memcpy
 from libc.string cimport memmove
 from libc.string cimport memset
 from libc.string cimport strstr
+
 
 cdef extern from *:
     r"""

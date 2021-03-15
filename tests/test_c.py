@@ -28,9 +28,10 @@ import inspect
 import sys
 
 import pytest
+from _common import *
+
 # noinspection PyUnresolvedReferences
 from bytesparse._c import Memory as _Memory
-from _common import *
 
 
 # Patch inspect.isfunction() to allow Cython functions to be discovered

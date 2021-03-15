@@ -29,9 +29,10 @@ from typing import List
 from typing import Optional
 
 import pytest
-from bytesparse._py import OpenInterval
+
 from bytesparse._py import Address
 from bytesparse._py import BlockList
+from bytesparse._py import OpenInterval
 from bytesparse._py import Value
 
 MAX_START: Address = 20

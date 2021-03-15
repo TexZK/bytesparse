@@ -23,9 +23,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from bytesparse._py import Memory as _Memory
-
 from _common import *
+
+from bytesparse._py import Memory as _Memory
 
 
 class TestMemory(BaseMemorySuite):

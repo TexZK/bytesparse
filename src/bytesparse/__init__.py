@@ -26,6 +26,7 @@
 __version__ = '0.0.1'
 
 try:
-    from ._c import *
+    from ._c import Memory  # noqa: F401
+
 except ImportError:
-    from ._py import *
+    from ._py import Memory  # noqa: F401

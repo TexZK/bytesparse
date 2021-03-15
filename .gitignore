@@ -10,6 +10,7 @@ dist
 build
 eggs
 .eggs
+env
 parts
 bin
 var
@@ -36,6 +37,8 @@ htmlcov
 
 # Translations
 *.mo
+src/*/*.c
+tests/*.c
 src/*/*.html
 tests/*.html
 
