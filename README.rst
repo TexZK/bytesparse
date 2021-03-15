@@ -40,19 +40,19 @@ Minimal to-do list:
     :target: https://readthedocs.org/projects/bytesparse
     :alt: Documentation Status
 
-.. |travis| image:: https://api.travis-ci.org/TexZK/bytesparse.svg?branch=master
+.. |travis| image:: https://api.travis-ci.org/TexZK/bytesparse.svg?branch=main
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/TexZK/bytesparse
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/TexZK/bytesparse?branch=master&svg=true
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/TexZK/bytesparse?branch=main&svg=true
     :alt: AppVeyor Build Status
     :target: https://ci.appveyor.com/project/TexZK/bytesparse
 
-.. |requires| image:: https://requires.io/github/TexZK/bytesparse/requirements.svg?branch=master
+.. |requires| image:: https://requires.io/github/TexZK/bytesparse/requirements.svg?branch=main
     :alt: Requirements Status
-    :target: https://requires.io/github/TexZK/bytesparse/requirements/?branch=master
+    :target: https://requires.io/github/TexZK/bytesparse/requirements/?branch=main
 
-.. |codecov| image:: https://codecov.io/gh/TexZK/bytesparse/branch/master/graphs/badge.svg?branch=master
+.. |codecov| image:: https://codecov.io/gh/TexZK/bytesparse/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
     :target: https://codecov.io/github/TexZK/bytesparse
 
@@ -62,7 +62,7 @@ Minimal to-do list:
 
 .. |commits-since| image:: https://img.shields.io/github/commits-since/TexZK/bytesparse/v0.0.1.svg
     :alt: Commits since latest release
-    :target: https://github.com/TexZK/bytesparse/compare/v0.0.1...master
+    :target: https://github.com/TexZK/bytesparse/compare/v0.0.1...main
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/bytesparse.svg
     :alt: PyPI Wheel
