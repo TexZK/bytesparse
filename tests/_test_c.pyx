@@ -535,6 +535,7 @@ def test_Block_Copy():
         Block_* block2 = NULL
         bytes data = DATA1
         size_t size = SIZE1
+        size_t i
 
     try:
         block1 = Block_Create(0x1234, size, data)

@@ -390,9 +390,10 @@ cdef Block_* Block_Create(addr_t address, size_t size, const byte_t* buffer) exc
 cdef Block_* Block_Copy(const Block_* that) except NULL:
     cdef:
         Block_* ptr
-        size_t size = Block_HEADING + (that.allocated * sizeof(byte_t))
+        size_t size
 
     if that:
+        size = Block_HEADING + (that.allocated * sizeof(byte_t))
         ptr = <Block_*>PyMem_Malloc(size)
         if ptr == NULL:
             raise MemoryError()
