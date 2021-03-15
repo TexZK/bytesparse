@@ -12,7 +12,6 @@ extensions = [
     'sphinx_autodoc_typehints',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'sphinx_click.ext',
 ]
 if os.getenv('SPELLCHECK'):
     extensions += 'sphinxcontrib.spelling',
