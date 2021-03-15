@@ -37,8 +37,6 @@ htmlcov
 
 # Translations
 *.mo
-src/*/*.c
-tests/*.c
 src/*/*.html
 tests/*.html
 
