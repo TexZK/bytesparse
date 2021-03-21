@@ -23,6 +23,95 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+r"""Utilities for sparse blocks of bytes.
+
+Blocks are a useful way to describe sparse linear data.
+
+The audience of this module are most importantly those who have to manage
+sparse blocks of bytes, where a very broad addressing space (*e.g.* 4 GiB)
+is used only in some sparse parts (*e.g.* physical memory addressing in a
+microcontroller).
+
+This module also provides the :obj:`Memory` class, which is a handy wrapper
+around blocks, giving the user the flexibility of most operations of a
+:obj:`bytearray` on sparse byte-like chunks.
+
+A `block` is a tuple ``(start, items)`` where `start` is the start address and
+`items` is the container of items (e.g. :obj:`bytes`, :obj:`str`,
+:obj:`tuple`).  The length of the block is ``len(items)``.
+Actually, the module uses lists instead of tuples, because the latter are
+mutables, thus can be changed in-place, without reallocation.
+
+In this module it is common to require *spaces* blocks, *i.e.* blocks
+in which a block ``b`` does not start immediately after block ``a``:
+
++---+---+---+---+---+---+---+---+---+
+| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
++===+===+===+===+===+===+===+===+===+
+|   |[A | B | C]|   |   |   |   |   |
++---+---+---+---+---+---+---+---+---+
+|   |   |   |   |   |[x | y | z]|   |
++---+---+---+---+---+---+---+---+---+
+
+>>> a = [1, b'ABC']
+>>> b = [5, b'xyz']
+
+Instead, *overlapping* blocks have at least an addressed cell occupied by
+more items:
+
++---+---+---+---+---+---+---+---+---+
+| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
++===+===+===+===+===+===+===+===+===+
+|   |[A | B | C]|   |   |   |   |   |
++---+---+---+---+---+---+---+---+---+
+|   |   |   |[x | y | z]|   |   |   |
++---+---+---+---+---+---+---+---+---+
+|[# | #]|   |   |   |   |   |   |   |
++---+---+---+---+---+---+---+---+---+
+|   |   |[!]|   |   |   |   |   |   |
++---+---+---+---+---+---+---+---+---+
+
+>>> a = [1, b'ABC']
+>>> b = [3, b'xyz']
+>>> c = [0, b'##']
+>>> d = [2, b'!']
+
+Contiguous blocks are *non-overlapping*.
+
++---+---+---+---+---+---+---+---+---+
+| 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
++===+===+===+===+===+===+===+===+===+
+|   |[A | B | C]|   |   |   |   |   |
++---+---+---+---+---+---+---+---+---+
+|   |   |   |   |[x | y | z]|   |   |
++---+---+---+---+---+---+---+---+---+
+
+>>> a = [1, b'ABC']
+>>> b = [4, b'xyz']
+
+This module often deals with *sequences* of blocks, typically :obj:`list`
+objects containing blocks:
+
+>>> seq = [[1, b'ABC'], [5, b'xyz']]
+
+Sometimes *sequence generators* are allowed, in that blocks of the sequence
+are yielded on-the-fly by a generator, like `seq_gen`:
+
+>>> seq_gen = ([i, (i + 0x21).to_bytes(1, 'little') * 3] for i in range(0, 15, 5))
+>>> list(seq_gen)
+[[0, b'!!!'], [5, b'&&&'], [10, b'+++']]
+
+It is required that sequences are ordered, which means that a block ``b`` must
+follow a block ``a`` which end address is lesser than the `start` of ``b``,
+like in:
+
+>>> a = [1, b'ABC']
+>>> b = [5, b'xyz']
+>>> a[0] + len(a[1]) <= b[0]
+True
+
+"""
+
 __version__ = '0.0.1'
 
 try:
