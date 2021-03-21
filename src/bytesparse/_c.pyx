@@ -5017,10 +5017,10 @@ cdef class Memory:
 
     cdef vint insert_raw_(self, addr_t address, size_t data_size, const byte_t* data_ptr, list backups) except -1:
 
-        self._insert_(address, data_size, data_ptr, True)
+        self._insert_(address, data_size, data_ptr, True)  # TODO: backups
 
         if data_size:
-            self._crop(self._trim_start, self._trim_endex, None)
+            self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
 
     def insert(
         self: 'Memory',
