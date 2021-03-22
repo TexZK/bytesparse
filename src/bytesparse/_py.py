@@ -1945,8 +1945,11 @@ class Memory:
         Equivalent to ``memory[address] = item``.
 
         Arguments:
-            address (int): Address of the target item.
-            item (int or byte): Item to set, ``None`` to clear the cell.
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to set, ``None`` to clear the cell.
 
         Returns:
             int: The previous item at `address`, ``None`` if empty.
@@ -2037,6 +2040,61 @@ class Memory:
         step: Optional[Address] = None,
         bound: bool = True,
     ) -> 'Memory':
+        r"""Selects items from a range.
+
+        Arguments:
+            start (int):
+                Inclusive start of the extracted range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. :attr:`start`).
+
+            endex (int):
+                Exclusive end of the extracted range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. :attr:`endex`).
+
+            pattern (items):
+                Optional pattern of items to fill the emptiness.
+
+            step (int):
+                Optional address stepping between bytes extracted from the
+                range. It has the same meaning of Python's :attr:`slice.step`,
+                but negative steps are ignored.
+                Please note that a `step` greater than 1 could take much more
+                time to process than the default unitary step.
+
+            bound (bool):
+                The selected address range is applied to the resulting memory
+                as its trimming range. This retains information about any
+                initial and final emptiness of that range, which would be lost
+                otherwise.
+
+        Returns:
+            Memory: A copy of the memory from the selected range.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.extract()._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(2, 9)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(start=2)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(endex=9)._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(5, 8).span
+            (5, 8)
+            >>> memory.extract(pattern='.')._blocks
+            [[1, b'ABCD.$.xyz']]
+            >>> memory.extract(pattern='.', step=3)._blocks
+            [[1, b'AD.z']]
+        """
 
         start_ = start
         endex_ = endex
@@ -2094,6 +2152,50 @@ class Memory:
         offset: Address,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Shifts the items.
+
+        Arguments:
+            offset (int):
+                Signed amount of address shifting.
+
+            backups (list):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.shift(-2)
+            >>> memory._blocks
+            [[3, b'ABC'], [7, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[y | z]|   |   |   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], start=2)
+            >>> backups = []
+            >>> memory.shift(-7, backups=backups)
+            >>> memory._blocks
+            [[2, b'yz']]
+            >>> len(backups)
+            1
+            >>> backups[0]._blocks
+            [[5, b'ABC'], [9, b'x']]
+        """
 
         if offset and self._blocks:
             if offset < 0:
@@ -2110,6 +2212,55 @@ class Memory:
         size: Address,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Inserts emptiness.
+
+        Reserves emptiness at the provided address.
+
+        Arguments:
+            address (int):
+                Start address of the emptiness to insert.
+
+            size (int):
+                Length of the emptiness to insert.
+
+            backups (list):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[3, b'ABC'], [7, b'xyz']])
+            >>> memory.reserve(4, 2)
+            >>> memory._blocks
+            [[2, b'A'], [6, b'BC'], [9, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |   |   |   |   |   |   |   |[A | B]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], endex=12)
+            >>> backups = []
+            >>> memory.reserve(5, 5, backups=backups)
+            >>> memory._blocks
+            [[10, b'AB']]
+            >>> len(backups)
+            1
+            >>> backups[0]._blocks
+            [[7, b'C'], [9, b'xyz']]
+        """
 
         blocks = self._blocks
 
