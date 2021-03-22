@@ -1,19 +1,21 @@
-﻿bytesparse.\_c.Memory
+bytesparse.\_c.Memory
 =====================
 
 .. currentmodule:: bytesparse._c
 
 .. autoclass:: Memory
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
 
    
-   .. automethod:: __init__
-
    
    .. rubric:: Methods
 
    .. autosummary::
+      :nosignatures:
    
-      ~Memory.__init__
       ~Memory.append
       ~Memory.block_span
       ~Memory.bound

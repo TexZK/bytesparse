@@ -3,10 +3,8 @@ Reference
 
 .. autosummary::
     :toctree: _autosummary
+    :template: custom-module-template.rst
+    :recursive:
 
     bytesparse._py
-    bytesparse._py.Memory
-
     bytesparse._c
-    bytesparse._c.Memory
-
