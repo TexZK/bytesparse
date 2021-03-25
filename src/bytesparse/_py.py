@@ -248,7 +248,7 @@ class Memory:
             +---+---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory(blocks=[[1, b'ABC'], [7, b'xyz']])
-            >>> str(memory)
+            >>> memory._blocks
             'ABCxyz'
         """
 
@@ -2158,7 +2158,7 @@ class Memory:
             offset (int):
                 Signed amount of address shifting.
 
-            backups (list):
+            backups (list of :obj:`Memory`):
                 Optional output list holding backup copies of the deleted
                 items, before trimming.
 
@@ -2223,7 +2223,7 @@ class Memory:
             size (int):
                 Length of the emptiness to insert.
 
-            backups (list):
+            backups (list of :obj:`Memory`):
                 Optional output list holding backup copies of the deleted
                 items, before trimming.
 
@@ -2558,6 +2558,37 @@ class Memory:
         clear: bool = False,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Writes data.
+
+        Arguments:
+            address (int):
+                Address of the block to write.
+
+            data (bytes):
+                Block of byte-like data to write.
+
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with  holes.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[1 | 2 | 3 | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.write(5, b'123')
+            >>> memory._blocks
+            [[1, b'ABC'], [5, b'123z']]
+        """
 
         if isinstance(data, Memory):
             data_start = data.start
@@ -2635,6 +2666,55 @@ class Memory:
         pattern: Union[AnyBytes, Value] = 0,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Overwrites a range with a pattern.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+
+            pattern (items):
+                Pattern of items to fill the range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]||   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(pattern=b'123')
+            >>> memory._blocks
+            [[1, b'12312312']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | 1 | 2 | 3 | 1 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(3, 7, b'123')
+            >>> memory._blocks
+            [[1, b'AB1231yz']]
+        """
 
         start_ = start
         start, endex = self.bound(start, endex)
@@ -2671,6 +2751,55 @@ class Memory:
         pattern: Union[AnyBytes, Value] = 0,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Fills emptiness between non-touching blocks.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+
+            pattern (items):
+                Pattern of items to fill the range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 1 | 2 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(pattern=b'123')
+            >>> memory._blocks
+            [[1, b'ABC12xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 2 | 3 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(3, 7, b'123')
+            >>> memory._blocks
+            [[1, b'ABC23xyz']]
+        """
 
         start, endex = self.bound(start, endex)
         if start < endex:
@@ -2732,10 +2861,68 @@ class Memory:
     def keys(
         self: 'Memory',
         start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
     ) -> Iterator[Address]:
+        r"""Iterates over addresses.
 
-        del self
-        yield from _count(start)
+        Iterates over addresses starting from an address.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+                If ``Ellipsis``, the iterator is infinite.
+
+        Yields:
+            int: Range address.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.keys())
+            []
+            >>> list(memory.keys(endex=8))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.keys())
+            [1, 2, 3, 4, 5, 6, 7, 8]
+            >>> list(memory.keys(endex=8))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
+        """
+
+        if start is None:
+            start = self.start
+
+        if endex is Ellipsis:
+            yield from _count(start)
+        else:
+            if endex is None:
+                endex = self.endex
+            yield from range(start, endex)
 
     def values(
         self: 'Memory',
@@ -2743,6 +2930,57 @@ class Memory:
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values.
+
+        Iterates over values starting from an address.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+                If ``Ellipsis``, the iterator is infinite.
+
+            pattern (items):
+                Pattern of values to fill the range.
+
+        Yields:
+            int: Range values.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.values(endex=8))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.values(3, ...), 7))
+            [None, None, None, None, None, None, None]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.values())
+            [65, 66, 67, None, None, 120, 121, 122]
+            >>> list(memory.values(3, 8))
+            [67, None, None, 120, 121]
+            >>> list(islice(memory.values(3, ...), 7))
+            [67, None, None, 120, 121, 122, None]
+        """
 
         if endex is None or endex is Ellipsis:
             if pattern is not None:
@@ -2834,16 +3072,106 @@ class Memory:
     def items(
         self: 'Memory',
         start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
+        r"""Iterates over address and value couples.
 
-        yield from zip(self.keys(start), self.values(start, Ellipsis, pattern))
+        Iterates over address and value couples, starting from an address.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+                If ``Ellipsis``, the iterator is infinite.
+
+            pattern (items):
+                Pattern of values to fill the range.
+
+        Yields:
+            int: Range address and value couples.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.items(endex=8))
+            [(0, None), (1, None), (2, None), (3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(memory.items(3, 8))
+            [(3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, None), (4, None), (5, None), (6, None), (7, None), (8, None), (9, None)]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.items())
+            [(1, 65), (2, 66), (3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122)]
+            >>> list(memory.items(3, 8))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122), (9, None)]
+        """
+
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
+
+        yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
 
     def intervals(
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Iterator[ClosedInterval]:
+        r"""Iterates over block intervals.
+
+        Iterates over data boundaries within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+
+        Yields:
+            couple of addresses: Block data interval boundaries.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.intervals())
+            [(1, 3), (5, 6), (7, 10)]
+            >>> list(memory.intervals(2, 9))
+            [(2, 3), (5, 6), (7, 9)]
+            >>> list(memory.intervals(3, 5))
+            []
+        """
 
         blocks = self._blocks
         if blocks:
@@ -2865,6 +3193,45 @@ class Memory:
         endex: Optional[Address] = None,
         bound: bool = False,
     ) -> Iterator[OpenInterval]:
+        r"""Iterates over block gaps.
+
+        Iterates over gaps emptiness bounds within an address range.
+        If a yielded bound is ``None``, that direction is infinitely empty
+        (valid before or after global data bounds).
+
+        Arguments:
+            start (int):
+                Inclusive start of the filled range.
+                If ``None``, the global inclusive start address is considered
+                (i.e. that of the first block).
+
+            endex (int):
+                Exclusive end of the filled range.
+                If ``None``, the global exclusive end address is considered
+                (i.e. that of the last block).
+
+            bound (bool):
+                Only gaps within blocks are considered; emptiness before and
+                after global data bounds are ignored.
+
+        Yields:
+            couple of addresses: Block data interval boundaries.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.gaps())
+            [(None, 1), (3, 5), (6, 7), (10, None)]
+            >>> list(memory.gaps(bound=True))
+            [(3, 5), (6, 7)]
+            >>> list(memory.gaps(2, 6))
+            [(3, 5)]
+        """
 
         blocks = self._blocks
         if blocks:
@@ -2903,6 +3270,46 @@ class Memory:
         self: 'Memory',
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+        r"""Span of homogeneous data.
+
+        It searches for the biggest chunk of data adjacent to the given
+        address, with the same value at that address.
+        If the address is within a gap, its bounds are returned, and its
+        value is ``None``.
+        If the address is before or after any data, bounds are ``None``.
+
+        Arguments:
+            address (int):
+                Reference address.
+
+        Returns:
+            tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> memory = Memory()
+            >>> memory.equal_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.equal_span(2)
+            (1, 4, 66)
+            >>> memory.equal_span(4)
+            (4, 5, 67)
+            >>> memory.equal_span(5)
+            (5, 7, None)
+            >>> memory.equal_span(10)
+            (10, None, None)
+        """
 
         block_index = self._block_index_start(address)
         blocks = self._blocks
@@ -2960,6 +3367,46 @@ class Memory:
         self: 'Memory',
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+        r"""Span of block data.
+
+        It searches for the biggest chunk of data adjacent to the given
+        address.
+        If the address is within a gap, its bounds are returned, and its
+        value is ``None``.
+        If the address is before or after any data, bounds are ``None``.
+
+        Arguments:
+            address (int):
+                Reference address.
+
+        Returns:
+            tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> memory = Memory()
+            >>> memory.block_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.block_span(2)
+            (0, 5, 66)
+            >>> memory.block_span(4)
+            (0, 5, 67)
+            >>> memory.block_span(5)
+            (5, 7, None)
+            >>> memory.block_span(10)
+            (10, None, None)
+        """
 
         block_index = self._block_index_start(address)
         blocks = self._blocks
