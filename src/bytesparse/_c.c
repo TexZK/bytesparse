@@ -1194,14 +1194,16 @@ struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_4___reversed__ {
  */
 struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys {
   PyObject_HEAD
-  addr_t __pyx_v_address;
+  PyObject *__pyx_v_endex;
+  addr_t __pyx_v_endex_;
   struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self;
   PyObject *__pyx_v_start;
+  addr_t __pyx_v_start_;
 };
 
 
-/* "bytesparse/_c.pyx":5479
- *         raise StopIteration()
+/* "bytesparse/_c.pyx":5491
+ *             start_ += 1
  * 
  *     def values(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -1218,7 +1220,7 @@ struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_6_values {
 };
 
 
-/* "bytesparse/_c.pyx":5491
+/* "bytesparse/_c.pyx":5515
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
  * 
  *     def rvalues(             # <<<<<<<<<<<<<<
@@ -1236,7 +1238,7 @@ struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_7_rvalues {
 };
 
 
-/* "bytesparse/_c.pyx":5503
+/* "bytesparse/_c.pyx":5539
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
  * 
  *     def items(             # <<<<<<<<<<<<<<
@@ -1245,14 +1247,15 @@ struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_7_rvalues {
  */
 struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items {
   PyObject_HEAD
+  PyObject *__pyx_v_endex;
   PyObject *__pyx_v_pattern;
   struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self;
   PyObject *__pyx_v_start;
 };
 
 
-/* "bytesparse/_c.pyx":5511
- *         yield from zip(self.keys(start), self.values(start, None, pattern))
+/* "bytesparse/_c.pyx":5548
+ *         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
  * 
  *     def intervals(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -1281,7 +1284,7 @@ struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_9_intervals {
 };
 
 
-/* "bytesparse/_c.pyx":5544
+/* "bytesparse/_c.pyx":5581
  *                     yield slice_start, slice_endex
  * 
  *     def gaps(             # <<<<<<<<<<<<<<
@@ -3226,10 +3229,10 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_106crop(struct __pyx_obj_10by
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_108write(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_address, PyObject *__pyx_v_data, PyObject *__pyx_v_clear, PyObject *__pyx_v_backups); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_110fill(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern, PyObject *__pyx_v_backups); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_112flood(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern, PyObject *__pyx_v_backups); /* proto */
-static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_114keys(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start); /* proto */
+static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_114keys(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_117values(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_120rvalues(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern); /* proto */
-static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_pattern); /* proto */
+static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_126intervals(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_129gaps(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_bound); /* proto */
 static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_address); /* proto */
@@ -53278,7 +53281,7 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_sam
  * 
  *     cdef vint insert_raw_(self, addr_t address, size_t data_size, const byte_t* data_ptr, list backups) except -1:             # <<<<<<<<<<<<<<
  * 
- *         self._insert_(address, data_size, data_ptr, True)
+ *         self._insert_(address, data_size, data_ptr, True)  # TODO: backups
  */
 
 static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw_(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, addr_t __pyx_v_address, size_t __pyx_v_data_size, byte_t const *__pyx_v_data_ptr, CYTHON_UNUSED PyObject *__pyx_v_backups) {
@@ -53300,17 +53303,17 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw
   /* "bytesparse/_c.pyx":5020
  *     cdef vint insert_raw_(self, addr_t address, size_t data_size, const byte_t* data_ptr, list backups) except -1:
  * 
- *         self._insert_(address, data_size, data_ptr, True)             # <<<<<<<<<<<<<<
+ *         self._insert_(address, data_size, data_ptr, True)  # TODO: backups             # <<<<<<<<<<<<<<
  * 
  *         if data_size:
  */
   __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_v_self->__pyx_vtab)->_insert_(__pyx_v_self, __pyx_v_address, __pyx_v_data_size, __pyx_v_data_ptr, 1); if (unlikely(__pyx_t_1 == ((int)-1))) __PYX_ERR(0, 5020, __pyx_L1_error)
 
   /* "bytesparse/_c.pyx":5022
- *         self._insert_(address, data_size, data_ptr, True)
+ *         self._insert_(address, data_size, data_ptr, True)  # TODO: backups
  * 
  *         if data_size:             # <<<<<<<<<<<<<<
- *             self._crop(self._trim_start, self._trim_endex, None)
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
  * 
  */
   __pyx_t_1 = (__pyx_v_data_size != 0);
@@ -53319,7 +53322,7 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw
     /* "bytesparse/_c.pyx":5023
  * 
  *         if data_size:
- *             self._crop(self._trim_start, self._trim_endex, None)             # <<<<<<<<<<<<<<
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming             # <<<<<<<<<<<<<<
  * 
  *     def insert(
  */
@@ -53384,10 +53387,10 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "bytesparse/_c.pyx":5022
- *         self._insert_(address, data_size, data_ptr, True)
+ *         self._insert_(address, data_size, data_ptr, True)  # TODO: backups
  * 
  *         if data_size:             # <<<<<<<<<<<<<<
- *             self._crop(self._trim_start, self._trim_endex, None)
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
  * 
  */
   }
@@ -53397,7 +53400,7 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw
  * 
  *     cdef vint insert_raw_(self, addr_t address, size_t data_size, const byte_t* data_ptr, list backups) except -1:             # <<<<<<<<<<<<<<
  * 
- *         self._insert_(address, data_size, data_ptr, True)
+ *         self._insert_(address, data_size, data_ptr, True)  # TODO: backups
  */
 
   /* function exit code */
@@ -53418,7 +53421,7 @@ static __pyx_t_10bytesparse_2_c_vint __pyx_f_10bytesparse_2_c_6Memory_insert_raw
 }
 
 /* "bytesparse/_c.pyx":5025
- *             self._crop(self._trim_start, self._trim_endex, None)
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
  * 
  *     def insert(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -53509,7 +53512,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_95insert(PyObject *__pyx_v_se
   __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_94insert(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_address, __pyx_v_data, __pyx_v_backups);
 
   /* "bytesparse/_c.pyx":5025
- *             self._crop(self._trim_start, self._trim_endex, None)
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
  * 
  *     def insert(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -53683,7 +53686,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_94insert(struct __pyx_obj_10b
   __pyx_L3:;
 
   /* "bytesparse/_c.pyx":5025
- *             self._crop(self._trim_start, self._trim_endex, None)
+ *             self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
  * 
  *     def insert(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -58243,9 +58246,10 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
 
 /* Python wrapper */
 static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_10bytesparse_2_c_6Memory_114keys[] = "Memory.keys(self: u'Memory', start: Optional[Address] = None) -> Iterator[Address]";
+static char __pyx_doc_10bytesparse_2_c_6Memory_114keys[] = "Memory.keys(self: u'Memory', start: Optional[Address] = None, endex: Optional[Union[Address, EllipsisType]] = None) -> Iterator[Address]";
 static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_start = 0;
+  PyObject *__pyx_v_endex = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -58253,21 +58257,32 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_sel
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("keys (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,0};
-    PyObject* values[1] = {0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,0};
+    PyObject* values[2] = {0,0};
 
     /* "bytesparse/_c.pyx":5468
  *     def keys(
  *         self: 'Memory',
  *         start: Optional[Address] = None,             # <<<<<<<<<<<<<<
+ *         endex: Optional[Union[Address, EllipsisType]] = None,
+ *     ) -> Iterator[Address]:
+ */
+    values[0] = ((PyObject *)Py_None);
+
+    /* "bytesparse/_c.pyx":5469
+ *         self: 'Memory',
+ *         start: Optional[Address] = None,
+ *         endex: Optional[Union[Address, EllipsisType]] = None,             # <<<<<<<<<<<<<<
  *     ) -> Iterator[Address]:
  *         cdef:
  */
-    values[0] = ((PyObject *)Py_None);
+    values[1] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         CYTHON_FALLTHROUGH;
         case  0: break;
@@ -58280,12 +58295,20 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_sel
           PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_start);
           if (value) { values[0] = value; kw_args--; }
         }
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_endex);
+          if (value) { values[1] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
         if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "keys") < 0)) __PYX_ERR(0, 5466, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         CYTHON_FALLTHROUGH;
         case  0: break;
@@ -58293,16 +58316,17 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_sel
       }
     }
     __pyx_v_start = values[0];
+    __pyx_v_endex = values[1];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("keys", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5466, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("keys", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5466, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.keys", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_114keys(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start);
+  __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_114keys(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex);
 
   /* "bytesparse/_c.pyx":5466
  *                 raise
@@ -58317,7 +58341,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_115keys(PyObject *__pyx_v_sel
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_114keys(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start) {
+static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_114keys(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex) {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *__pyx_cur_scope;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -58339,6 +58363,9 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_114keys(struct __pyx_obj_10by
   __pyx_cur_scope->__pyx_v_start = __pyx_v_start;
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_start);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_start);
+  __pyx_cur_scope->__pyx_v_endex = __pyx_v_endex;
+  __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
+  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
   {
     __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_116generator3, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_keys, __pyx_n_s_Memory_keys, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5466, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
@@ -58360,7 +58387,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
 {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *__pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *)__pyx_generator->closure);
   PyObject *__pyx_r = NULL;
-  addr_t __pyx_t_1;
+  int __pyx_t_1;
   int __pyx_t_2;
   addr_t __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
@@ -58371,7 +58398,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
   __Pyx_RefNannySetupContext("keys", 0);
   switch (__pyx_generator->resume_label) {
     case 0: goto __pyx_L3_first_run;
-    case 1: goto __pyx_L6_resume_from_yield;
+    case 1: goto __pyx_L8_resume_from_yield;
     default: /* CPython raises the right error here */
     __Pyx_RefNannyFinishContext();
     return NULL;
@@ -58379,41 +58406,141 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
   __pyx_L3_first_run:;
   if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5466, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5471
- *     ) -> Iterator[Address]:
- *         cdef:
- *             addr_t address = self.start_() if start is None else <addr_t>start             # <<<<<<<<<<<<<<
+  /* "bytesparse/_c.pyx":5475
+ *             addr_t endex_
  * 
- *         while address < ADDR_MAX:
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         else:
  */
-  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_start == Py_None);
-  if ((__pyx_t_2 != 0)) {
-    __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
-  } else {
-    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5471, __pyx_L1_error)
-    __pyx_t_1 = ((addr_t)__pyx_t_3);
-  }
-  __pyx_cur_scope->__pyx_v_address = __pyx_t_1;
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_start == Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
 
-  /* "bytesparse/_c.pyx":5473
- *             addr_t address = self.start_() if start is None else <addr_t>start
+    /* "bytesparse/_c.pyx":5476
  * 
- *         while address < ADDR_MAX:             # <<<<<<<<<<<<<<
- *             yield address
- *             address += 1
+ *         if start is None:
+ *             start_ = self.start_()             # <<<<<<<<<<<<<<
+ *         else:
+ *             start_ = <addr_t>start
+ */
+    __pyx_cur_scope->__pyx_v_start_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5475
+ *             addr_t endex_
+ * 
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         else:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "bytesparse/_c.pyx":5478
+ *             start_ = self.start_()
+ *         else:
+ *             start_ = <addr_t>start             # <<<<<<<<<<<<<<
+ * 
+ *         if endex is None:
+ */
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5478, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_start_ = ((addr_t)__pyx_t_3);
+  }
+  __pyx_L4:;
+
+  /* "bytesparse/_c.pyx":5480
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ */
+  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_endex == Py_None);
+  __pyx_t_1 = (__pyx_t_2 != 0);
+  if (__pyx_t_1) {
+
+    /* "bytesparse/_c.pyx":5481
+ * 
+ *         if endex is None:
+ *             endex_ = self.endex_()             # <<<<<<<<<<<<<<
+ *         elif endex is Ellipsis:
+ *             endex_ = ADDR_MAX
+ */
+    __pyx_cur_scope->__pyx_v_endex_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->endex_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5480
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ */
+    goto __pyx_L5;
+  }
+
+  /* "bytesparse/_c.pyx":5482
+ *         if endex is None:
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:             # <<<<<<<<<<<<<<
+ *             endex_ = ADDR_MAX
+ *         else:
+ */
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_endex == __pyx_builtin_Ellipsis);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
+
+    /* "bytesparse/_c.pyx":5483
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ *             endex_ = ADDR_MAX             # <<<<<<<<<<<<<<
+ *         else:
+ *             endex_ = <addr_t>endex
+ */
+    __pyx_cur_scope->__pyx_v_endex_ = ADDR_MAX;
+
+    /* "bytesparse/_c.pyx":5482
+ *         if endex is None:
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:             # <<<<<<<<<<<<<<
+ *             endex_ = ADDR_MAX
+ *         else:
+ */
+    goto __pyx_L5;
+  }
+
+  /* "bytesparse/_c.pyx":5485
+ *             endex_ = ADDR_MAX
+ *         else:
+ *             endex_ = <addr_t>endex             # <<<<<<<<<<<<<<
+ * 
+ *         while start_ < endex_:
+ */
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5485, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_endex_ = ((addr_t)__pyx_t_3);
+  }
+  __pyx_L5:;
+
+  /* "bytesparse/_c.pyx":5487
+ *             endex_ = <addr_t>endex
+ * 
+ *         while start_ < endex_:             # <<<<<<<<<<<<<<
+ *             yield start_
+ *             start_ += 1
  */
   while (1) {
-    __pyx_t_2 = ((__pyx_cur_scope->__pyx_v_address < ADDR_MAX) != 0);
+    __pyx_t_2 = ((__pyx_cur_scope->__pyx_v_start_ < __pyx_cur_scope->__pyx_v_endex_) != 0);
     if (!__pyx_t_2) break;
 
-    /* "bytesparse/_c.pyx":5474
+    /* "bytesparse/_c.pyx":5488
  * 
- *         while address < ADDR_MAX:
- *             yield address             # <<<<<<<<<<<<<<
- *             address += 1
+ *         while start_ < endex_:
+ *             yield start_             # <<<<<<<<<<<<<<
+ *             start_ += 1
  * 
  */
-    __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_address); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5474, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5488, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_r = __pyx_t_4;
     __pyx_t_4 = 0;
@@ -58423,31 +58550,18 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
     /* return from generator, yielding value */
     __pyx_generator->resume_label = 1;
     return __pyx_r;
-    __pyx_L6_resume_from_yield:;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5474, __pyx_L1_error)
+    __pyx_L8_resume_from_yield:;
+    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5488, __pyx_L1_error)
 
-    /* "bytesparse/_c.pyx":5475
- *         while address < ADDR_MAX:
- *             yield address
- *             address += 1             # <<<<<<<<<<<<<<
- * 
- *         raise StopIteration()
- */
-    __pyx_cur_scope->__pyx_v_address = (__pyx_cur_scope->__pyx_v_address + 1);
-  }
-
-  /* "bytesparse/_c.pyx":5477
- *             address += 1
- * 
- *         raise StopIteration()             # <<<<<<<<<<<<<<
+    /* "bytesparse/_c.pyx":5489
+ *         while start_ < endex_:
+ *             yield start_
+ *             start_ += 1             # <<<<<<<<<<<<<<
  * 
  *     def values(
  */
-  __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_builtin_StopIteration); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5477, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_Raise(__pyx_t_4, 0, 0, 0);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __PYX_ERR(0, 5477, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_start_ = (__pyx_cur_scope->__pyx_v_start_ + 1);
+  }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
   /* "bytesparse/_c.pyx":5466
@@ -58459,9 +58573,12 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
  */
 
   /* function exit code */
+  PyErr_SetNone(PyExc_StopIteration);
+  goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("keys", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_L0:;
   __Pyx_XDECREF(__pyx_r); __pyx_r = 0;
   #if !CYTHON_USE_EXC_INFO_STACK
   __Pyx_Coroutine_ResetAndClearException(__pyx_generator);
@@ -58473,8 +58590,8 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_116generator3(__pyx_Coroutine
 }
 static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "bytesparse/_c.pyx":5479
- *         raise StopIteration()
+/* "bytesparse/_c.pyx":5491
+ *             start_ += 1
  * 
  *     def values(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -58498,7 +58615,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,&__pyx_n_s_pattern,0};
     PyObject* values[3] = {0,0,0};
 
-    /* "bytesparse/_c.pyx":5481
+    /* "bytesparse/_c.pyx":5493
  *     def values(
  *         self: 'Memory',
  *         start: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -58507,7 +58624,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5482
+    /* "bytesparse/_c.pyx":5494
  *         self: 'Memory',
  *         start: Optional[Address] = None,
  *         endex: Optional[Union[Address, EllipsisType]] = None,             # <<<<<<<<<<<<<<
@@ -58516,7 +58633,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5483
+    /* "bytesparse/_c.pyx":5495
  *         start: Optional[Address] = None,
  *         endex: Optional[Union[Address, EllipsisType]] = None,
  *         pattern: Optional[Union[AnyBytes, Value]] = None,             # <<<<<<<<<<<<<<
@@ -58558,7 +58675,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "values") < 0)) __PYX_ERR(0, 5479, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "values") < 0)) __PYX_ERR(0, 5491, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -58578,7 +58695,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("values", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5479, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("values", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5491, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.values", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -58586,8 +58703,8 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_118values(PyObject *__pyx_v_s
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_117values(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex, __pyx_v_pattern);
 
-  /* "bytesparse/_c.pyx":5479
- *         raise StopIteration()
+  /* "bytesparse/_c.pyx":5491
+ *             start_ += 1
  * 
  *     def values(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -58611,7 +58728,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_117values(struct __pyx_obj_10
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_6_values *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 5479, __pyx_L1_error)
+    __PYX_ERR(0, 5491, __pyx_L1_error)
   } else {
     __Pyx_GOTREF(__pyx_cur_scope);
   }
@@ -58628,7 +58745,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_117values(struct __pyx_obj_10
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_119generator4, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_values, __pyx_n_s_Memory_values, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5479, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_119generator4, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_values, __pyx_n_s_Memory_values, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5491, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -58648,15 +58765,13 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_Coroutine
 {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_6_values *__pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_6_values *)__pyx_generator->closure);
   PyObject *__pyx_r = NULL;
-  addr_t __pyx_t_1;
+  int __pyx_t_1;
   int __pyx_t_2;
   addr_t __pyx_t_3;
-  int __pyx_t_4;
-  int __pyx_t_5;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -58670,89 +58785,163 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_Coroutine
     return NULL;
   }
   __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5479, __pyx_L1_error)
+  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5491, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5486
- *     ) -> Iterator[Optional[Value]]:
- *         cdef:
- *             addr_t start_ = self.start_() if start is None else <addr_t>start             # <<<<<<<<<<<<<<
- *             addr_t endex_ = self.endex_() if (endex is None or endex is Ellipsis) else <addr_t>endex
+  /* "bytesparse/_c.pyx":5501
+ *             addr_t endex_
  * 
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         else:
  */
-  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_start == Py_None);
-  if ((__pyx_t_2 != 0)) {
-    __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
-  } else {
-    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5486, __pyx_L1_error)
-    __pyx_t_1 = ((addr_t)__pyx_t_3);
-  }
-  __pyx_cur_scope->__pyx_v_start_ = __pyx_t_1;
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_start == Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
 
-  /* "bytesparse/_c.pyx":5487
- *         cdef:
- *             addr_t start_ = self.start_() if start is None else <addr_t>start
- *             addr_t endex_ = self.endex_() if (endex is None or endex is Ellipsis) else <addr_t>endex             # <<<<<<<<<<<<<<
+    /* "bytesparse/_c.pyx":5502
+ * 
+ *         if start is None:
+ *             start_ = self.start_()             # <<<<<<<<<<<<<<
+ *         else:
+ *             start_ = <addr_t>start
+ */
+    __pyx_cur_scope->__pyx_v_start_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5501
+ *             addr_t endex_
+ * 
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         else:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "bytesparse/_c.pyx":5504
+ *             start_ = self.start_()
+ *         else:
+ *             start_ = <addr_t>start             # <<<<<<<<<<<<<<
+ * 
+ *         if endex is None:
+ */
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5504, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_start_ = ((addr_t)__pyx_t_3);
+  }
+  __pyx_L4:;
+
+  /* "bytesparse/_c.pyx":5506
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ */
+  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_endex == Py_None);
+  __pyx_t_1 = (__pyx_t_2 != 0);
+  if (__pyx_t_1) {
+
+    /* "bytesparse/_c.pyx":5507
+ * 
+ *         if endex is None:
+ *             endex_ = self.endex_()             # <<<<<<<<<<<<<<
+ *         elif endex is Ellipsis:
+ *             endex_ = ADDR_MAX
+ */
+    __pyx_cur_scope->__pyx_v_endex_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->endex_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5506
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ */
+    goto __pyx_L5;
+  }
+
+  /* "bytesparse/_c.pyx":5508
+ *         if endex is None:
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:             # <<<<<<<<<<<<<<
+ *             endex_ = ADDR_MAX
+ *         else:
+ */
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_endex == __pyx_builtin_Ellipsis);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
+
+    /* "bytesparse/_c.pyx":5509
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:
+ *             endex_ = ADDR_MAX             # <<<<<<<<<<<<<<
+ *         else:
+ *             endex_ = <addr_t>endex
+ */
+    __pyx_cur_scope->__pyx_v_endex_ = ADDR_MAX;
+
+    /* "bytesparse/_c.pyx":5508
+ *         if endex is None:
+ *             endex_ = self.endex_()
+ *         elif endex is Ellipsis:             # <<<<<<<<<<<<<<
+ *             endex_ = ADDR_MAX
+ *         else:
+ */
+    goto __pyx_L5;
+  }
+
+  /* "bytesparse/_c.pyx":5511
+ *             endex_ = ADDR_MAX
+ *         else:
+ *             endex_ = <addr_t>endex             # <<<<<<<<<<<<<<
  * 
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
  */
-  __pyx_t_4 = (__pyx_cur_scope->__pyx_v_endex == Py_None);
-  __pyx_t_5 = (__pyx_t_4 != 0);
-  if (!__pyx_t_5) {
-  } else {
-    __pyx_t_2 = __pyx_t_5;
-    goto __pyx_L4_bool_binop_done;
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5511, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_endex_ = ((addr_t)__pyx_t_3);
   }
-  __pyx_t_5 = (__pyx_cur_scope->__pyx_v_endex == __pyx_builtin_Ellipsis);
-  __pyx_t_4 = (__pyx_t_5 != 0);
-  __pyx_t_2 = __pyx_t_4;
-  __pyx_L4_bool_binop_done:;
-  if (__pyx_t_2) {
-    __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->endex_(__pyx_cur_scope->__pyx_v_self);
-  } else {
-    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5487, __pyx_L1_error)
-    __pyx_t_1 = ((addr_t)__pyx_t_3);
-  }
-  __pyx_cur_scope->__pyx_v_endex_ = __pyx_t_1;
+  __pyx_L5:;
 
-  /* "bytesparse/_c.pyx":5489
- *             addr_t endex_ = self.endex_() if (endex is None or endex is Ellipsis) else <addr_t>endex
+  /* "bytesparse/_c.pyx":5513
+ *             endex_ = <addr_t>endex
  * 
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)             # <<<<<<<<<<<<<<
  * 
  *     def rvalues(
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5513, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5513, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_2 = (__pyx_cur_scope->__pyx_v_endex == __pyx_builtin_Ellipsis);
-  __pyx_t_8 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = PyTuple_New(6); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_t_6 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5513, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_7 = PyTuple_New(6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5513, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
   __Pyx_INCREF(((PyObject *)__pyx_cur_scope->__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_cur_scope->__pyx_v_self));
-  PyTuple_SET_ITEM(__pyx_t_9, 0, ((PyObject *)__pyx_cur_scope->__pyx_v_self));
-  __Pyx_GIVEREF(__pyx_t_6);
-  PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_7);
-  PyTuple_SET_ITEM(__pyx_t_9, 2, __pyx_t_7);
+  PyTuple_SET_ITEM(__pyx_t_7, 0, ((PyObject *)__pyx_cur_scope->__pyx_v_self));
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_7, 2, __pyx_t_5);
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
-  PyTuple_SET_ITEM(__pyx_t_9, 3, __pyx_cur_scope->__pyx_v_pattern);
+  PyTuple_SET_ITEM(__pyx_t_7, 3, __pyx_cur_scope->__pyx_v_pattern);
   __Pyx_INCREF(Py_True);
   __Pyx_GIVEREF(Py_True);
-  PyTuple_SET_ITEM(__pyx_t_9, 4, Py_True);
-  __Pyx_GIVEREF(__pyx_t_8);
-  PyTuple_SET_ITEM(__pyx_t_9, 5, __pyx_t_8);
+  PyTuple_SET_ITEM(__pyx_t_7, 4, Py_True);
+  __Pyx_GIVEREF(__pyx_t_6);
+  PyTuple_SET_ITEM(__pyx_t_7, 5, __pyx_t_6);
+  __pyx_t_4 = 0;
+  __pyx_t_5 = 0;
   __pyx_t_6 = 0;
-  __pyx_t_7 = 0;
-  __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_10bytesparse_2_c_Rover), __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_r = __Pyx_Generator_Yield_From(__pyx_generator, __pyx_t_8);
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_10bytesparse_2_c_Rover), __pyx_t_7, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5513, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_r = __Pyx_Generator_Yield_From(__pyx_generator, __pyx_t_6);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_XGOTREF(__pyx_r);
   if (likely(__pyx_r)) {
     __Pyx_XGIVEREF(__pyx_r);
@@ -58762,18 +58951,18 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_Coroutine
     __pyx_generator->resume_label = 1;
     return __pyx_r;
     __pyx_L6_resume_from_yield_from:;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5489, __pyx_L1_error)
+    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5513, __pyx_L1_error)
   } else {
     PyObject* exc_type = __Pyx_PyErr_Occurred();
     if (exc_type) {
       if (likely(exc_type == PyExc_StopIteration || (exc_type != PyExc_GeneratorExit && __Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))) PyErr_Clear();
-      else __PYX_ERR(0, 5489, __pyx_L1_error)
+      else __PYX_ERR(0, 5513, __pyx_L1_error)
     }
   }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "bytesparse/_c.pyx":5479
- *         raise StopIteration()
+  /* "bytesparse/_c.pyx":5491
+ *             start_ += 1
  * 
  *     def values(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -58784,10 +58973,10 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_Coroutine
   PyErr_SetNone(PyExc_StopIteration);
   goto __pyx_L0;
   __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_9);
   __Pyx_AddTraceback("values", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_r); __pyx_r = 0;
@@ -58801,7 +58990,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_119generator4(__pyx_Coroutine
 }
 static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "bytesparse/_c.pyx":5491
+/* "bytesparse/_c.pyx":5515
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
  * 
  *     def rvalues(             # <<<<<<<<<<<<<<
@@ -58826,7 +59015,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,&__pyx_n_s_pattern,0};
     PyObject* values[3] = {0,0,0};
 
-    /* "bytesparse/_c.pyx":5493
+    /* "bytesparse/_c.pyx":5517
  *     def rvalues(
  *         self: 'Memory',
  *         start: Optional[Union[Address, EllipsisType]] = None,             # <<<<<<<<<<<<<<
@@ -58835,7 +59024,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5494
+    /* "bytesparse/_c.pyx":5518
  *         self: 'Memory',
  *         start: Optional[Union[Address, EllipsisType]] = None,
  *         endex: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -58844,7 +59033,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5495
+    /* "bytesparse/_c.pyx":5519
  *         start: Optional[Union[Address, EllipsisType]] = None,
  *         endex: Optional[Address] = None,
  *         pattern: Optional[Union[AnyBytes, Value]] = None,             # <<<<<<<<<<<<<<
@@ -58886,7 +59075,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "rvalues") < 0)) __PYX_ERR(0, 5491, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "rvalues") < 0)) __PYX_ERR(0, 5515, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -58906,7 +59095,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("rvalues", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5491, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("rvalues", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5515, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.rvalues", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -58914,7 +59103,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_121rvalues(PyObject *__pyx_v_
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_120rvalues(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex, __pyx_v_pattern);
 
-  /* "bytesparse/_c.pyx":5491
+  /* "bytesparse/_c.pyx":5515
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
  * 
  *     def rvalues(             # <<<<<<<<<<<<<<
@@ -58939,7 +59128,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_120rvalues(struct __pyx_obj_1
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_7_rvalues *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 5491, __pyx_L1_error)
+    __PYX_ERR(0, 5515, __pyx_L1_error)
   } else {
     __Pyx_GOTREF(__pyx_cur_scope);
   }
@@ -58956,7 +59145,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_120rvalues(struct __pyx_obj_1
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_122generator5, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_rvalues, __pyx_n_s_Memory_rvalues, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5491, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_122generator5, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_rvalues, __pyx_n_s_Memory_rvalues, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5515, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -58976,15 +59165,13 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_Coroutine
 {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_7_rvalues *__pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_7_rvalues *)__pyx_generator->closure);
   PyObject *__pyx_r = NULL;
-  addr_t __pyx_t_1;
+  int __pyx_t_1;
   int __pyx_t_2;
-  int __pyx_t_3;
-  int __pyx_t_4;
-  addr_t __pyx_t_5;
+  addr_t __pyx_t_3;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -58998,89 +59185,163 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_Coroutine
     return NULL;
   }
   __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5491, __pyx_L1_error)
+  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5515, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5498
- *     ) -> Iterator[Optional[Value]]:
- *         cdef:
- *             addr_t start_ = self.start_() if (start is None or start is Ellipsis) else <addr_t>start             # <<<<<<<<<<<<<<
- *             addr_t endex_ = self.endex_() if endex is None else <addr_t>endex
+  /* "bytesparse/_c.pyx":5525
+ *             addr_t endex_
  * 
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         elif start is Ellipsis:
  */
-  __pyx_t_3 = (__pyx_cur_scope->__pyx_v_start == Py_None);
-  __pyx_t_4 = (__pyx_t_3 != 0);
-  if (!__pyx_t_4) {
-  } else {
-    __pyx_t_2 = __pyx_t_4;
-    goto __pyx_L4_bool_binop_done;
-  }
-  __pyx_t_4 = (__pyx_cur_scope->__pyx_v_start == __pyx_builtin_Ellipsis);
-  __pyx_t_3 = (__pyx_t_4 != 0);
-  __pyx_t_2 = __pyx_t_3;
-  __pyx_L4_bool_binop_done:;
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_start == Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
-    __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
-  } else {
-    __pyx_t_5 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_5 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5498, __pyx_L1_error)
-    __pyx_t_1 = ((addr_t)__pyx_t_5);
-  }
-  __pyx_cur_scope->__pyx_v_start_ = __pyx_t_1;
 
-  /* "bytesparse/_c.pyx":5499
- *         cdef:
- *             addr_t start_ = self.start_() if (start is None or start is Ellipsis) else <addr_t>start
- *             addr_t endex_ = self.endex_() if endex is None else <addr_t>endex             # <<<<<<<<<<<<<<
+    /* "bytesparse/_c.pyx":5526
+ * 
+ *         if start is None:
+ *             start_ = self.start_()             # <<<<<<<<<<<<<<
+ *         elif start is Ellipsis:
+ *             start_ = ADDR_MIN
+ */
+    __pyx_cur_scope->__pyx_v_start_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->start_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5525
+ *             addr_t endex_
+ * 
+ *         if start is None:             # <<<<<<<<<<<<<<
+ *             start_ = self.start_()
+ *         elif start is Ellipsis:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "bytesparse/_c.pyx":5527
+ *         if start is None:
+ *             start_ = self.start_()
+ *         elif start is Ellipsis:             # <<<<<<<<<<<<<<
+ *             start_ = ADDR_MIN
+ *         else:
+ */
+  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_start == __pyx_builtin_Ellipsis);
+  __pyx_t_1 = (__pyx_t_2 != 0);
+  if (__pyx_t_1) {
+
+    /* "bytesparse/_c.pyx":5528
+ *             start_ = self.start_()
+ *         elif start is Ellipsis:
+ *             start_ = ADDR_MIN             # <<<<<<<<<<<<<<
+ *         else:
+ *             start_ = <addr_t>start
+ */
+    __pyx_cur_scope->__pyx_v_start_ = ADDR_MIN;
+
+    /* "bytesparse/_c.pyx":5527
+ *         if start is None:
+ *             start_ = self.start_()
+ *         elif start is Ellipsis:             # <<<<<<<<<<<<<<
+ *             start_ = ADDR_MIN
+ *         else:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "bytesparse/_c.pyx":5530
+ *             start_ = ADDR_MIN
+ *         else:
+ *             start_ = <addr_t>start             # <<<<<<<<<<<<<<
+ * 
+ *         if endex is None:
+ */
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5530, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_start_ = ((addr_t)__pyx_t_3);
+  }
+  __pyx_L4:;
+
+  /* "bytesparse/_c.pyx":5532
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         else:
+ */
+  __pyx_t_1 = (__pyx_cur_scope->__pyx_v_endex == Py_None);
+  __pyx_t_2 = (__pyx_t_1 != 0);
+  if (__pyx_t_2) {
+
+    /* "bytesparse/_c.pyx":5533
+ * 
+ *         if endex is None:
+ *             endex_ = self.endex_()             # <<<<<<<<<<<<<<
+ *         else:
+ *             endex_ = <addr_t>endex
+ */
+    __pyx_cur_scope->__pyx_v_endex_ = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->endex_(__pyx_cur_scope->__pyx_v_self);
+
+    /* "bytesparse/_c.pyx":5532
+ *             start_ = <addr_t>start
+ * 
+ *         if endex is None:             # <<<<<<<<<<<<<<
+ *             endex_ = self.endex_()
+ *         else:
+ */
+    goto __pyx_L5;
+  }
+
+  /* "bytesparse/_c.pyx":5535
+ *             endex_ = self.endex_()
+ *         else:
+ *             endex_ = <addr_t>endex             # <<<<<<<<<<<<<<
  * 
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
  */
-  __pyx_t_2 = (__pyx_cur_scope->__pyx_v_endex == Py_None);
-  if ((__pyx_t_2 != 0)) {
-    __pyx_t_1 = ((struct __pyx_vtabstruct_10bytesparse_2_c_Memory *)__pyx_cur_scope->__pyx_v_self->__pyx_vtab)->endex_(__pyx_cur_scope->__pyx_v_self);
-  } else {
-    __pyx_t_5 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_5 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5499, __pyx_L1_error)
-    __pyx_t_1 = ((addr_t)__pyx_t_5);
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_3 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5535, __pyx_L1_error)
+    __pyx_cur_scope->__pyx_v_endex_ = ((addr_t)__pyx_t_3);
   }
-  __pyx_cur_scope->__pyx_v_endex_ = __pyx_t_1;
+  __pyx_L5:;
 
-  /* "bytesparse/_c.pyx":5501
- *             addr_t endex_ = self.endex_() if endex is None else <addr_t>endex
+  /* "bytesparse/_c.pyx":5537
+ *             endex_ = <addr_t>endex
  * 
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)             # <<<<<<<<<<<<<<
  * 
  *     def items(
  */
-  __pyx_t_6 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5501, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5501, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5537, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5537, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_2 = (__pyx_cur_scope->__pyx_v_start == __pyx_builtin_Ellipsis);
-  __pyx_t_8 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5501, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = PyTuple_New(6); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5501, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_t_6 = __Pyx_PyBool_FromLong(__pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5537, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_7 = PyTuple_New(6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5537, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
   __Pyx_INCREF(((PyObject *)__pyx_cur_scope->__pyx_v_self));
   __Pyx_GIVEREF(((PyObject *)__pyx_cur_scope->__pyx_v_self));
-  PyTuple_SET_ITEM(__pyx_t_9, 0, ((PyObject *)__pyx_cur_scope->__pyx_v_self));
-  __Pyx_GIVEREF(__pyx_t_6);
-  PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_7);
-  PyTuple_SET_ITEM(__pyx_t_9, 2, __pyx_t_7);
+  PyTuple_SET_ITEM(__pyx_t_7, 0, ((PyObject *)__pyx_cur_scope->__pyx_v_self));
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_7, 2, __pyx_t_5);
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
-  PyTuple_SET_ITEM(__pyx_t_9, 3, __pyx_cur_scope->__pyx_v_pattern);
+  PyTuple_SET_ITEM(__pyx_t_7, 3, __pyx_cur_scope->__pyx_v_pattern);
   __Pyx_INCREF(Py_False);
   __Pyx_GIVEREF(Py_False);
-  PyTuple_SET_ITEM(__pyx_t_9, 4, Py_False);
-  __Pyx_GIVEREF(__pyx_t_8);
-  PyTuple_SET_ITEM(__pyx_t_9, 5, __pyx_t_8);
+  PyTuple_SET_ITEM(__pyx_t_7, 4, Py_False);
+  __Pyx_GIVEREF(__pyx_t_6);
+  PyTuple_SET_ITEM(__pyx_t_7, 5, __pyx_t_6);
+  __pyx_t_4 = 0;
+  __pyx_t_5 = 0;
   __pyx_t_6 = 0;
-  __pyx_t_7 = 0;
-  __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_10bytesparse_2_c_Rover), __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5501, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_r = __Pyx_Generator_Yield_From(__pyx_generator, __pyx_t_8);
-  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_10bytesparse_2_c_Rover), __pyx_t_7, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5537, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_r = __Pyx_Generator_Yield_From(__pyx_generator, __pyx_t_6);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_XGOTREF(__pyx_r);
   if (likely(__pyx_r)) {
     __Pyx_XGIVEREF(__pyx_r);
@@ -59090,17 +59351,17 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_Coroutine
     __pyx_generator->resume_label = 1;
     return __pyx_r;
     __pyx_L6_resume_from_yield_from:;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5501, __pyx_L1_error)
+    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5537, __pyx_L1_error)
   } else {
     PyObject* exc_type = __Pyx_PyErr_Occurred();
     if (exc_type) {
       if (likely(exc_type == PyExc_StopIteration || (exc_type != PyExc_GeneratorExit && __Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))) PyErr_Clear();
-      else __PYX_ERR(0, 5501, __pyx_L1_error)
+      else __PYX_ERR(0, 5537, __pyx_L1_error)
     }
   }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "bytesparse/_c.pyx":5491
+  /* "bytesparse/_c.pyx":5515
  *         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
  * 
  *     def rvalues(             # <<<<<<<<<<<<<<
@@ -59112,10 +59373,10 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_Coroutine
   PyErr_SetNone(PyExc_StopIteration);
   goto __pyx_L0;
   __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_9);
   __Pyx_AddTraceback("rvalues", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_r); __pyx_r = 0;
@@ -59129,7 +59390,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_122generator5(__pyx_Coroutine
 }
 static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "bytesparse/_c.pyx":5503
+/* "bytesparse/_c.pyx":5539
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
  * 
  *     def items(             # <<<<<<<<<<<<<<
@@ -59139,9 +59400,10 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
 
 /* Python wrapper */
 static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_10bytesparse_2_c_6Memory_123items[] = "Memory.items(self: u'Memory', start: Optional[Address] = None, pattern: Optional[Union[AnyBytes, Value]] = None) -> Iterator[Tuple[Address, Value]]";
+static char __pyx_doc_10bytesparse_2_c_6Memory_123items[] = "Memory.items(self: u'Memory', start: Optional[Address] = None, endex: Optional[Union[Address, EllipsisType]] = None, pattern: Optional[Union[AnyBytes, Value]] = None) -> Iterator[Tuple[Address, Value]]";
 static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_start = 0;
+  PyObject *__pyx_v_endex = 0;
   PyObject *__pyx_v_pattern = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -59150,30 +59412,41 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_se
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("items (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_pattern,0};
-    PyObject* values[2] = {0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,&__pyx_n_s_pattern,0};
+    PyObject* values[3] = {0,0,0};
 
-    /* "bytesparse/_c.pyx":5505
+    /* "bytesparse/_c.pyx":5541
  *     def items(
  *         self: 'Memory',
  *         start: Optional[Address] = None,             # <<<<<<<<<<<<<<
+ *         endex: Optional[Union[Address, EllipsisType]] = None,
  *         pattern: Optional[Union[AnyBytes, Value]] = None,
- *     ) -> Iterator[Tuple[Address, Value]]:
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5506
+    /* "bytesparse/_c.pyx":5542
  *         self: 'Memory',
  *         start: Optional[Address] = None,
+ *         endex: Optional[Union[Address, EllipsisType]] = None,             # <<<<<<<<<<<<<<
+ *         pattern: Optional[Union[AnyBytes, Value]] = None,
+ *     ) -> Iterator[Tuple[Address, Value]]:
+ */
+    values[1] = ((PyObject *)Py_None);
+
+    /* "bytesparse/_c.pyx":5543
+ *         start: Optional[Address] = None,
+ *         endex: Optional[Union[Address, EllipsisType]] = None,
  *         pattern: Optional[Union[AnyBytes, Value]] = None,             # <<<<<<<<<<<<<<
  *     ) -> Iterator[Tuple[Address, Value]]:
  * 
  */
-    values[1] = ((PyObject *)Py_None);
+    values[2] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -59191,15 +59464,23 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_se
         CYTHON_FALLTHROUGH;
         case  1:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pattern);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_endex);
           if (value) { values[1] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pattern);
+          if (value) { values[2] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "items") < 0)) __PYX_ERR(0, 5503, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "items") < 0)) __PYX_ERR(0, 5539, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -59209,19 +59490,20 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_se
       }
     }
     __pyx_v_start = values[0];
-    __pyx_v_pattern = values[1];
+    __pyx_v_endex = values[1];
+    __pyx_v_pattern = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("items", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5503, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("items", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5539, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_123items(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_pattern);
+  __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_123items(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex, __pyx_v_pattern);
 
-  /* "bytesparse/_c.pyx":5503
+  /* "bytesparse/_c.pyx":5539
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
  * 
  *     def items(             # <<<<<<<<<<<<<<
@@ -59234,7 +59516,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_124items(PyObject *__pyx_v_se
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_pattern) {
+static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10bytesparse_2_c_Memory *__pyx_v_self, PyObject *__pyx_v_start, PyObject *__pyx_v_endex, PyObject *__pyx_v_pattern) {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *__pyx_cur_scope;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -59246,7 +59528,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10b
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 5503, __pyx_L1_error)
+    __PYX_ERR(0, 5539, __pyx_L1_error)
   } else {
     __Pyx_GOTREF(__pyx_cur_scope);
   }
@@ -59256,11 +59538,14 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_123items(struct __pyx_obj_10b
   __pyx_cur_scope->__pyx_v_start = __pyx_v_start;
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_start);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_start);
+  __pyx_cur_scope->__pyx_v_endex = __pyx_v_endex;
+  __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
+  __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
   __pyx_cur_scope->__pyx_v_pattern = __pyx_v_pattern;
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_125generator6, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_items, __pyx_n_s_Memory_items, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5503, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_125generator6, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_items, __pyx_n_s_Memory_items, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5539, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -59283,8 +59568,8 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  int __pyx_t_5;
+  int __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -59299,18 +59584,19 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
     return NULL;
   }
   __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5503, __pyx_L1_error)
+  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5539, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5509
+  /* "bytesparse/_c.pyx":5546
  *     ) -> Iterator[Tuple[Address, Value]]:
  * 
- *         yield from zip(self.keys(start), self.values(start, None, pattern))             # <<<<<<<<<<<<<<
+ *         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))             # <<<<<<<<<<<<<<
  * 
  *     def intervals(
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_keys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5509, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_keys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5546, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
+  __pyx_t_4 = 0;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
     __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
     if (likely(__pyx_t_3)) {
@@ -59318,74 +59604,103 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
       __Pyx_INCREF(__pyx_t_3);
       __Pyx_INCREF(function);
       __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_cur_scope->__pyx_v_start) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_cur_scope->__pyx_v_start);
-  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5509, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5509, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = NULL;
-  __pyx_t_5 = 0;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-      __pyx_t_5 = 1;
+      __pyx_t_4 = 1;
     }
   }
   #if CYTHON_FAST_PYCALL
-  if (PyFunction_Check(__pyx_t_3)) {
-    PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_cur_scope->__pyx_v_start, Py_None, __pyx_cur_scope->__pyx_v_pattern};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5509, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex};
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex};
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_1);
+  } else
+  #endif
+  {
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    }
+    __Pyx_INCREF(__pyx_cur_scope->__pyx_v_start);
+    __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_start);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_4, __pyx_cur_scope->__pyx_v_start);
+    __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
+    __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_cur_scope->__pyx_v_endex);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_values); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5546, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = NULL;
+  __pyx_t_4 = 0;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_5);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_5, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_5)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex, __pyx_cur_scope->__pyx_v_pattern};
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_4, 3+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else
   #endif
   #if CYTHON_FAST_PYCCALL
-  if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
-    PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_cur_scope->__pyx_v_start, Py_None, __pyx_cur_scope->__pyx_v_pattern};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5509, __pyx_L1_error)
-    __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex, __pyx_cur_scope->__pyx_v_pattern};
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_4, 3+__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5546, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_2);
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5509, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(3+__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 5546, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    if (__pyx_t_4) {
-      __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_3); __pyx_t_3 = NULL;
     }
     __Pyx_INCREF(__pyx_cur_scope->__pyx_v_start);
     __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_start);
-    PyTuple_SET_ITEM(__pyx_t_6, 0+__pyx_t_5, __pyx_cur_scope->__pyx_v_start);
-    __Pyx_INCREF(Py_None);
-    __Pyx_GIVEREF(Py_None);
-    PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, Py_None);
+    PyTuple_SET_ITEM(__pyx_t_6, 0+__pyx_t_4, __pyx_cur_scope->__pyx_v_start);
+    __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
+    __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
+    PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_4, __pyx_cur_scope->__pyx_v_endex);
     __Pyx_INCREF(__pyx_cur_scope->__pyx_v_pattern);
     __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_pattern);
-    PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_5, __pyx_cur_scope->__pyx_v_pattern);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5509, __pyx_L1_error)
+    PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_4, __pyx_cur_scope->__pyx_v_pattern);
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5546, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5509, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5546, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5509, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5546, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_r = __Pyx_Generator_Yield_From(__pyx_generator, __pyx_t_2);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_XGOTREF(__pyx_r);
@@ -59397,17 +59712,17 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
     __pyx_generator->resume_label = 1;
     return __pyx_r;
     __pyx_L4_resume_from_yield_from:;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5509, __pyx_L1_error)
+    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5546, __pyx_L1_error)
   } else {
     PyObject* exc_type = __Pyx_PyErr_Occurred();
     if (exc_type) {
       if (likely(exc_type == PyExc_StopIteration || (exc_type != PyExc_GeneratorExit && __Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))) PyErr_Clear();
-      else __PYX_ERR(0, 5509, __pyx_L1_error)
+      else __PYX_ERR(0, 5546, __pyx_L1_error)
     }
   }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "bytesparse/_c.pyx":5503
+  /* "bytesparse/_c.pyx":5539
  *         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
  * 
  *     def items(             # <<<<<<<<<<<<<<
@@ -59422,7 +59737,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_AddTraceback("items", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
@@ -59437,8 +59752,8 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_125generator6(__pyx_Coroutine
 }
 static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "bytesparse/_c.pyx":5511
- *         yield from zip(self.keys(start), self.values(start, None, pattern))
+/* "bytesparse/_c.pyx":5548
+ *         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
  * 
  *     def intervals(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -59461,7 +59776,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_127intervals(PyObject *__pyx_
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,0};
     PyObject* values[2] = {0,0};
 
-    /* "bytesparse/_c.pyx":5513
+    /* "bytesparse/_c.pyx":5550
  *     def intervals(
  *         self: 'Memory',
  *         start: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -59470,7 +59785,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_127intervals(PyObject *__pyx_
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5514
+    /* "bytesparse/_c.pyx":5551
  *         self: 'Memory',
  *         start: Optional[Address] = None,
  *         endex: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -59504,7 +59819,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_127intervals(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "intervals") < 0)) __PYX_ERR(0, 5511, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "intervals") < 0)) __PYX_ERR(0, 5548, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -59521,7 +59836,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_127intervals(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("intervals", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5511, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("intervals", 0, 0, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5548, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.intervals", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -59529,8 +59844,8 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_127intervals(PyObject *__pyx_
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_126intervals(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex);
 
-  /* "bytesparse/_c.pyx":5511
- *         yield from zip(self.keys(start), self.values(start, None, pattern))
+  /* "bytesparse/_c.pyx":5548
+ *         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
  * 
  *     def intervals(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -59554,7 +59869,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_126intervals(struct __pyx_obj
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_9_intervals *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 5511, __pyx_L1_error)
+    __PYX_ERR(0, 5548, __pyx_L1_error)
   } else {
     __Pyx_GOTREF(__pyx_cur_scope);
   }
@@ -59568,7 +59883,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_126intervals(struct __pyx_obj
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_128generator7, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_intervals, __pyx_n_s_Memory_intervals, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5511, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_128generator7, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_intervals, __pyx_n_s_Memory_intervals, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5548, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -59613,9 +59928,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
     return NULL;
   }
   __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5511, __pyx_L1_error)
+  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5548, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5519
+  /* "bytesparse/_c.pyx":5556
  *             addr_t start_
  *             addr_t endex_
  *             const Rack_* blocks = self._             # <<<<<<<<<<<<<<
@@ -59625,7 +59940,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
   __pyx_t_1 = __pyx_cur_scope->__pyx_v_self->_;
   __pyx_cur_scope->__pyx_v_blocks = __pyx_t_1;
 
-  /* "bytesparse/_c.pyx":5520
+  /* "bytesparse/_c.pyx":5557
  *             addr_t endex_
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)             # <<<<<<<<<<<<<<
@@ -59634,7 +59949,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
  */
   __pyx_cur_scope->__pyx_v_block_count = __pyx_f_10bytesparse_2_c_Rack_Length(__pyx_cur_scope->__pyx_v_blocks);
 
-  /* "bytesparse/_c.pyx":5530
+  /* "bytesparse/_c.pyx":5567
  *             size_t slice_endex
  * 
  *         if block_count:             # <<<<<<<<<<<<<<
@@ -59644,7 +59959,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
   __pyx_t_2 = (__pyx_cur_scope->__pyx_v_block_count != 0);
   if (__pyx_t_2) {
 
-    /* "bytesparse/_c.pyx":5531
+    /* "bytesparse/_c.pyx":5568
  * 
  *         if block_count:
  *             block_index_start = 0 if start is None else Rack_IndexStart(blocks, <addr_t>start)             # <<<<<<<<<<<<<<
@@ -59655,13 +59970,13 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
     if ((__pyx_t_2 != 0)) {
       __pyx_t_3 = 0;
     } else {
-      __pyx_t_4 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_4 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5531, __pyx_L1_error)
-      __pyx_t_5 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_cur_scope->__pyx_v_blocks, ((addr_t)__pyx_t_4)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5531, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_start); if (unlikely((__pyx_t_4 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5568, __pyx_L1_error)
+      __pyx_t_5 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_cur_scope->__pyx_v_blocks, ((addr_t)__pyx_t_4)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5568, __pyx_L1_error)
       __pyx_t_3 = __pyx_t_5;
     }
     __pyx_cur_scope->__pyx_v_block_index_start = __pyx_t_3;
 
-    /* "bytesparse/_c.pyx":5532
+    /* "bytesparse/_c.pyx":5569
  *         if block_count:
  *             block_index_start = 0 if start is None else Rack_IndexStart(blocks, <addr_t>start)
  *             block_index_endex = block_count if endex is None else Rack_IndexEndex(blocks, <addr_t>endex)             # <<<<<<<<<<<<<<
@@ -59672,13 +59987,13 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
     if ((__pyx_t_2 != 0)) {
       __pyx_t_3 = __pyx_cur_scope->__pyx_v_block_count;
     } else {
-      __pyx_t_4 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_4 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5532, __pyx_L1_error)
-      __pyx_t_5 = __pyx_f_10bytesparse_2_c_Rack_IndexEndex(__pyx_cur_scope->__pyx_v_blocks, ((addr_t)__pyx_t_4)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5532, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_As_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex); if (unlikely((__pyx_t_4 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5569, __pyx_L1_error)
+      __pyx_t_5 = __pyx_f_10bytesparse_2_c_Rack_IndexEndex(__pyx_cur_scope->__pyx_v_blocks, ((addr_t)__pyx_t_4)); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5569, __pyx_L1_error)
       __pyx_t_3 = __pyx_t_5;
     }
     __pyx_cur_scope->__pyx_v_block_index_endex = __pyx_t_3;
 
-    /* "bytesparse/_c.pyx":5533
+    /* "bytesparse/_c.pyx":5570
  *             block_index_start = 0 if start is None else Rack_IndexStart(blocks, <addr_t>start)
  *             block_index_endex = block_count if endex is None else Rack_IndexEndex(blocks, <addr_t>endex)
  *             start_, endex_ = self.bound_(start, endex)             # <<<<<<<<<<<<<<
@@ -59691,7 +60006,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
     __pyx_cur_scope->__pyx_v_start_ = __pyx_t_4;
     __pyx_cur_scope->__pyx_v_endex_ = __pyx_t_7;
 
-    /* "bytesparse/_c.pyx":5535
+    /* "bytesparse/_c.pyx":5572
  *             start_, endex_ = self.bound_(start, endex)
  * 
  *             for block_index in range(block_index_start, block_index_endex):             # <<<<<<<<<<<<<<
@@ -59703,7 +60018,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
     for (__pyx_t_9 = __pyx_cur_scope->__pyx_v_block_index_start; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
       __pyx_cur_scope->__pyx_v_block_index = __pyx_t_9;
 
-      /* "bytesparse/_c.pyx":5536
+      /* "bytesparse/_c.pyx":5573
  * 
  *             for block_index in range(block_index_start, block_index_endex):
  *                 block = Rack_Get__(blocks, block_index)             # <<<<<<<<<<<<<<
@@ -59712,7 +60027,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_block_index);
 
-      /* "bytesparse/_c.pyx":5537
+      /* "bytesparse/_c.pyx":5574
  *             for block_index in range(block_index_start, block_index_endex):
  *                 block = Rack_Get__(blocks, block_index)
  *                 block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -59721,7 +60036,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_cur_scope->__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5538
+      /* "bytesparse/_c.pyx":5575
  *                 block = Rack_Get__(blocks, block_index)
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -59730,7 +60045,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block_endex = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_cur_scope->__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5539
+      /* "bytesparse/_c.pyx":5576
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)
  *                 slice_start = block_start if start_ < block_start else start_             # <<<<<<<<<<<<<<
@@ -59744,7 +60059,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
       }
       __pyx_cur_scope->__pyx_v_slice_start = __pyx_t_7;
 
-      /* "bytesparse/_c.pyx":5540
+      /* "bytesparse/_c.pyx":5577
  *                 block_endex = Block_Endex(block)
  *                 slice_start = block_start if start_ < block_start else start_
  *                 slice_endex = endex_ if endex_ < block_endex else block_endex             # <<<<<<<<<<<<<<
@@ -59758,7 +60073,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
       }
       __pyx_cur_scope->__pyx_v_slice_endex = __pyx_t_7;
 
-      /* "bytesparse/_c.pyx":5541
+      /* "bytesparse/_c.pyx":5578
  *                 slice_start = block_start if start_ < block_start else start_
  *                 slice_endex = endex_ if endex_ < block_endex else block_endex
  *                 if slice_start < slice_endex:             # <<<<<<<<<<<<<<
@@ -59768,18 +60083,18 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
       __pyx_t_2 = ((__pyx_cur_scope->__pyx_v_slice_start < __pyx_cur_scope->__pyx_v_slice_endex) != 0);
       if (__pyx_t_2) {
 
-        /* "bytesparse/_c.pyx":5542
+        /* "bytesparse/_c.pyx":5579
  *                 slice_endex = endex_ if endex_ < block_endex else block_endex
  *                 if slice_start < slice_endex:
  *                     yield slice_start, slice_endex             # <<<<<<<<<<<<<<
  * 
  *     def gaps(
  */
-        __pyx_t_10 = __Pyx_PyInt_FromSize_t(__pyx_cur_scope->__pyx_v_slice_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5542, __pyx_L1_error)
+        __pyx_t_10 = __Pyx_PyInt_FromSize_t(__pyx_cur_scope->__pyx_v_slice_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5579, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_10);
-        __pyx_t_11 = __Pyx_PyInt_FromSize_t(__pyx_cur_scope->__pyx_v_slice_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5542, __pyx_L1_error)
+        __pyx_t_11 = __Pyx_PyInt_FromSize_t(__pyx_cur_scope->__pyx_v_slice_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5579, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_12 = PyTuple_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5542, __pyx_L1_error)
+        __pyx_t_12 = PyTuple_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5579, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_12);
         __Pyx_GIVEREF(__pyx_t_10);
         PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10);
@@ -59802,9 +60117,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
         __pyx_t_3 = __pyx_cur_scope->__pyx_t_0;
         __pyx_t_8 = __pyx_cur_scope->__pyx_t_1;
         __pyx_t_9 = __pyx_cur_scope->__pyx_t_2;
-        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5542, __pyx_L1_error)
+        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5579, __pyx_L1_error)
 
-        /* "bytesparse/_c.pyx":5541
+        /* "bytesparse/_c.pyx":5578
  *                 slice_start = block_start if start_ < block_start else start_
  *                 slice_endex = endex_ if endex_ < block_endex else block_endex
  *                 if slice_start < slice_endex:             # <<<<<<<<<<<<<<
@@ -59814,7 +60129,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
       }
     }
 
-    /* "bytesparse/_c.pyx":5530
+    /* "bytesparse/_c.pyx":5567
  *             size_t slice_endex
  * 
  *         if block_count:             # <<<<<<<<<<<<<<
@@ -59824,8 +60139,8 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
   }
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "bytesparse/_c.pyx":5511
- *         yield from zip(self.keys(start), self.values(start, None, pattern))
+  /* "bytesparse/_c.pyx":5548
+ *         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
  * 
  *     def intervals(             # <<<<<<<<<<<<<<
  *         self: 'Memory',
@@ -59852,7 +60167,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_128generator7(__pyx_Coroutine
 }
 static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_CoroutineObject *__pyx_generator, CYTHON_UNUSED PyThreadState *__pyx_tstate, PyObject *__pyx_sent_value); /* proto */
 
-/* "bytesparse/_c.pyx":5544
+/* "bytesparse/_c.pyx":5581
  *                     yield slice_start, slice_endex
  * 
  *     def gaps(             # <<<<<<<<<<<<<<
@@ -59877,7 +60192,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_start,&__pyx_n_s_endex,&__pyx_n_s_bound,0};
     PyObject* values[3] = {0,0,0};
 
-    /* "bytesparse/_c.pyx":5546
+    /* "bytesparse/_c.pyx":5583
  *     def gaps(
  *         self: 'Memory',
  *         start: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -59886,7 +60201,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
  */
     values[0] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5547
+    /* "bytesparse/_c.pyx":5584
  *         self: 'Memory',
  *         start: Optional[Address] = None,
  *         endex: Optional[Address] = None,             # <<<<<<<<<<<<<<
@@ -59895,7 +60210,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
  */
     values[1] = ((PyObject *)Py_None);
 
-    /* "bytesparse/_c.pyx":5548
+    /* "bytesparse/_c.pyx":5585
  *         start: Optional[Address] = None,
  *         endex: Optional[Address] = None,
  *         bound: bool = False,             # <<<<<<<<<<<<<<
@@ -59937,7 +60252,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "gaps") < 0)) __PYX_ERR(0, 5544, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "gaps") < 0)) __PYX_ERR(0, 5581, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -59957,7 +60272,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("gaps", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5544, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("gaps", 0, 0, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5581, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory.gaps", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -59965,7 +60280,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_130gaps(PyObject *__pyx_v_sel
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_10bytesparse_2_c_6Memory_129gaps(((struct __pyx_obj_10bytesparse_2_c_Memory *)__pyx_v_self), __pyx_v_start, __pyx_v_endex, __pyx_v_bound);
 
-  /* "bytesparse/_c.pyx":5544
+  /* "bytesparse/_c.pyx":5581
  *                     yield slice_start, slice_endex
  * 
  *     def gaps(             # <<<<<<<<<<<<<<
@@ -59990,7 +60305,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_129gaps(struct __pyx_obj_10by
   if (unlikely(!__pyx_cur_scope)) {
     __pyx_cur_scope = ((struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_10_gaps *)Py_None);
     __Pyx_INCREF(Py_None);
-    __PYX_ERR(0, 5544, __pyx_L1_error)
+    __PYX_ERR(0, 5581, __pyx_L1_error)
   } else {
     __Pyx_GOTREF(__pyx_cur_scope);
   }
@@ -60007,7 +60322,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_129gaps(struct __pyx_obj_10by
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_bound);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_bound);
   {
-    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_131generator8, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_gaps, __pyx_n_s_Memory_gaps, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5544, __pyx_L1_error)
+    __pyx_CoroutineObject *gen = __Pyx_Generator_New((__pyx_coroutine_body_t) __pyx_gb_10bytesparse_2_c_6Memory_131generator8, NULL, (PyObject *) __pyx_cur_scope, __pyx_n_s_gaps, __pyx_n_s_Memory_gaps, __pyx_n_s_bytesparse__c); if (unlikely(!gen)) __PYX_ERR(0, 5581, __pyx_L1_error)
     __Pyx_DECREF(__pyx_cur_scope);
     __Pyx_RefNannyFinishContext();
     return (PyObject *) gen;
@@ -60060,19 +60375,19 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     return NULL;
   }
   __pyx_L3_first_run:;
-  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5544, __pyx_L1_error)
+  if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5581, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5553
+  /* "bytesparse/_c.pyx":5590
  *             addr_t start_
  *             addr_t endex_
  *             bint bound_ = <bint>bound             # <<<<<<<<<<<<<<
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_cur_scope->__pyx_v_bound); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 5553, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_cur_scope->__pyx_v_bound); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 5590, __pyx_L1_error)
   __pyx_cur_scope->__pyx_v_bound_ = __pyx_t_1;
 
-  /* "bytesparse/_c.pyx":5554
+  /* "bytesparse/_c.pyx":5591
  *             addr_t endex_
  *             bint bound_ = <bint>bound
  *             const Rack_* blocks = self._             # <<<<<<<<<<<<<<
@@ -60082,7 +60397,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
   __pyx_t_2 = __pyx_cur_scope->__pyx_v_self->_;
   __pyx_cur_scope->__pyx_v_blocks = __pyx_t_2;
 
-  /* "bytesparse/_c.pyx":5555
+  /* "bytesparse/_c.pyx":5592
  *             bint bound_ = <bint>bound
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)             # <<<<<<<<<<<<<<
@@ -60091,7 +60406,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
   __pyx_cur_scope->__pyx_v_block_count = __pyx_f_10bytesparse_2_c_Rack_Length(__pyx_cur_scope->__pyx_v_blocks);
 
-  /* "bytesparse/_c.pyx":5563
+  /* "bytesparse/_c.pyx":5600
  *             addr_t block_endex
  * 
  *         if block_count:             # <<<<<<<<<<<<<<
@@ -60101,7 +60416,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
   __pyx_t_1 = (__pyx_cur_scope->__pyx_v_block_count != 0);
   if (__pyx_t_1) {
 
-    /* "bytesparse/_c.pyx":5564
+    /* "bytesparse/_c.pyx":5601
  * 
  *         if block_count:
  *             start__ = start             # <<<<<<<<<<<<<<
@@ -60112,7 +60427,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_start);
     __pyx_cur_scope->__pyx_v_start__ = __pyx_cur_scope->__pyx_v_start;
 
-    /* "bytesparse/_c.pyx":5565
+    /* "bytesparse/_c.pyx":5602
  *         if block_count:
  *             start__ = start
  *             endex__ = endex             # <<<<<<<<<<<<<<
@@ -60123,14 +60438,14 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
     __pyx_cur_scope->__pyx_v_endex__ = __pyx_cur_scope->__pyx_v_endex;
 
-    /* "bytesparse/_c.pyx":5566
+    /* "bytesparse/_c.pyx":5603
  *             start__ = start
  *             endex__ = endex
  *             start_, endex_ = self.bound(start, endex)             # <<<<<<<<<<<<<<
  * 
  *             if start__ is None:
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_bound); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5566, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_cur_scope->__pyx_v_self), __pyx_n_s_bound); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5603, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     __pyx_t_6 = 0;
@@ -60147,7 +60462,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else
@@ -60155,13 +60470,13 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_cur_scope->__pyx_v_start, __pyx_cur_scope->__pyx_v_endex};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else
     #endif
     {
-      __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       if (__pyx_t_5) {
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -60172,7 +60487,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __Pyx_INCREF(__pyx_cur_scope->__pyx_v_endex);
       __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_endex);
       PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_cur_scope->__pyx_v_endex);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
@@ -60183,7 +60498,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 5566, __pyx_L1_error)
+        __PYX_ERR(0, 5603, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -60196,15 +60511,15 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __Pyx_INCREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_7);
       #else
-      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_7 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       #endif
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_5 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5566, __pyx_L1_error)
+      __pyx_t_5 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 5603, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __pyx_t_8 = Py_TYPE(__pyx_t_5)->tp_iternext;
@@ -60212,7 +60527,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __Pyx_GOTREF(__pyx_t_4);
       index = 1; __pyx_t_7 = __pyx_t_8(__pyx_t_5); if (unlikely(!__pyx_t_7)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_7);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_5), 2) < 0) __PYX_ERR(0, 5566, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_5), 2) < 0) __PYX_ERR(0, 5603, __pyx_L1_error)
       __pyx_t_8 = NULL;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       goto __pyx_L6_unpacking_done;
@@ -60220,17 +60535,17 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_8 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 5566, __pyx_L1_error)
+      __PYX_ERR(0, 5603, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
-    __pyx_t_9 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_4); if (unlikely((__pyx_t_9 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5566, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_4); if (unlikely((__pyx_t_9 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5603, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_10 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_7); if (unlikely((__pyx_t_10 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5566, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_7); if (unlikely((__pyx_t_10 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5603, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_cur_scope->__pyx_v_start_ = __pyx_t_9;
     __pyx_cur_scope->__pyx_v_endex_ = __pyx_t_10;
 
-    /* "bytesparse/_c.pyx":5568
+    /* "bytesparse/_c.pyx":5605
  *             start_, endex_ = self.bound(start, endex)
  * 
  *             if start__ is None:             # <<<<<<<<<<<<<<
@@ -60241,7 +60556,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __pyx_t_11 = (__pyx_t_1 != 0);
     if (__pyx_t_11) {
 
-      /* "bytesparse/_c.pyx":5569
+      /* "bytesparse/_c.pyx":5606
  * 
  *             if start__ is None:
  *                 if not bound_:             # <<<<<<<<<<<<<<
@@ -60251,7 +60566,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __pyx_t_11 = ((!(__pyx_cur_scope->__pyx_v_bound_ != 0)) != 0);
       if (__pyx_t_11) {
 
-        /* "bytesparse/_c.pyx":5570
+        /* "bytesparse/_c.pyx":5607
  *             if start__ is None:
  *                 if not bound_:
  *                     block = Rack_First__(blocks)             # <<<<<<<<<<<<<<
@@ -60260,7 +60575,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
         __pyx_cur_scope->__pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_First__(__pyx_cur_scope->__pyx_v_blocks);
 
-        /* "bytesparse/_c.pyx":5571
+        /* "bytesparse/_c.pyx":5608
  *                 if not bound_:
  *                     block = Rack_First__(blocks)
  *                     start_ = Block_Start(block)  # override trim start             # <<<<<<<<<<<<<<
@@ -60269,16 +60584,16 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
         __pyx_cur_scope->__pyx_v_start_ = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_cur_scope->__pyx_v_block);
 
-        /* "bytesparse/_c.pyx":5572
+        /* "bytesparse/_c.pyx":5609
  *                     block = Rack_First__(blocks)
  *                     start_ = Block_Start(block)  # override trim start
  *                     yield None, start_             # <<<<<<<<<<<<<<
  *                 block_index_start = 0
  *             else:
  */
-        __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5572, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5609, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5572, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5609, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_INCREF(Py_None);
         __Pyx_GIVEREF(Py_None);
@@ -60295,9 +60610,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
         __pyx_generator->resume_label = 1;
         return __pyx_r;
         __pyx_L9_resume_from_yield:;
-        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5572, __pyx_L1_error)
+        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5609, __pyx_L1_error)
 
-        /* "bytesparse/_c.pyx":5569
+        /* "bytesparse/_c.pyx":5606
  * 
  *             if start__ is None:
  *                 if not bound_:             # <<<<<<<<<<<<<<
@@ -60306,7 +60621,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       }
 
-      /* "bytesparse/_c.pyx":5573
+      /* "bytesparse/_c.pyx":5610
  *                     start_ = Block_Start(block)  # override trim start
  *                     yield None, start_
  *                 block_index_start = 0             # <<<<<<<<<<<<<<
@@ -60315,7 +60630,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block_index_start = 0;
 
-      /* "bytesparse/_c.pyx":5568
+      /* "bytesparse/_c.pyx":5605
  *             start_, endex_ = self.bound(start, endex)
  * 
  *             if start__ is None:             # <<<<<<<<<<<<<<
@@ -60325,7 +60640,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       goto __pyx_L7;
     }
 
-    /* "bytesparse/_c.pyx":5575
+    /* "bytesparse/_c.pyx":5612
  *                 block_index_start = 0
  *             else:
  *                 block_index_start = Rack_IndexStart(blocks, start_)             # <<<<<<<<<<<<<<
@@ -60333,12 +60648,12 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  *             if endex__ is None:
  */
     /*else*/ {
-      __pyx_t_12 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_start_); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5575, __pyx_L1_error)
+      __pyx_t_12 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_start_); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5612, __pyx_L1_error)
       __pyx_cur_scope->__pyx_v_block_index_start = __pyx_t_12;
     }
     __pyx_L7:;
 
-    /* "bytesparse/_c.pyx":5577
+    /* "bytesparse/_c.pyx":5614
  *                 block_index_start = Rack_IndexStart(blocks, start_)
  * 
  *             if endex__ is None:             # <<<<<<<<<<<<<<
@@ -60349,7 +60664,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __pyx_t_1 = (__pyx_t_11 != 0);
     if (__pyx_t_1) {
 
-      /* "bytesparse/_c.pyx":5578
+      /* "bytesparse/_c.pyx":5615
  * 
  *             if endex__ is None:
  *                 block_index_endex = block_count             # <<<<<<<<<<<<<<
@@ -60358,7 +60673,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block_index_endex = __pyx_cur_scope->__pyx_v_block_count;
 
-      /* "bytesparse/_c.pyx":5577
+      /* "bytesparse/_c.pyx":5614
  *                 block_index_start = Rack_IndexStart(blocks, start_)
  * 
  *             if endex__ is None:             # <<<<<<<<<<<<<<
@@ -60368,7 +60683,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       goto __pyx_L10;
     }
 
-    /* "bytesparse/_c.pyx":5580
+    /* "bytesparse/_c.pyx":5617
  *                 block_index_endex = block_count
  *             else:
  *                 block_index_endex = Rack_IndexEndex(blocks, endex_)             # <<<<<<<<<<<<<<
@@ -60376,12 +60691,12 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  *             for block_index in range(block_index_start, block_index_endex):
  */
     /*else*/ {
-      __pyx_t_12 = __pyx_f_10bytesparse_2_c_Rack_IndexEndex(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_endex_); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5580, __pyx_L1_error)
+      __pyx_t_12 = __pyx_f_10bytesparse_2_c_Rack_IndexEndex(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_endex_); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5617, __pyx_L1_error)
       __pyx_cur_scope->__pyx_v_block_index_endex = __pyx_t_12;
     }
     __pyx_L10:;
 
-    /* "bytesparse/_c.pyx":5582
+    /* "bytesparse/_c.pyx":5619
  *                 block_index_endex = Rack_IndexEndex(blocks, endex_)
  * 
  *             for block_index in range(block_index_start, block_index_endex):             # <<<<<<<<<<<<<<
@@ -60393,7 +60708,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     for (__pyx_t_15 = __pyx_cur_scope->__pyx_v_block_index_start; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
       __pyx_cur_scope->__pyx_v_block_index = __pyx_t_15;
 
-      /* "bytesparse/_c.pyx":5583
+      /* "bytesparse/_c.pyx":5620
  * 
  *             for block_index in range(block_index_start, block_index_endex):
  *                 block = Rack_Get__(blocks, block_index)             # <<<<<<<<<<<<<<
@@ -60402,7 +60717,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_cur_scope->__pyx_v_blocks, __pyx_cur_scope->__pyx_v_block_index);
 
-      /* "bytesparse/_c.pyx":5584
+      /* "bytesparse/_c.pyx":5621
  *             for block_index in range(block_index_start, block_index_endex):
  *                 block = Rack_Get__(blocks, block_index)
  *                 block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -60411,7 +60726,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       __pyx_cur_scope->__pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_cur_scope->__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5585
+      /* "bytesparse/_c.pyx":5622
  *                 block = Rack_Get__(blocks, block_index)
  *                 block_start = Block_Start(block)
  *                 if start_ < block_start:             # <<<<<<<<<<<<<<
@@ -60421,18 +60736,18 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __pyx_t_1 = ((__pyx_cur_scope->__pyx_v_start_ < __pyx_cur_scope->__pyx_v_block_start) != 0);
       if (__pyx_t_1) {
 
-        /* "bytesparse/_c.pyx":5586
+        /* "bytesparse/_c.pyx":5623
  *                 block_start = Block_Start(block)
  *                 if start_ < block_start:
  *                     yield start_, block_start             # <<<<<<<<<<<<<<
  *                 start_ = Block_Endex(block)
  * 
  */
-        __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5586, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5623, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
-        __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_block_start); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5586, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_block_start); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5623, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5586, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5623, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_7);
         PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7);
@@ -60455,9 +60770,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
         __pyx_t_13 = __pyx_cur_scope->__pyx_t_0;
         __pyx_t_14 = __pyx_cur_scope->__pyx_t_1;
         __pyx_t_15 = __pyx_cur_scope->__pyx_t_2;
-        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5586, __pyx_L1_error)
+        if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5623, __pyx_L1_error)
 
-        /* "bytesparse/_c.pyx":5585
+        /* "bytesparse/_c.pyx":5622
  *                 block = Rack_Get__(blocks, block_index)
  *                 block_start = Block_Start(block)
  *                 if start_ < block_start:             # <<<<<<<<<<<<<<
@@ -60466,7 +60781,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
  */
       }
 
-      /* "bytesparse/_c.pyx":5587
+      /* "bytesparse/_c.pyx":5624
  *                 if start_ < block_start:
  *                     yield start_, block_start
  *                 start_ = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -60476,7 +60791,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __pyx_cur_scope->__pyx_v_start_ = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_cur_scope->__pyx_v_block);
     }
 
-    /* "bytesparse/_c.pyx":5589
+    /* "bytesparse/_c.pyx":5626
  *                 start_ = Block_Endex(block)
  * 
  *             if endex__ is None and not bound_:             # <<<<<<<<<<<<<<
@@ -60495,16 +60810,16 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __pyx_L16_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "bytesparse/_c.pyx":5590
+      /* "bytesparse/_c.pyx":5627
  * 
  *             if endex__ is None and not bound_:
  *                 yield start_, None             # <<<<<<<<<<<<<<
  *             elif start_ < endex_:
  *                 yield start_, endex_
  */
-      __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5590, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5627, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5590, __pyx_L1_error)
+      __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5627, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_GIVEREF(__pyx_t_4);
       PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
@@ -60521,9 +60836,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __pyx_generator->resume_label = 3;
       return __pyx_r;
       __pyx_L18_resume_from_yield:;
-      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5590, __pyx_L1_error)
+      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5627, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5589
+      /* "bytesparse/_c.pyx":5626
  *                 start_ = Block_Endex(block)
  * 
  *             if endex__ is None and not bound_:             # <<<<<<<<<<<<<<
@@ -60533,7 +60848,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       goto __pyx_L15;
     }
 
-    /* "bytesparse/_c.pyx":5591
+    /* "bytesparse/_c.pyx":5628
  *             if endex__ is None and not bound_:
  *                 yield start_, None
  *             elif start_ < endex_:             # <<<<<<<<<<<<<<
@@ -60543,18 +60858,18 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __pyx_t_1 = ((__pyx_cur_scope->__pyx_v_start_ < __pyx_cur_scope->__pyx_v_endex_) != 0);
     if (__pyx_t_1) {
 
-      /* "bytesparse/_c.pyx":5592
+      /* "bytesparse/_c.pyx":5629
  *                 yield start_, None
  *             elif start_ < endex_:
  *                 yield start_, endex_             # <<<<<<<<<<<<<<
  * 
  *         elif not bound_:
  */
-      __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5592, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_start_); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5629, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5592, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_From_uint_fast64_t(__pyx_cur_scope->__pyx_v_endex_); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5629, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5592, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5629, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_3);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3);
@@ -60571,9 +60886,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
       __pyx_generator->resume_label = 4;
       return __pyx_r;
       __pyx_L19_resume_from_yield:;
-      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5592, __pyx_L1_error)
+      if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5629, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5591
+      /* "bytesparse/_c.pyx":5628
  *             if endex__ is None and not bound_:
  *                 yield start_, None
  *             elif start_ < endex_:             # <<<<<<<<<<<<<<
@@ -60583,7 +60898,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     }
     __pyx_L15:;
 
-    /* "bytesparse/_c.pyx":5563
+    /* "bytesparse/_c.pyx":5600
  *             addr_t block_endex
  * 
  *         if block_count:             # <<<<<<<<<<<<<<
@@ -60593,7 +60908,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     goto __pyx_L4;
   }
 
-  /* "bytesparse/_c.pyx":5594
+  /* "bytesparse/_c.pyx":5631
  *                 yield start_, endex_
  * 
  *         elif not bound_:             # <<<<<<<<<<<<<<
@@ -60603,7 +60918,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
   __pyx_t_1 = ((!(__pyx_cur_scope->__pyx_v_bound_ != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "bytesparse/_c.pyx":5595
+    /* "bytesparse/_c.pyx":5632
  * 
  *         elif not bound_:
  *             yield None, None             # <<<<<<<<<<<<<<
@@ -60619,9 +60934,9 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
     __pyx_generator->resume_label = 5;
     return __pyx_r;
     __pyx_L20_resume_from_yield:;
-    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5595, __pyx_L1_error)
+    if (unlikely(!__pyx_sent_value)) __PYX_ERR(0, 5632, __pyx_L1_error)
 
-    /* "bytesparse/_c.pyx":5594
+    /* "bytesparse/_c.pyx":5631
  *                 yield start_, endex_
  * 
  *         elif not bound_:             # <<<<<<<<<<<<<<
@@ -60632,7 +60947,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
   __pyx_L4:;
   CYTHON_MAYBE_UNUSED_VAR(__pyx_cur_scope);
 
-  /* "bytesparse/_c.pyx":5544
+  /* "bytesparse/_c.pyx":5581
  *                     yield slice_start, slice_endex
  * 
  *     def gaps(             # <<<<<<<<<<<<<<
@@ -60660,7 +60975,7 @@ static PyObject *__pyx_gb_10bytesparse_2_c_6Memory_131generator8(__pyx_Coroutine
   return __pyx_r;
 }
 
-/* "bytesparse/_c.pyx":5597
+/* "bytesparse/_c.pyx":5634
  *             yield None, None
  * 
  *     def equal_span(             # <<<<<<<<<<<<<<
@@ -60713,7 +61028,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("equal_span", 0);
 
-  /* "bytesparse/_c.pyx":5602
+  /* "bytesparse/_c.pyx":5639
  *     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
  *         cdef:
  *             const Rack_* blocks = self._             # <<<<<<<<<<<<<<
@@ -60723,7 +61038,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
   __pyx_t_1 = __pyx_v_self->_;
   __pyx_v_blocks = __pyx_t_1;
 
-  /* "bytesparse/_c.pyx":5603
+  /* "bytesparse/_c.pyx":5640
  *         cdef:
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)             # <<<<<<<<<<<<<<
@@ -60732,27 +61047,27 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
   __pyx_v_block_count = __pyx_f_10bytesparse_2_c_Rack_Length(__pyx_v_blocks);
 
-  /* "bytesparse/_c.pyx":5610
+  /* "bytesparse/_c.pyx":5647
  *             addr_t block_start
  *             addr_t block_endex
  *             addr_t address_ = <addr_t>address             # <<<<<<<<<<<<<<
  *             addr_t start
  *             addr_t endex
  */
-  __pyx_t_2 = __Pyx_PyInt_As_uint_fast64_t(__pyx_v_address); if (unlikely((__pyx_t_2 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5610, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_uint_fast64_t(__pyx_v_address); if (unlikely((__pyx_t_2 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5647, __pyx_L1_error)
   __pyx_v_address_ = ((addr_t)__pyx_t_2);
 
-  /* "bytesparse/_c.pyx":5616
+  /* "bytesparse/_c.pyx":5653
  *             byte_t value
  * 
  *         block_index = Rack_IndexStart(blocks, address_)             # <<<<<<<<<<<<<<
  * 
  *         if block_index < block_count:
  */
-  __pyx_t_3 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_v_blocks, __pyx_v_address_); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5616, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_v_blocks, __pyx_v_address_); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5653, __pyx_L1_error)
   __pyx_v_block_index = __pyx_t_3;
 
-  /* "bytesparse/_c.pyx":5618
+  /* "bytesparse/_c.pyx":5655
  *         block_index = Rack_IndexStart(blocks, address_)
  * 
  *         if block_index < block_count:             # <<<<<<<<<<<<<<
@@ -60762,7 +61077,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
   __pyx_t_4 = ((__pyx_v_block_index < __pyx_v_block_count) != 0);
   if (__pyx_t_4) {
 
-    /* "bytesparse/_c.pyx":5619
+    /* "bytesparse/_c.pyx":5656
  * 
  *         if block_index < block_count:
  *             block = Rack_Get__(blocks, block_index)             # <<<<<<<<<<<<<<
@@ -60771,7 +61086,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_v_blocks, __pyx_v_block_index);
 
-    /* "bytesparse/_c.pyx":5620
+    /* "bytesparse/_c.pyx":5657
  *         if block_index < block_count:
  *             block = Rack_Get__(blocks, block_index)
  *             block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -60780,7 +61095,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block);
 
-    /* "bytesparse/_c.pyx":5621
+    /* "bytesparse/_c.pyx":5658
  *             block = Rack_Get__(blocks, block_index)
  *             block_start = Block_Start(block)
  *             block_endex = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -60789,7 +61104,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     __pyx_v_block_endex = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-    /* "bytesparse/_c.pyx":5623
+    /* "bytesparse/_c.pyx":5660
  *             block_endex = Block_Endex(block)
  * 
  *             if block_start <= address_ < block_endex:             # <<<<<<<<<<<<<<
@@ -60803,32 +61118,32 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_t_4 != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5625
+      /* "bytesparse/_c.pyx":5662
  *             if block_start <= address_ < block_endex:
  *                 # Address within a block
  *                 CheckSubAddrU(address_, block_start)             # <<<<<<<<<<<<<<
  *                 CheckAddrToSizeU(address - block_start)
  *                 offset = <size_t>(address_ - block_start)
  */
-      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckSubAddrU(__pyx_v_address_, __pyx_v_block_start); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5625, __pyx_L1_error)
+      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckSubAddrU(__pyx_v_address_, __pyx_v_block_start); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5662, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5626
+      /* "bytesparse/_c.pyx":5663
  *                 # Address within a block
  *                 CheckSubAddrU(address_, block_start)
  *                 CheckAddrToSizeU(address - block_start)             # <<<<<<<<<<<<<<
  *                 offset = <size_t>(address_ - block_start)
  *                 start = offset
  */
-      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5626, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5663, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = PyNumber_Subtract(__pyx_v_address, __pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5626, __pyx_L1_error)
+      __pyx_t_8 = PyNumber_Subtract(__pyx_v_address, __pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5663, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_2 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_8); if (unlikely((__pyx_t_2 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5626, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyInt_As_uint_fast64_t(__pyx_t_8); if (unlikely((__pyx_t_2 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5663, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddrToSizeU(__pyx_t_2); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5626, __pyx_L1_error)
+      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddrToSizeU(__pyx_t_2); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5663, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5627
+      /* "bytesparse/_c.pyx":5664
  *                 CheckSubAddrU(address_, block_start)
  *                 CheckAddrToSizeU(address - block_start)
  *                 offset = <size_t>(address_ - block_start)             # <<<<<<<<<<<<<<
@@ -60837,7 +61152,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_offset = ((size_t)(__pyx_v_address_ - __pyx_v_block_start));
 
-      /* "bytesparse/_c.pyx":5628
+      /* "bytesparse/_c.pyx":5665
  *                 CheckAddrToSizeU(address - block_start)
  *                 offset = <size_t>(address_ - block_start)
  *                 start = offset             # <<<<<<<<<<<<<<
@@ -60846,16 +61161,16 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_start = __pyx_v_offset;
 
-      /* "bytesparse/_c.pyx":5629
+      /* "bytesparse/_c.pyx":5666
  *                 offset = <size_t>(address_ - block_start)
  *                 start = offset
  *                 CheckAddAddrU(offset, 1)             # <<<<<<<<<<<<<<
  *                 endex = offset + 1
  *                 value = Block_Get__(block, offset)
  */
-      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddAddrU(__pyx_v_offset, 1); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5629, __pyx_L1_error)
+      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddAddrU(__pyx_v_offset, 1); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5666, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5630
+      /* "bytesparse/_c.pyx":5667
  *                 start = offset
  *                 CheckAddAddrU(offset, 1)
  *                 endex = offset + 1             # <<<<<<<<<<<<<<
@@ -60864,7 +61179,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_endex = (__pyx_v_offset + 1);
 
-      /* "bytesparse/_c.pyx":5631
+      /* "bytesparse/_c.pyx":5668
  *                 CheckAddAddrU(offset, 1)
  *                 endex = offset + 1
  *                 value = Block_Get__(block, offset)             # <<<<<<<<<<<<<<
@@ -60873,7 +61188,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_value = __pyx_f_10bytesparse_2_c_Block_Get__(__pyx_v_block, __pyx_v_offset);
 
-      /* "bytesparse/_c.pyx":5633
+      /* "bytesparse/_c.pyx":5670
  *                 value = Block_Get__(block, offset)
  * 
  *                 for start in range(start + 1, 0, -1):             # <<<<<<<<<<<<<<
@@ -60883,7 +61198,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       for (__pyx_t_2 = (__pyx_v_start + 1) + 1; __pyx_t_2 > 0 + 1; ) { __pyx_t_2-=1;
         __pyx_v_start = __pyx_t_2;
 
-        /* "bytesparse/_c.pyx":5634
+        /* "bytesparse/_c.pyx":5671
  * 
  *                 for start in range(start + 1, 0, -1):
  *                     if Block_Get__(block, start - 1) != value:             # <<<<<<<<<<<<<<
@@ -60893,7 +61208,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
         __pyx_t_5 = ((__pyx_f_10bytesparse_2_c_Block_Get__(__pyx_v_block, (__pyx_v_start - 1)) != __pyx_v_value) != 0);
         if (__pyx_t_5) {
 
-          /* "bytesparse/_c.pyx":5635
+          /* "bytesparse/_c.pyx":5672
  *                 for start in range(start + 1, 0, -1):
  *                     if Block_Get__(block, start - 1) != value:
  *                         break             # <<<<<<<<<<<<<<
@@ -60902,7 +61217,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
           goto __pyx_L6_break;
 
-          /* "bytesparse/_c.pyx":5634
+          /* "bytesparse/_c.pyx":5671
  * 
  *                 for start in range(start + 1, 0, -1):
  *                     if Block_Get__(block, start - 1) != value:             # <<<<<<<<<<<<<<
@@ -60913,7 +61228,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       }
       /*else*/ {
 
-        /* "bytesparse/_c.pyx":5637
+        /* "bytesparse/_c.pyx":5674
  *                         break
  *                 else:
  *                     start = 0             # <<<<<<<<<<<<<<
@@ -60924,7 +61239,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       }
       __pyx_L6_break:;
 
-      /* "bytesparse/_c.pyx":5639
+      /* "bytesparse/_c.pyx":5676
  *                     start = 0
  * 
  *                 for endex in range(endex, Block_Length(block)):             # <<<<<<<<<<<<<<
@@ -60936,7 +61251,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       for (__pyx_t_2 = __pyx_v_endex; __pyx_t_2 < __pyx_t_10; __pyx_t_2+=1) {
         __pyx_v_endex = __pyx_t_2;
 
-        /* "bytesparse/_c.pyx":5640
+        /* "bytesparse/_c.pyx":5677
  * 
  *                 for endex in range(endex, Block_Length(block)):
  *                     if Block_Get__(block, endex) != value:             # <<<<<<<<<<<<<<
@@ -60946,7 +61261,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
         __pyx_t_5 = ((__pyx_f_10bytesparse_2_c_Block_Get__(__pyx_v_block, __pyx_v_endex) != __pyx_v_value) != 0);
         if (__pyx_t_5) {
 
-          /* "bytesparse/_c.pyx":5641
+          /* "bytesparse/_c.pyx":5678
  *                 for endex in range(endex, Block_Length(block)):
  *                     if Block_Get__(block, endex) != value:
  *                         break             # <<<<<<<<<<<<<<
@@ -60955,7 +61270,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
           goto __pyx_L9_break;
 
-          /* "bytesparse/_c.pyx":5640
+          /* "bytesparse/_c.pyx":5677
  * 
  *                 for endex in range(endex, Block_Length(block)):
  *                     if Block_Get__(block, endex) != value:             # <<<<<<<<<<<<<<
@@ -60966,7 +61281,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       }
       /*else*/ {
 
-        /* "bytesparse/_c.pyx":5643
+        /* "bytesparse/_c.pyx":5680
  *                         break
  *                 else:
  *                     endex = Block_Length(block)             # <<<<<<<<<<<<<<
@@ -60977,7 +61292,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       }
       __pyx_L9_break:;
 
-      /* "bytesparse/_c.pyx":5645
+      /* "bytesparse/_c.pyx":5682
  *                     endex = Block_Length(block)
  * 
  *                 block_endex = block_start + endex             # <<<<<<<<<<<<<<
@@ -60986,7 +61301,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_endex = (__pyx_v_block_start + __pyx_v_endex);
 
-      /* "bytesparse/_c.pyx":5646
+      /* "bytesparse/_c.pyx":5683
  * 
  *                 block_endex = block_start + endex
  *                 block_start = block_start + start             # <<<<<<<<<<<<<<
@@ -60995,7 +61310,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_start = (__pyx_v_block_start + __pyx_v_start);
 
-      /* "bytesparse/_c.pyx":5647
+      /* "bytesparse/_c.pyx":5684
  *                 block_endex = block_start + endex
  *                 block_start = block_start + start
  *                 return block_start, block_endex, value  # equal data span             # <<<<<<<<<<<<<<
@@ -61003,13 +61318,13 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  *             elif block_index:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5647, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5684, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5647, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5684, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_11 = __Pyx_PyInt_From_byte_t(__pyx_v_value); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5647, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyInt_From_byte_t(__pyx_v_value); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5684, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_12 = PyTuple_New(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5647, __pyx_L1_error)
+      __pyx_t_12 = PyTuple_New(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5684, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
       __Pyx_GIVEREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_8);
@@ -61024,7 +61339,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       __pyx_t_12 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5623
+      /* "bytesparse/_c.pyx":5660
  *             block_endex = Block_Endex(block)
  * 
  *             if block_start <= address_ < block_endex:             # <<<<<<<<<<<<<<
@@ -61033,7 +61348,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5649
+    /* "bytesparse/_c.pyx":5686
  *                 return block_start, block_endex, value  # equal data span
  * 
  *             elif block_index:             # <<<<<<<<<<<<<<
@@ -61043,7 +61358,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_v_block_index != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5651
+      /* "bytesparse/_c.pyx":5688
  *             elif block_index:
  *                 # Address within a gap
  *                 block_endex = block_start  # end gap before next block             # <<<<<<<<<<<<<<
@@ -61052,7 +61367,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_endex = __pyx_v_block_start;
 
-      /* "bytesparse/_c.pyx":5652
+      /* "bytesparse/_c.pyx":5689
  *                 # Address within a gap
  *                 block_endex = block_start  # end gap before next block
  *                 block = Rack_Get__(blocks, block_index - 1)             # <<<<<<<<<<<<<<
@@ -61061,7 +61376,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_v_blocks, (__pyx_v_block_index - 1));
 
-      /* "bytesparse/_c.pyx":5653
+      /* "bytesparse/_c.pyx":5690
  *                 block_endex = block_start  # end gap before next block
  *                 block = Rack_Get__(blocks, block_index - 1)
  *                 block_start = Block_Endex(block)  # start gap after previous block             # <<<<<<<<<<<<<<
@@ -61070,7 +61385,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5654
+      /* "bytesparse/_c.pyx":5691
  *                 block = Rack_Get__(blocks, block_index - 1)
  *                 block_start = Block_Endex(block)  # start gap after previous block
  *                 return block_start, block_endex, None  # gap span             # <<<<<<<<<<<<<<
@@ -61078,11 +61393,11 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  *             else:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_12 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5654, __pyx_L1_error)
+      __pyx_t_12 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 5691, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_11 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5654, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5691, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5654, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5691, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_12);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_12);
@@ -61097,7 +61412,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       __pyx_t_7 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5649
+      /* "bytesparse/_c.pyx":5686
  *                 return block_start, block_endex, value  # equal data span
  * 
  *             elif block_index:             # <<<<<<<<<<<<<<
@@ -61106,7 +61421,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5658
+    /* "bytesparse/_c.pyx":5695
  *             else:
  *                 # Address before content
  *                 return None, block_start, None  # open left             # <<<<<<<<<<<<<<
@@ -61115,9 +61430,9 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     /*else*/ {
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5658, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5695, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_11 = PyTuple_New(3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5658, __pyx_L1_error)
+      __pyx_t_11 = PyTuple_New(3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5695, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_INCREF(Py_None);
       __Pyx_GIVEREF(Py_None);
@@ -61133,7 +61448,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       goto __pyx_L0;
     }
 
-    /* "bytesparse/_c.pyx":5618
+    /* "bytesparse/_c.pyx":5655
  *         block_index = Rack_IndexStart(blocks, address_)
  * 
  *         if block_index < block_count:             # <<<<<<<<<<<<<<
@@ -61142,7 +61457,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
   }
 
-  /* "bytesparse/_c.pyx":5662
+  /* "bytesparse/_c.pyx":5699
  *         else:
  *             # Address after content
  *             if block_count:             # <<<<<<<<<<<<<<
@@ -61153,7 +61468,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_v_block_count != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5663
+      /* "bytesparse/_c.pyx":5700
  *             # Address after content
  *             if block_count:
  *                 block = Rack_Last__(blocks)             # <<<<<<<<<<<<<<
@@ -61162,7 +61477,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Last__(__pyx_v_blocks);
 
-      /* "bytesparse/_c.pyx":5664
+      /* "bytesparse/_c.pyx":5701
  *             if block_count:
  *                 block = Rack_Last__(blocks)
  *                 block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -61171,7 +61486,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5665
+      /* "bytesparse/_c.pyx":5702
  *                 block = Rack_Last__(blocks)
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -61180,7 +61495,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
       __pyx_v_block_endex = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5666
+      /* "bytesparse/_c.pyx":5703
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)
  *                 return block_endex, None, None  # open right             # <<<<<<<<<<<<<<
@@ -61188,9 +61503,9 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  *             else:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_11 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5666, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 5703, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5666, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5703, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_11);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_11);
@@ -61205,7 +61520,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
       __pyx_t_7 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5662
+      /* "bytesparse/_c.pyx":5699
  *         else:
  *             # Address after content
  *             if block_count:             # <<<<<<<<<<<<<<
@@ -61214,7 +61529,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5669
+    /* "bytesparse/_c.pyx":5706
  * 
  *             else:
  *                 return None, None, None  # fully open             # <<<<<<<<<<<<<<
@@ -61229,7 +61544,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
     }
   }
 
-  /* "bytesparse/_c.pyx":5597
+  /* "bytesparse/_c.pyx":5634
  *             yield None, None
  * 
  *     def equal_span(             # <<<<<<<<<<<<<<
@@ -61251,7 +61566,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_132equal_span(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "bytesparse/_c.pyx":5671
+/* "bytesparse/_c.pyx":5708
  *                 return None, None, None  # fully open
  * 
  *     def block_span(             # <<<<<<<<<<<<<<
@@ -61299,17 +61614,17 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("block_span", 0);
 
-  /* "bytesparse/_c.pyx":5676
+  /* "bytesparse/_c.pyx":5713
  *     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
  *         cdef:
  *             addr_t address_ = <addr_t>address             # <<<<<<<<<<<<<<
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)
  */
-  __pyx_t_1 = __Pyx_PyInt_As_uint_fast64_t(__pyx_v_address); if (unlikely((__pyx_t_1 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5676, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_uint_fast64_t(__pyx_v_address); if (unlikely((__pyx_t_1 == ((addr_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 5713, __pyx_L1_error)
   __pyx_v_address_ = ((addr_t)__pyx_t_1);
 
-  /* "bytesparse/_c.pyx":5677
+  /* "bytesparse/_c.pyx":5714
  *         cdef:
  *             addr_t address_ = <addr_t>address
  *             const Rack_* blocks = self._             # <<<<<<<<<<<<<<
@@ -61319,7 +61634,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
   __pyx_t_2 = __pyx_v_self->_;
   __pyx_v_blocks = __pyx_t_2;
 
-  /* "bytesparse/_c.pyx":5678
+  /* "bytesparse/_c.pyx":5715
  *             addr_t address_ = <addr_t>address
  *             const Rack_* blocks = self._
  *             size_t block_count = Rack_Length(blocks)             # <<<<<<<<<<<<<<
@@ -61328,17 +61643,17 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
   __pyx_v_block_count = __pyx_f_10bytesparse_2_c_Rack_Length(__pyx_v_blocks);
 
-  /* "bytesparse/_c.pyx":5685
+  /* "bytesparse/_c.pyx":5722
  *             byte_t value
  * 
  *         block_index = Rack_IndexStart(blocks, address_)             # <<<<<<<<<<<<<<
  * 
  *         if block_index < block_count:
  */
-  __pyx_t_3 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_v_blocks, __pyx_v_address_); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5685, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_10bytesparse_2_c_Rack_IndexStart(__pyx_v_blocks, __pyx_v_address_); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-2L))) __PYX_ERR(0, 5722, __pyx_L1_error)
   __pyx_v_block_index = __pyx_t_3;
 
-  /* "bytesparse/_c.pyx":5687
+  /* "bytesparse/_c.pyx":5724
  *         block_index = Rack_IndexStart(blocks, address_)
  * 
  *         if block_index < block_count:             # <<<<<<<<<<<<<<
@@ -61348,7 +61663,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
   __pyx_t_4 = ((__pyx_v_block_index < __pyx_v_block_count) != 0);
   if (__pyx_t_4) {
 
-    /* "bytesparse/_c.pyx":5688
+    /* "bytesparse/_c.pyx":5725
  * 
  *         if block_index < block_count:
  *             block = Rack_Get__(blocks, block_index)             # <<<<<<<<<<<<<<
@@ -61357,7 +61672,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_v_blocks, __pyx_v_block_index);
 
-    /* "bytesparse/_c.pyx":5689
+    /* "bytesparse/_c.pyx":5726
  *         if block_index < block_count:
  *             block = Rack_Get__(blocks, block_index)
  *             block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -61366,7 +61681,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block);
 
-    /* "bytesparse/_c.pyx":5690
+    /* "bytesparse/_c.pyx":5727
  *             block = Rack_Get__(blocks, block_index)
  *             block_start = Block_Start(block)
  *             block_endex = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -61375,7 +61690,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     __pyx_v_block_endex = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-    /* "bytesparse/_c.pyx":5692
+    /* "bytesparse/_c.pyx":5729
  *             block_endex = Block_Endex(block)
  * 
  *             if block_start <= address_ < block_endex:             # <<<<<<<<<<<<<<
@@ -61389,25 +61704,25 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_t_4 != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5694
+      /* "bytesparse/_c.pyx":5731
  *             if block_start <= address_ < block_endex:
  *                 # Address within a block
  *                 CheckSubAddrU(address_, block_start)             # <<<<<<<<<<<<<<
  *                 CheckAddrToSizeU(address_ - block_start)
  *                 value = Block_Get__(block, <size_t>(address_ - block_start))
  */
-      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckSubAddrU(__pyx_v_address_, __pyx_v_block_start); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5694, __pyx_L1_error)
+      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckSubAddrU(__pyx_v_address_, __pyx_v_block_start); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5731, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5695
+      /* "bytesparse/_c.pyx":5732
  *                 # Address within a block
  *                 CheckSubAddrU(address_, block_start)
  *                 CheckAddrToSizeU(address_ - block_start)             # <<<<<<<<<<<<<<
  *                 value = Block_Get__(block, <size_t>(address_ - block_start))
  *                 return block_start, block_endex, value  # block span
  */
-      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddrToSizeU((__pyx_v_address_ - __pyx_v_block_start)); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5695, __pyx_L1_error)
+      __pyx_t_6 = __pyx_f_10bytesparse_2_c_CheckAddrToSizeU((__pyx_v_address_ - __pyx_v_block_start)); if (unlikely(__pyx_t_6 == ((__pyx_t_10bytesparse_2_c_vint)-1))) __PYX_ERR(0, 5732, __pyx_L1_error)
 
-      /* "bytesparse/_c.pyx":5696
+      /* "bytesparse/_c.pyx":5733
  *                 CheckSubAddrU(address_, block_start)
  *                 CheckAddrToSizeU(address_ - block_start)
  *                 value = Block_Get__(block, <size_t>(address_ - block_start))             # <<<<<<<<<<<<<<
@@ -61416,7 +61731,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_value = __pyx_f_10bytesparse_2_c_Block_Get__(__pyx_v_block, ((size_t)(__pyx_v_address_ - __pyx_v_block_start)));
 
-      /* "bytesparse/_c.pyx":5697
+      /* "bytesparse/_c.pyx":5734
  *                 CheckAddrToSizeU(address_ - block_start)
  *                 value = Block_Get__(block, <size_t>(address_ - block_start))
  *                 return block_start, block_endex, value  # block span             # <<<<<<<<<<<<<<
@@ -61424,13 +61739,13 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  *             elif block_index:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5697, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5734, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5697, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5734, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_9 = __Pyx_PyInt_From_byte_t(__pyx_v_value); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5697, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_byte_t(__pyx_v_value); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5734, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = PyTuple_New(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5697, __pyx_L1_error)
+      __pyx_t_10 = PyTuple_New(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5734, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_GIVEREF(__pyx_t_7);
       PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_7);
@@ -61445,7 +61760,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
       __pyx_t_10 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5692
+      /* "bytesparse/_c.pyx":5729
  *             block_endex = Block_Endex(block)
  * 
  *             if block_start <= address_ < block_endex:             # <<<<<<<<<<<<<<
@@ -61454,7 +61769,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5699
+    /* "bytesparse/_c.pyx":5736
  *                 return block_start, block_endex, value  # block span
  * 
  *             elif block_index:             # <<<<<<<<<<<<<<
@@ -61464,7 +61779,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_v_block_index != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5701
+      /* "bytesparse/_c.pyx":5738
  *             elif block_index:
  *                 # Address within a gap
  *                 block_endex = block_start  # end gap before next block             # <<<<<<<<<<<<<<
@@ -61473,7 +61788,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block_endex = __pyx_v_block_start;
 
-      /* "bytesparse/_c.pyx":5702
+      /* "bytesparse/_c.pyx":5739
  *                 # Address within a gap
  *                 block_endex = block_start  # end gap before next block
  *                 block = Rack_Get__(blocks, block_index - 1)             # <<<<<<<<<<<<<<
@@ -61482,7 +61797,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_v_blocks, (__pyx_v_block_index - 1));
 
-      /* "bytesparse/_c.pyx":5703
+      /* "bytesparse/_c.pyx":5740
  *                 block_endex = block_start  # end gap before next block
  *                 block = Rack_Get__(blocks, block_index - 1)
  *                 block_start = Block_Endex(block)  # start gap after previous block             # <<<<<<<<<<<<<<
@@ -61491,7 +61806,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5704
+      /* "bytesparse/_c.pyx":5741
  *                 block = Rack_Get__(blocks, block_index - 1)
  *                 block_start = Block_Endex(block)  # start gap after previous block
  *                 return block_start, block_endex, None  # gap span             # <<<<<<<<<<<<<<
@@ -61499,11 +61814,11 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  *             else:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_10 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5704, __pyx_L1_error)
+      __pyx_t_10 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 5741, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_9 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5704, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5741, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5704, __pyx_L1_error)
+      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5741, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_10);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_10);
@@ -61518,7 +61833,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
       __pyx_t_8 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5699
+      /* "bytesparse/_c.pyx":5736
  *                 return block_start, block_endex, value  # block span
  * 
  *             elif block_index:             # <<<<<<<<<<<<<<
@@ -61527,7 +61842,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5708
+    /* "bytesparse/_c.pyx":5745
  *             else:
  *                 # Address before content
  *                 return None, block_start, None  # open left             # <<<<<<<<<<<<<<
@@ -61536,9 +61851,9 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     /*else*/ {
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5708, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_start); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5745, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_9 = PyTuple_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5708, __pyx_L1_error)
+      __pyx_t_9 = PyTuple_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5745, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_INCREF(Py_None);
       __Pyx_GIVEREF(Py_None);
@@ -61554,7 +61869,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
       goto __pyx_L0;
     }
 
-    /* "bytesparse/_c.pyx":5687
+    /* "bytesparse/_c.pyx":5724
  *         block_index = Rack_IndexStart(blocks, address_)
  * 
  *         if block_index < block_count:             # <<<<<<<<<<<<<<
@@ -61563,7 +61878,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
   }
 
-  /* "bytesparse/_c.pyx":5712
+  /* "bytesparse/_c.pyx":5749
  *         else:
  *             # Address after content
  *             if block_count:             # <<<<<<<<<<<<<<
@@ -61574,7 +61889,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
     __pyx_t_5 = (__pyx_v_block_count != 0);
     if (__pyx_t_5) {
 
-      /* "bytesparse/_c.pyx":5713
+      /* "bytesparse/_c.pyx":5750
  *             # Address after content
  *             if block_count:
  *                 block = Rack_Last__(blocks)             # <<<<<<<<<<<<<<
@@ -61583,7 +61898,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Last__(__pyx_v_blocks);
 
-      /* "bytesparse/_c.pyx":5714
+      /* "bytesparse/_c.pyx":5751
  *             if block_count:
  *                 block = Rack_Last__(blocks)
  *                 block_start = Block_Start(block)             # <<<<<<<<<<<<<<
@@ -61592,7 +61907,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block_start = __pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5715
+      /* "bytesparse/_c.pyx":5752
  *                 block = Rack_Last__(blocks)
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)             # <<<<<<<<<<<<<<
@@ -61601,7 +61916,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
       __pyx_v_block_endex = __pyx_f_10bytesparse_2_c_Block_Endex(__pyx_v_block);
 
-      /* "bytesparse/_c.pyx":5716
+      /* "bytesparse/_c.pyx":5753
  *                 block_start = Block_Start(block)
  *                 block_endex = Block_Endex(block)
  *                 return block_endex, None, None  # open right             # <<<<<<<<<<<<<<
@@ -61609,9 +61924,9 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  *             else:
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_9 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5716, __pyx_L1_error)
+      __pyx_t_9 = __Pyx_PyInt_From_uint_fast64_t(__pyx_v_block_endex); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 5753, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5716, __pyx_L1_error)
+      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5753, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_9);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_9);
@@ -61626,7 +61941,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
       __pyx_t_8 = 0;
       goto __pyx_L0;
 
-      /* "bytesparse/_c.pyx":5712
+      /* "bytesparse/_c.pyx":5749
  *         else:
  *             # Address after content
  *             if block_count:             # <<<<<<<<<<<<<<
@@ -61635,7 +61950,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
  */
     }
 
-    /* "bytesparse/_c.pyx":5719
+    /* "bytesparse/_c.pyx":5756
  * 
  *             else:
  *                 return None, None, None  # fully open             # <<<<<<<<<<<<<<
@@ -61650,7 +61965,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
     }
   }
 
-  /* "bytesparse/_c.pyx":5671
+  /* "bytesparse/_c.pyx":5708
  *                 return None, None, None  # fully open
  * 
  *     def block_span(             # <<<<<<<<<<<<<<
@@ -61672,7 +61987,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_134block_span(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "bytesparse/_c.pyx":5721
+/* "bytesparse/_c.pyx":5758
  *                 return None, None, None  # fully open
  * 
  *     def _to_blocks(             # <<<<<<<<<<<<<<
@@ -61713,7 +62028,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_137_to_blocks(PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_to_blocks") < 0)) __PYX_ERR(0, 5721, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_to_blocks") < 0)) __PYX_ERR(0, 5758, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -61727,7 +62042,7 @@ static PyObject *__pyx_pw_10bytesparse_2_c_6Memory_137_to_blocks(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_to_blocks", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5721, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_to_blocks", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 5758, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("bytesparse._c.Memory._to_blocks", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -61770,7 +62085,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_to_blocks", 0);
 
-  /* "bytesparse/_c.pyx":5726
+  /* "bytesparse/_c.pyx":5763
  *     ) -> BlockList:
  *         cdef:
  *             const Rack_* blocks1 = self._             # <<<<<<<<<<<<<<
@@ -61780,7 +62095,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
   __pyx_t_1 = __pyx_v_self->_;
   __pyx_v_blocks1 = __pyx_t_1;
 
-  /* "bytesparse/_c.pyx":5727
+  /* "bytesparse/_c.pyx":5764
  *         cdef:
  *             const Rack_* blocks1 = self._
  *             size_t block_count = Rack_Length(blocks1)             # <<<<<<<<<<<<<<
@@ -61789,7 +62104,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
  */
   __pyx_v_block_count = __pyx_f_10bytesparse_2_c_Rack_Length(__pyx_v_blocks1);
 
-  /* "bytesparse/_c.pyx":5729
+  /* "bytesparse/_c.pyx":5766
  *             size_t block_count = Rack_Length(blocks1)
  *             size_t block_index
  *             Block_* block = NULL             # <<<<<<<<<<<<<<
@@ -61798,19 +62113,19 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
  */
   __pyx_v_block = NULL;
 
-  /* "bytesparse/_c.pyx":5732
+  /* "bytesparse/_c.pyx":5769
  *             size_t size
  *             const byte_t[:] view
  *             list blocks2 = []             # <<<<<<<<<<<<<<
  * 
  *         for block_index in range(block_count):
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5732, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5769, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_blocks2 = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "bytesparse/_c.pyx":5734
+  /* "bytesparse/_c.pyx":5771
  *             list blocks2 = []
  * 
  *         for block_index in range(block_count):             # <<<<<<<<<<<<<<
@@ -61822,7 +62137,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
   for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
     __pyx_v_block_index = __pyx_t_5;
 
-    /* "bytesparse/_c.pyx":5735
+    /* "bytesparse/_c.pyx":5772
  * 
  *         for block_index in range(block_count):
  *             block = Rack_Get__(blocks1, block_index)             # <<<<<<<<<<<<<<
@@ -61831,7 +62146,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
  */
     __pyx_v_block = __pyx_f_10bytesparse_2_c_Rack_Get__(__pyx_v_blocks1, __pyx_v_block_index);
 
-    /* "bytesparse/_c.pyx":5736
+    /* "bytesparse/_c.pyx":5773
  *         for block_index in range(block_count):
  *             block = Rack_Get__(blocks1, block_index)
  *             size = Block_Length(block)             # <<<<<<<<<<<<<<
@@ -61840,7 +62155,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
  */
     __pyx_v_size = __pyx_f_10bytesparse_2_c_Block_Length(__pyx_v_block);
 
-    /* "bytesparse/_c.pyx":5737
+    /* "bytesparse/_c.pyx":5774
  *             block = Rack_Get__(blocks1, block_index)
  *             size = Block_Length(block)
  *             view = <const byte_t[:size]><const byte_t*>Block_At__(block, 0)             # <<<<<<<<<<<<<<
@@ -61850,25 +62165,25 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
     __pyx_t_6 = ((byte_t const *)__pyx_f_10bytesparse_2_c_Block_At__(__pyx_v_block, 0));
     if (!__pyx_t_6) {
       PyErr_SetString(PyExc_ValueError,"Cannot create cython.array from NULL pointer");
-      __PYX_ERR(0, 5737, __pyx_L1_error)
+      __PYX_ERR(0, 5774, __pyx_L1_error)
     }
-    __pyx_t_8 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_nn_byte_t__const__); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5737, __pyx_L1_error)
+    __pyx_t_8 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_nn_byte_t__const__); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5774, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_2 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)__pyx_v_size)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5737, __pyx_L1_error)
+    __pyx_t_2 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)__pyx_v_size)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5774, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_7 = __pyx_array_new(__pyx_t_2, sizeof(byte_t const ), PyBytes_AS_STRING(__pyx_t_8), (char *) "c", (char *) __pyx_t_6);
-    if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5737, __pyx_L1_error)
+    if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5774, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_byte_t__const__(((PyObject *)__pyx_t_7), 0); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 5737, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn_byte_t__const__(((PyObject *)__pyx_t_7), 0); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 5774, __pyx_L1_error)
     __Pyx_DECREF(((PyObject *)__pyx_t_7)); __pyx_t_7 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_view, 1);
     __pyx_v_view = __pyx_t_9;
     __pyx_t_9.memview = NULL;
     __pyx_t_9.data = NULL;
 
-    /* "bytesparse/_c.pyx":5738
+    /* "bytesparse/_c.pyx":5775
  *             size = Block_Length(block)
  *             view = <const byte_t[:size]><const byte_t*>Block_At__(block, 0)
  *             data = bytearray(view) if size_max is None or size < size_max else view             # <<<<<<<<<<<<<<
@@ -61882,24 +62197,24 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
       __pyx_t_10 = __pyx_t_12;
       goto __pyx_L5_bool_binop_done;
     }
-    __pyx_t_2 = __Pyx_PyInt_FromSize_t(__pyx_v_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5738, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_FromSize_t(__pyx_v_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5775, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_13 = PyObject_RichCompare(__pyx_t_2, __pyx_v_size_max, Py_LT); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 5738, __pyx_L1_error)
+    __pyx_t_13 = PyObject_RichCompare(__pyx_t_2, __pyx_v_size_max, Py_LT); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 5775, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 5738, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_13); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 5775, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
     __pyx_t_10 = __pyx_t_12;
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_10) {
-      __pyx_t_13 = __pyx_memoryview_fromslice(__pyx_v_view, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_byte_t__const__, (int (*)(char *, PyObject *)) NULL, 0);; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 5738, __pyx_L1_error)
+      __pyx_t_13 = __pyx_memoryview_fromslice(__pyx_v_view, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_byte_t__const__, (int (*)(char *, PyObject *)) NULL, 0);; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 5775, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_13);
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_13); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5738, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(((PyObject *)(&PyByteArray_Type)), __pyx_t_13); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5775, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
       __pyx_t_8 = __pyx_t_2;
       __pyx_t_2 = 0;
     } else {
-      __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_view, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_byte_t__const__, (int (*)(char *, PyObject *)) NULL, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5738, __pyx_L1_error)
+      __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_view, 1, (PyObject *(*)(char *)) __pyx_memview_get_nn_byte_t__const__, (int (*)(char *, PyObject *)) NULL, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5775, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_t_8 = __pyx_t_2;
       __pyx_t_2 = 0;
@@ -61907,16 +62222,16 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
     __Pyx_XDECREF_SET(__pyx_v_data, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "bytesparse/_c.pyx":5739
+    /* "bytesparse/_c.pyx":5776
  *             view = <const byte_t[:size]><const byte_t*>Block_At__(block, 0)
  *             data = bytearray(view) if size_max is None or size < size_max else view
  *             blocks2.append([Block_Start(block), data])             # <<<<<<<<<<<<<<
  *         return blocks2
  * 
  */
-    __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5739, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyInt_From_uint_fast64_t(__pyx_f_10bytesparse_2_c_Block_Start(__pyx_v_block)); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 5776, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5739, __pyx_L1_error)
+    __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5776, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_8);
     PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_8);
@@ -61924,11 +62239,11 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
     __Pyx_GIVEREF(__pyx_v_data);
     PyList_SET_ITEM(__pyx_t_2, 1, __pyx_v_data);
     __pyx_t_8 = 0;
-    __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_blocks2, __pyx_t_2); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 5739, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_blocks2, __pyx_t_2); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 5776, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
 
-  /* "bytesparse/_c.pyx":5740
+  /* "bytesparse/_c.pyx":5777
  *             data = bytearray(view) if size_max is None or size < size_max else view
  *             blocks2.append([Block_Start(block), data])
  *         return blocks2             # <<<<<<<<<<<<<<
@@ -61940,7 +62255,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
   __pyx_r = __pyx_v_blocks2;
   goto __pyx_L0;
 
-  /* "bytesparse/_c.pyx":5721
+  /* "bytesparse/_c.pyx":5758
  *                 return None, None, None  # fully open
  * 
  *     def _to_blocks(             # <<<<<<<<<<<<<<
@@ -61966,7 +62281,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_136_to_blocks(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "bytesparse/_c.pyx":5743
+/* "bytesparse/_c.pyx":5780
  * 
  *     @property
  *     def _blocks(             # <<<<<<<<<<<<<<
@@ -61998,18 +62313,18 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_7_blocks___get__(struct __pyx
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get__", 0);
 
-  /* "bytesparse/_c.pyx":5747
+  /* "bytesparse/_c.pyx":5784
  *     ) -> BlockList:
  * 
  *         return self._to_blocks(size_max=None)             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_blocks); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5747, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_to_blocks); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5784, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5747, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5784, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_size_max, Py_None) < 0) __PYX_ERR(0, 5747, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5747, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_size_max, Py_None) < 0) __PYX_ERR(0, 5784, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 5784, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -62017,7 +62332,7 @@ static PyObject *__pyx_pf_10bytesparse_2_c_6Memory_7_blocks___get__(struct __pyx
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "bytesparse/_c.pyx":5743
+  /* "bytesparse/_c.pyx":5780
  * 
  *     @property
  *     def _blocks(             # <<<<<<<<<<<<<<
@@ -76955,6 +77270,7 @@ static PyObject *__pyx_tp_new_10bytesparse_2_c___pyx_scope_struct_5_keys(PyTypeO
 static void __pyx_tp_dealloc_10bytesparse_2_c___pyx_scope_struct_5_keys(PyObject *o) {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *p = (struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *)o;
   PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->__pyx_v_endex);
   Py_CLEAR(p->__pyx_v_self);
   Py_CLEAR(p->__pyx_v_start);
   if (CYTHON_COMPILING_IN_CPYTHON && ((__pyx_freecount_10bytesparse_2_c___pyx_scope_struct_5_keys < 8) & (Py_TYPE(o)->tp_basicsize == sizeof(struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys)))) {
@@ -76967,6 +77283,9 @@ static void __pyx_tp_dealloc_10bytesparse_2_c___pyx_scope_struct_5_keys(PyObject
 static int __pyx_tp_traverse_10bytesparse_2_c___pyx_scope_struct_5_keys(PyObject *o, visitproc v, void *a) {
   int e;
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *p = (struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_5_keys *)o;
+  if (p->__pyx_v_endex) {
+    e = (*v)(p->__pyx_v_endex, a); if (e) return e;
+  }
   if (p->__pyx_v_self) {
     e = (*v)(((PyObject *)p->__pyx_v_self), a); if (e) return e;
   }
@@ -77301,6 +77620,7 @@ static PyObject *__pyx_tp_new_10bytesparse_2_c___pyx_scope_struct_8_items(PyType
 static void __pyx_tp_dealloc_10bytesparse_2_c___pyx_scope_struct_8_items(PyObject *o) {
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *p = (struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *)o;
   PyObject_GC_UnTrack(o);
+  Py_CLEAR(p->__pyx_v_endex);
   Py_CLEAR(p->__pyx_v_pattern);
   Py_CLEAR(p->__pyx_v_self);
   Py_CLEAR(p->__pyx_v_start);
@@ -77314,6 +77634,9 @@ static void __pyx_tp_dealloc_10bytesparse_2_c___pyx_scope_struct_8_items(PyObjec
 static int __pyx_tp_traverse_10bytesparse_2_c___pyx_scope_struct_8_items(PyObject *o, visitproc v, void *a) {
   int e;
   struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *p = (struct __pyx_obj_10bytesparse_2_c___pyx_scope_struct_8_items *)o;
+  if (p->__pyx_v_endex) {
+    e = (*v)(p->__pyx_v_endex, a); if (e) return e;
+  }
   if (p->__pyx_v_pattern) {
     e = (*v)(p->__pyx_v_pattern, a); if (e) return e;
   }
@@ -78600,8 +78923,8 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 1903, __pyx_L1_error)
   __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 3031, __pyx_L1_error)
   __pyx_builtin_id = __Pyx_GetBuiltinName(__pyx_n_s_id); if (!__pyx_builtin_id) __PYX_ERR(0, 3234, __pyx_L1_error)
-  __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(0, 5487, __pyx_L1_error)
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 5509, __pyx_L1_error)
+  __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) __PYX_ERR(0, 5482, __pyx_L1_error)
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 5546, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 151, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -78881,25 +79204,25 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
 
-  /* "bytesparse/_c.pyx":5595
+  /* "bytesparse/_c.pyx":5632
  * 
  *         elif not bound_:
  *             yield None, None             # <<<<<<<<<<<<<<
  * 
  *     def equal_span(
  */
-  __pyx_tuple__28 = PyTuple_Pack(2, Py_None, Py_None); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 5595, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(2, Py_None, Py_None); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 5632, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "bytesparse/_c.pyx":5669
+  /* "bytesparse/_c.pyx":5706
  * 
  *             else:
  *                 return None, None, None  # fully open             # <<<<<<<<<<<<<<
  * 
  *     def block_span(
  */
-  __pyx_tuple__29 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 5669, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(3, Py_None, Py_None, Py_None); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 5706, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
 
@@ -79558,7 +79881,7 @@ static int __Pyx_modinit_type_init_code(void) {
     __pyx_type_10bytesparse_2_c___pyx_scope_struct_5_keys.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
   }
   __pyx_ptype_10bytesparse_2_c___pyx_scope_struct_5_keys = &__pyx_type_10bytesparse_2_c___pyx_scope_struct_5_keys;
-  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_6_values) < 0) __PYX_ERR(0, 5479, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_6_values) < 0) __PYX_ERR(0, 5491, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_10bytesparse_2_c___pyx_scope_struct_6_values.tp_print = 0;
   #endif
@@ -79566,7 +79889,7 @@ static int __Pyx_modinit_type_init_code(void) {
     __pyx_type_10bytesparse_2_c___pyx_scope_struct_6_values.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
   }
   __pyx_ptype_10bytesparse_2_c___pyx_scope_struct_6_values = &__pyx_type_10bytesparse_2_c___pyx_scope_struct_6_values;
-  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_7_rvalues) < 0) __PYX_ERR(0, 5491, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_7_rvalues) < 0) __PYX_ERR(0, 5515, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_10bytesparse_2_c___pyx_scope_struct_7_rvalues.tp_print = 0;
   #endif
@@ -79574,7 +79897,7 @@ static int __Pyx_modinit_type_init_code(void) {
     __pyx_type_10bytesparse_2_c___pyx_scope_struct_7_rvalues.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
   }
   __pyx_ptype_10bytesparse_2_c___pyx_scope_struct_7_rvalues = &__pyx_type_10bytesparse_2_c___pyx_scope_struct_7_rvalues;
-  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_8_items) < 0) __PYX_ERR(0, 5503, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_8_items) < 0) __PYX_ERR(0, 5539, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_10bytesparse_2_c___pyx_scope_struct_8_items.tp_print = 0;
   #endif
@@ -79582,7 +79905,7 @@ static int __Pyx_modinit_type_init_code(void) {
     __pyx_type_10bytesparse_2_c___pyx_scope_struct_8_items.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
   }
   __pyx_ptype_10bytesparse_2_c___pyx_scope_struct_8_items = &__pyx_type_10bytesparse_2_c___pyx_scope_struct_8_items;
-  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_9_intervals) < 0) __PYX_ERR(0, 5511, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_9_intervals) < 0) __PYX_ERR(0, 5548, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_10bytesparse_2_c___pyx_scope_struct_9_intervals.tp_print = 0;
   #endif
@@ -79590,7 +79913,7 @@ static int __Pyx_modinit_type_init_code(void) {
     __pyx_type_10bytesparse_2_c___pyx_scope_struct_9_intervals.tp_getattro = __Pyx_PyObject_GenericGetAttrNoDict;
   }
   __pyx_ptype_10bytesparse_2_c___pyx_scope_struct_9_intervals = &__pyx_type_10bytesparse_2_c___pyx_scope_struct_9_intervals;
-  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_10_gaps) < 0) __PYX_ERR(0, 5544, __pyx_L1_error)
+  if (PyType_Ready(&__pyx_type_10bytesparse_2_c___pyx_scope_struct_10_gaps) < 0) __PYX_ERR(0, 5581, __pyx_L1_error)
   #if PY_VERSION_HEX < 0x030800B1
   __pyx_type_10bytesparse_2_c___pyx_scope_struct_10_gaps.tp_print = 0;
   #endif
@@ -79964,14 +80287,14 @@ if (!__Pyx_RefNanny) {
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_STR_MAX_CONTENT_SIZE, __pyx_int_1000) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
 
-  /* "bytesparse/_c.pyx":5723
+  /* "bytesparse/_c.pyx":5760
  *     def _to_blocks(
  *         self: 'Memory',
  *         size_max: Optional[Address] = STR_MAX_CONTENT_SIZE,             # <<<<<<<<<<<<<<
  *     ) -> BlockList:
  *         cdef:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_STR_MAX_CONTENT_SIZE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5723, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_STR_MAX_CONTENT_SIZE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5760, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_k__30 = __pyx_t_1;
   __Pyx_GIVEREF(__pyx_t_1);
