@@ -2513,7 +2513,7 @@ class BaseMemorySuite:
             for size in range(MAX_SIZE):
                 endex = start + size
                 memory = Memory()
-                keys_out = list(islice(memory.keys(start), size))
+                keys_out = list(islice(memory.keys(start, ...), size))
                 keys_ref = list(range(start, endex))
                 assert keys_out == keys_ref, (start, size, keys_out, keys_ref)
 
@@ -2619,7 +2619,7 @@ class BaseMemorySuite:
                 values = blocks_to_values(blocks, MAX_SIZE)
                 memory = Memory(blocks=blocks)
 
-                items_out = list(islice(memory.items(start), size))
+                items_out = list(islice(memory.items(start, ...), size))
 
                 values_ref = values[start:(start + len(items_out))]
                 keys_ref = list(range(start, start + size))

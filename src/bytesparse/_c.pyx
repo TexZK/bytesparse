@@ -5466,15 +5466,27 @@ cdef class Memory:
     def keys(
         self: 'Memory',
         start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
     ) -> Iterator[Address]:
         cdef:
-            addr_t address = self.start_() if start is None else <addr_t>start
+            addr_t start_
+            addr_t endex_
 
-        while address < ADDR_MAX:
-            yield address
-            address += 1
+        if start is None:
+            start_ = self.start_()
+        else:
+            start_ = <addr_t>start
 
-        raise StopIteration()
+        if endex is None:
+            endex_ = self.endex_()
+        elif endex is Ellipsis:
+            endex_ = ADDR_MAX
+        else:
+            endex_ = <addr_t>endex
+
+        while start_ < endex_:
+            yield start_
+            start_ += 1
 
     def values(
         self: 'Memory',
@@ -5483,8 +5495,20 @@ cdef class Memory:
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
         cdef:
-            addr_t start_ = self.start_() if start is None else <addr_t>start
-            addr_t endex_ = self.endex_() if (endex is None or endex is Ellipsis) else <addr_t>endex
+            addr_t start_
+            addr_t endex_
+
+        if start is None:
+            start_ = self.start_()
+        else:
+            start_ = <addr_t>start
+
+        if endex is None:
+            endex_ = self.endex_()
+        elif endex is Ellipsis:
+            endex_ = ADDR_MAX
+        else:
+            endex_ = <addr_t>endex
 
         yield from Rover(self, start_, endex_, pattern, True, endex is Ellipsis)
 
@@ -5495,18 +5519,31 @@ cdef class Memory:
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
         cdef:
-            addr_t start_ = self.start_() if (start is None or start is Ellipsis) else <addr_t>start
-            addr_t endex_ = self.endex_() if endex is None else <addr_t>endex
+            addr_t start_
+            addr_t endex_
+
+        if start is None:
+            start_ = self.start_()
+        elif start is Ellipsis:
+            start_ = ADDR_MIN
+        else:
+            start_ = <addr_t>start
+
+        if endex is None:
+            endex_ = self.endex_()
+        else:
+            endex_ = <addr_t>endex
 
         yield from Rover(self, start_, endex_, pattern, False, start is Ellipsis)
 
     def items(
         self: 'Memory',
         start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
 
-        yield from zip(self.keys(start), self.values(start, None, pattern))
+        yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
 
     def intervals(
         self: 'Memory',
