@@ -63,6 +63,21 @@ def _repeat2(
     offset: Address,
     size: Optional[Address],
 ) -> Iterator[Value]:
+    r"""Pattern repetition.
+
+    Arguments:
+        pattern (list of int):
+            The pattern to repeat, made of byte integers, or ``None``.
+
+        offset (int):
+            Index of the first value within the pattern. Wraparound supported.
+
+        size (int):
+            Size of the repeated pattern; ``None`` for infinite repetition.
+
+    Yields:
+        int: Repeated pattern values.
+    """
 
     if pattern is None:
         if size is None:
@@ -116,6 +131,14 @@ class Memory:
         _blocks (list of blocks):
             A sequence of spaced blocks, sorted by address.
 
+        _trim_start (int):
+            Memory trimming start address. Any data before this address is
+            automatically discarded; disabled if ``None``.
+
+        _trim_endex (int):
+            Memory trimming exclusive end address. Any data at or after this
+            address is automatically discarded; disabled if ``None``.
+
     Arguments:
         memory (Memory):
             An optional :obj:`Memory` to copy data from.
@@ -144,8 +167,7 @@ class Memory:
             Validates the resulting :obj:`Memory` object.
 
     Raises:
-        :obj:`ValueError`: More than of `memory`, `data`, and `blocks` is
-        specified.
+        :obj:`ValueError`: More than one of `memory`, `data`, and `blocks`.
 
     Examples:
         >>> memory = Memory()
@@ -232,9 +254,10 @@ class Memory:
     ) -> str:
         r"""String representation.
 
-        If ``self.content_size < STR_MAX_CONTENT_SIZE``, then the memory is
-        represented as a list of blocks.
-        If exceeding, it is equivalent to ``repr(self)``.
+        If :attr:`content_size` is lesser than ``STR_MAX_CONTENT_SIZE``, then
+        the memory is represented as a list of blocks.
+
+        If exceeding, it is equivalent to :meth:`__repr__`.
 
 
         Returns:
@@ -286,10 +309,12 @@ class Memory:
         Arguments:
             other (Memory):
                 Data to compare with `self`.
-                If it is an instance of `Memory`, all of its blocks must
-                match.
+
+                If it is a :obj:`Memory`, all of its blocks must match.
+
                 If it is a :obj:`list`, it is expected that it contains the
                 same blocks as `self`.
+
                 Otherwise, it must match the first stored block, considered
                 equal if also starts at 0.
 
@@ -434,13 +459,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the first item equal to `value`, or ``None``.
@@ -465,13 +488,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the last item equal to `value`, or ``None``.
@@ -496,13 +517,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`endex` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the first item equal to `value`, or -1.
@@ -527,13 +546,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the last item equal to `value`, or -1.
@@ -558,13 +575,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the first item equal to `value`.
@@ -616,13 +631,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The index of the last item equal to `value`.
@@ -707,13 +720,11 @@ class Memory:
 
             start (int):
                 Inclusive start of the searched range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the searched range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
         Returns:
             int: The number of items equal to `value`.
@@ -766,7 +777,7 @@ class Memory:
             step = key.step
 
             if isinstance(step, Value):
-                if step is None or step >= 1:
+                if step >= 1:
                     return self.extract(start, endex, step=step)
                 else:
                     return Memory()  # empty
@@ -876,11 +887,11 @@ class Memory:
         self: 'Memory',
         item: Union[AnyBytes, Value],
     ) -> None:
-        r"""Appends some items.
+        r"""Appends a single item.
 
         Arguments:
-            item (items):
-                Items to append. Can be either some byte string or an integer.
+            item (int):
+                Value to append. Can be a single byte string or integer.
 
         Examples:
             >>> memory = Memory()
@@ -919,11 +930,12 @@ class Memory:
         Arguments:
             items (items):
                 Items to append at the end of the current virtual space.
-                If instance of :class:`list`, it is interpreted as a sequence
-                of non-overlapping blocks, sorted by start address.
+
+                If a :obj:`list`, it is interpreted as a sequence of
+                non-overlapping blocks, sorted by start address.
 
             offset (int):
-                Optional offset w.r.t. :attr:`self.content_endex`.
+                Optional offset w.r.t. :attr:`content_endex`.
         """
 
         if offset < 0:
@@ -938,11 +950,28 @@ class Memory:
 
         Arguments:
             address (int):
-                Address of the byte to pop. If ``None``, the very last byte is
-                popped.
+                Address of the byte to pop.
+                If ``None``, the very last byte is popped.
 
         Return:
             int: Value at `address`; ``None`` within emptiness.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | y]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | y]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.pop()  # -> ord('z') = 122
+            122
+            >>> memory.pop(3)  # -> ord('C') = 67
+            67
         """
 
         if address is None:
@@ -963,33 +992,40 @@ class Memory:
     def _bytearray(
         self: 'Memory',
     ) -> bytearray:
+        r"""Underlying bytearray.
 
-        message = 'non-contiguous data within range'
+        Returns:
+            bytearray: The underlying bytearray.
+
+        Raises:
+            ValueError: Data not contiguous (see :attr:`contiguous`).
+        """
+
         blocks = self._blocks
 
         if not blocks:
             start = self._trim_start
             endex = self._trim_endex
             if start is not None and endex is not None and start < endex - 1:
-                raise ValueError(message)
+                raise ValueError('non-contiguous data within range')
             return bytearray()
 
         elif len(blocks) == 1:
             start = self._trim_start
             if start is not None:
                 if start != blocks[0][0]:
-                    raise ValueError(message)
+                    raise ValueError('non-contiguous data within range')
 
             endex = self._trim_endex
             if endex is not None:
                 block_start, block_data = blocks[-1]
                 if endex != block_start + len(block_data):
-                    raise ValueError(message)
+                    raise ValueError('non-contiguous data within range')
 
             return blocks[0][1]
 
         else:
-            raise ValueError(message)
+            raise ValueError('non-contiguous data within range')
 
     def __bytes__(
         self: 'Memory',
@@ -1021,18 +1057,25 @@ class Memory:
         self: 'Memory',
     ) -> 'Memory':
 
-        return type(self)(memory=self, start=self.trim_start, endex=self.trim_endex, copy=False)
+        return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=False)
 
     def __deepcopy__(
         self: 'Memory',
     ) -> 'Memory':
 
-        return type(self)(memory=self, start=self.trim_start, endex=self.trim_endex, copy=True)
+        return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=True)
 
     @property
     def contiguous(
         self: 'Memory',
     ) -> bool:
+        r"""bool: Contains contiguous data.
+
+        The memory is considered to have contiguous data if there is no empty
+        space between blocks.
+
+        If trimming is defined, there must be no empty space also towards it.
+        """
 
         try:
             self._bytearray()
@@ -1044,6 +1087,11 @@ class Memory:
     def trim_start(
         self: 'Memory',
     ) -> Optional[Address]:
+        r"""int: Trimming start address.
+
+        Any data before this address is automatically discarded.
+        Disabled if ``None``.
+        """
 
         return self._trim_start
 
@@ -1065,6 +1113,11 @@ class Memory:
     def trim_endex(
         self: 'Memory',
     ) -> Optional[Address]:
+        r"""int: Trimming exclusive end address.
+
+        Any data at or after this address is automatically discarded.
+        Disabled if ``None``.
+        """
 
         return self._trim_endex
 
@@ -1086,6 +1139,10 @@ class Memory:
     def trim_span(
         self: 'Memory',
     ) -> OpenInterval:
+        r"""tuple of int: Trimming span addresses.
+
+        A :obj:`tuple` holding :attr:`trim_start` and :attr:`trim_endex`.
+        """
 
         return self._trim_start, self._trim_endex
 
@@ -1108,16 +1165,15 @@ class Memory:
     def start(
         self: 'Memory',
     ) -> Address:
-        r"""Inclusive start address.
+        r"""int: Inclusive start address.
 
         This property holds the inclusive start address of the virtual space.
         By default, it is the current minimum inclusive start address of
         the first stored block.
-        If start trimming is specified, its address is returned.
-        If the memory has no data and no trimming, 0 is returned.
 
-        Returns:
-            int: The inclusive start address.
+        If :attr:`trim_start` not ``None``, that is returned.
+
+        If the memory has no data and no trimming, 0 is returned.
 
         Examples:
             >>> Memory().start
@@ -1163,17 +1219,15 @@ class Memory:
     def endex(
         self: 'Memory',
     ) -> Address:
-        r"""Exclusive end address.
+        r"""int: Exclusive end address.
 
         This property holds the exclusive end address of the virtual space.
         By default, it is the current maximmum exclusive end address of
         the last stored block.
-        If end trimming is specified, its address is returned.
-        If the memory has no data and no trimming, the start address (i.e.
-        :attr:`Memory.start`) is returned.
 
-        Returns:
-            int: The exclusive end address.
+        If  :attr:`trim_endex` not ``None``, that is returned.
+
+        If the memory has no data and no trimming, :attr:`start` is returned.
 
         Examples:
             >>> Memory().endex
@@ -1220,13 +1274,9 @@ class Memory:
     def span(
         self: 'Memory',
     ) -> ClosedInterval:
-        r"""Memory address span.
+        r"""tuple of int: Memory address span.
 
-        Combines :attr:`Memory.start` and :attr:`Memory.endex` into a single
-        call.
-
-        Returns:
-            tuple of int: Start and exclusive end address.
+        A :obj:`tuple` holding both :attr:`start` and :attr:`endex`.
 
         Examples:
             >>> Memory().span
@@ -1253,17 +1303,15 @@ class Memory:
     def endin(
         self: 'Memory',
     ) -> Address:
-        r"""Inclusive end address.
+        r"""int: Inclusive end address.
 
         This property holds the inclusive end address of the virtual space.
         By default, it is the current maximmum inclusive end address of
         the last stored block.
-        If end trimming is specified, its address (minus one) is returned.
-        If the memory has no data and no trimming, the start address (i.e.
-        :attr:`Memory.start`) is returned.
 
-        Returns:
-            int: The inclusive end address.
+        If  :attr:`trim_endex` not ``None``, that minus one is returned.
+
+        If the memory has no data and no trimming, :attr:`start` is returned.
 
         Examples:
             >>> Memory().endin
@@ -1310,20 +1358,23 @@ class Memory:
     def content_start(
         self: 'Memory',
     ) -> Address:
-        r"""Inclusive content start address.
+        r"""int: Inclusive content start address.
 
         This property holds the inclusive start address of the memory content.
         By default, it is the current minimum inclusive start address of
         the first stored block.
-        If the memory has no data and no trimming, 0 is returned.
-        Trimming is considered only for an empty memory.
 
-        Returns:
-            int: The inclusive start address of the memory content.
+        If the memory has no data and no trimming, 0 is returned.
+
+        Trimming is considered only for an empty memory.
 
         Examples:
             >>> Memory().content_start
             0
+            >>> Memory(start=1).content_start
+            1
+            >>> Memory(start=1, endex=8).content_start
+            1
 
             ~~~
 
@@ -1362,21 +1413,23 @@ class Memory:
     def content_endex(
         self: 'Memory',
     ) -> Address:
-        r"""Exclusive content end address.
+        r"""int: Exclusive content end address.
 
         This property holds the exclusive end address of the memory content.
         By default, it is the current maximmum exclusive end address of
         the last stored block.
-        If the memory has no data and no trimming, the start address (i.e.
-        :attr:`Memory.start`) is returned.
-        Trimming is considered only for an empty memory.
 
-        Returns:
-            int: The exclusive end address of the memory content.
+        If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Trimming is considered only for an empty memory.
 
         Examples:
             >>> Memory().content_endex
             0
+            >>> Memory(endex=8).content_endex
+            0
+            >>> Memory(start=1, endex=8).content_endex
+            1
 
             ~~~
 
@@ -1416,19 +1469,20 @@ class Memory:
     def content_span(
         self: 'Memory',
     ) -> ClosedInterval:
-        r"""Memory content address span.
+        r"""tuple of int: Memory content address span.
 
-        Combines :attr:`Memory.content_start` and :attr:`Memory.content_endex`
-        into a single call.
-
-        Returns:
-            tuple of int: Start and exclusive end address of the memory content.
+        A :attr:`tuple` holding both :attr:`content_start` and
+        :attr:`content_endex`.
 
         Examples:
             >>> Memory().content_span
             (0, 0)
-            >>> Memory(start=1, endex=8).content_span
+            >>> Memory(start=1).content_span
+            (1, 1)
+            >>> Memory(endex=8).content_span
             (0, 0)
+            >>> Memory(start=1, endex=8).content_span
+            (1, 1)
 
             ~~~
 
@@ -1449,21 +1503,24 @@ class Memory:
     def content_endin(
         self: 'Memory',
     ) -> Address:
-        r"""Inclusive content end address.
+        r"""int: Inclusive content end address.
 
         This property holds the inclusive end address of the memory content.
         By default, it is the current maximmum inclusive end address of
         the last stored block.
-        If the memory has no data and no trimming, the start address (i.e.
-        :attr:`Memory.start`, minus one) is returned.
-        Trimming is considered only for an empty memory.
 
-        Returns:
-            int: The inclusive end address of the memory content.
+        If the memory has no data and no trimming, :attr:`start` minus one is
+        returned.
+
+        Trimming is considered only for an empty memory.
 
         Examples:
             >>> Memory().content_endin
             -1
+            >>> Memory(endex=8).content_endin
+            -1
+            >>> Memory(start=1, endex=8).content_endin
+            0
 
             ~~~
 
@@ -1510,6 +1567,8 @@ class Memory:
 
         Examples:
             >>> Memory().content_size
+            0
+            >>> Memory(start=1, endex=8).content_size
             0
 
             ~~~
@@ -1629,11 +1688,11 @@ class Memory:
         ``None`` is used to ignore a limit for the `start` or `endex`
         directions.
 
-        In case of stored data, :attr:`Memory.content_start` and
-        :attr:`Memory.content_endex` are used as bounds.
+        In case of stored data, :attr:`content_start` and
+        :attr:`content_endex` are used as bounds.
 
-        In case of trimming limits, :attr:`Memory.trim_start` or
-        :attr:`Memory.trim_endex` are used as bounds, when not ``None``.
+        In case of trimming limits, :attr:`trim_start` or :attr:`trim_endex`
+        are used as bounds, when not ``None``.
 
         In case `start` and `endex` are in the wrong order, one clamps
         the other if present (see the Python implementation for details).
@@ -1790,6 +1849,8 @@ class Memory:
         Returns the index of the first block whose start address is greater than
         or equal to `address`.
 
+        Useful to find the initial block index in a ranged search.
+
         Arguments:
             address (int):
                 Inclusive start address of the scanned range.
@@ -1847,6 +1908,8 @@ class Memory:
         Returns the index of the first block whose end address is lesser than or
         equal to `address`.
 
+        Useful to find the termination block index in a ranged search.
+
         Arguments:
             address (int):
                 Exclusive end address of the scanned range.
@@ -1901,8 +1964,6 @@ class Memory:
     ) -> Optional[Value]:
         r"""Gets the item at an address.
 
-        Equivalent to ``memory[address]``.
-
         Returns:
             int: The item at `address`, ``None`` if empty.
 
@@ -1941,8 +2002,6 @@ class Memory:
         item: Optional[Union[AnyBytes, Value]],
     ) -> Optional[Value]:
         r"""Sets the item at an address.
-
-        Equivalent to ``memory[address] = item``.
 
         Arguments:
             address (int):
@@ -2045,13 +2104,11 @@ class Memory:
         Arguments:
             start (int):
                 Inclusive start of the extracted range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. :attr:`start`).
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
                 Exclusive end of the extracted range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. :attr:`endex`).
+                If ``None``, :attr:`endex` is considered.
 
             pattern (items):
                 Optional pattern of items to fill the emptiness.
@@ -2070,7 +2127,7 @@ class Memory:
                 otherwise.
 
         Returns:
-            Memory: A copy of the memory from the selected range.
+            :obj:`Memory`: A copy of the memory from the selected range.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -2221,7 +2278,7 @@ class Memory:
                 Start address of the emptiness to insert.
 
             size (int):
-                Length of the emptiness to insert.
+                Size of the emptiness to insert.
 
             backups (list of :obj:`Memory`):
                 Optional output list holding backup copies of the deleted
@@ -2292,6 +2349,21 @@ class Memory:
         data: bytearray,
         shift_after: bool,
     ) -> None:
+        r"""Inserts data.
+
+        Low-level method to insert data into the underlying data structure.
+
+        Arguments:
+            address (int):
+                Address of the insertion point.
+
+            data (:obj:`bytearray`):
+                Data to insert.
+
+            shift_after (bool):
+                Shifts the addresses of blocks after the insertion point,
+                adding the size of the inserted data.
+        """
 
         size = len(data)
         if size:
@@ -2358,6 +2430,25 @@ class Memory:
         shift_after: bool,
         merge_deletion: bool,
     ) -> None:
+        r"""Erases an address range.
+
+        Low-level method to erase data within the underlying data structure.
+
+        Arguments:
+            start (int):
+                Start address of the erasure range.
+
+            endex (int):
+                Exclusive end address of the erasure range.
+
+            shift_after (bool):
+                Shifts addresses of blocks after the end of the range,
+                subtracting the size of the range itself.
+
+            merge_deletion (bool):
+                If data blocks before and after the address range are
+                contiguous after erasure, merge the two blocks together.
+        """
 
         size = endex - start
         if size > 0:
@@ -2426,6 +2517,41 @@ class Memory:
         data: Union[AnyBytes, Value, 'Memory'],
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Inserts data.
+
+        Inserts data, moving existing items after the insertion address by the
+        size of the inserted data.
+
+        Arguments::
+            address (int):
+                Address of the insertion point.
+
+            data (bytes):
+                Data to insert.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | z]|   |[$]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | 1 | z]|   |[$]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.insert(10, b'$')
+            >>> memory._blocks
+            [[1, b'ABC'], [6, b'xyz'], [10, b'$']]
+            >>> memory.insert(8, b'1')
+            >>> memory._blocks
+            [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
+        """
 
         if isinstance(data, Memory):
             data_start = data.start
@@ -2450,6 +2576,35 @@ class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Deletes an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for deletion.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for deletion.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.delete(6, 10)
+            >>> memory._blocks
+            [[5, b'Ayz']]
+        """
 
         start, endex = self.bound(start, endex)
 
@@ -2465,6 +2620,35 @@ class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Clears an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for clearing.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for clearing.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.clear(6, 10)
+            >>> memory._blocks
+            [[5, b'A'], [10, b'yz']]
+        """
 
         start, endex = self.bound(start, endex)
 
@@ -2518,6 +2702,23 @@ class Memory:
         endex: Optional[Address],
         backups: Optional[MemoryList],
     ) -> None:
+        r"""Keeps data within an address range.
+
+        Low-level method to crop the underlying data structure.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cropping.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cropping.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
 
         blocks = self._blocks  # may change
 
@@ -2548,6 +2749,35 @@ class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Keeps data within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cropping.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cropping.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |[B | C]|   |[x]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.crop(6, 10)
+            >>> memory._blocks
+            [[6, b'BC'], [9, b'x']]
+        """
 
         self._crop(start, endex, backups)
 
@@ -2562,18 +2792,18 @@ class Memory:
 
         Arguments:
             address (int):
-                Address of the block to write.
+                Address where to start writing data.
 
             data (bytes):
-                Block of byte-like data to write.
+                Data to write.
 
             clear (bool):
                 Clears the target range before writing data.
-                Useful only if `data` is a :obj:`Memory` with  holes.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
 
             backups (list of :obj:`Memory`):
                 Optional output list holding backup copies of the deleted
-                items, before trimming.
+                items.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+
@@ -2670,14 +2900,12 @@ class Memory:
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address for filling.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address for filling.
+                If ``None``, :attr:`endex` is considered.
 
             pattern (items):
                 Pattern of items to fill the range.
@@ -2692,7 +2920,7 @@ class Memory:
             +===+===+===+===+===+===+===+===+===+===+
             |   |[A | B | C]|   |   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
-            |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]||   |
+            |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
@@ -2755,14 +2983,12 @@ class Memory:
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address for flooding.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address for flooding.
+                If ``None``, :attr:`endex` is considered.
 
             pattern (items):
                 Pattern of items to fill the range.
@@ -2865,19 +3091,17 @@ class Memory:
     ) -> Iterator[Address]:
         r"""Iterates over addresses.
 
-        Iterates over addresses starting from an address.
+        Iterates over addresses, from `start` to `endex`.
         Implemets the interface of :obj:`dict`.
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
                 If ``Ellipsis``, the iterator is infinite.
 
         Yields:
@@ -2932,23 +3156,21 @@ class Memory:
     ) -> Iterator[Optional[Value]]:
         r"""Iterates over values.
 
-        Iterates over values starting from an address.
+        Iterates over values, from `start` to `endex`.
         Implemets the interface of :obj:`dict`.
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
                 If ``Ellipsis``, the iterator is infinite.
 
             pattern (items):
-                Pattern of values to fill the range.
+                Pattern of values to fill emptiness.
 
         Yields:
             int: Range values.
@@ -3028,6 +3250,54 @@ class Memory:
         endex: Optional[Address] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values, reversed order.
+
+        Iterates over values, from `endex` to `start`.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+                If ``Ellipsis``, the iterator is infinite.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Pattern of values to fill emptiness.
+
+        Yields:
+            int: Range values.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.values(endex=8))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.values(3, ...), 7))
+            [None, None, None, None, None, None, None]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.values())
+            [65, 66, 67, None, None, 120, 121, 122]
+            >>> list(memory.values(3, 8))
+            [67, None, None, 120, 121]
+            >>> list(islice(memory.values(3, ...), 7))
+            [67, None, None, 120, 121, 122, None]
+        """
 
         if start is None or start is Ellipsis:
             if isinstance(pattern, Value):
@@ -3077,23 +3347,21 @@ class Memory:
     ) -> Iterator[Tuple[Address, Value]]:
         r"""Iterates over address and value couples.
 
-        Iterates over address and value couples, starting from an address.
+        Iterates over address and value couples, from `start` to `endex`.
         Implemets the interface of :obj:`dict`.
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
                 If ``Ellipsis``, the iterator is infinite.
 
             pattern (items):
-                Pattern of values to fill the range.
+                Pattern of values to fill emptiness.
 
         Yields:
             int: Range address and value couples.
@@ -3145,14 +3413,12 @@ class Memory:
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
 
         Yields:
             couple of addresses: Block data interval boundaries.
@@ -3201,14 +3467,12 @@ class Memory:
 
         Arguments:
             start (int):
-                Inclusive start of the filled range.
-                If ``None``, the global inclusive start address is considered
-                (i.e. that of the first block).
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
 
             endex (int):
-                Exclusive end of the filled range.
-                If ``None``, the global exclusive end address is considered
-                (i.e. that of the last block).
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
 
             bound (bool):
                 Only gaps within blocks are considered; emptiness before and
@@ -3274,8 +3538,10 @@ class Memory:
 
         It searches for the biggest chunk of data adjacent to the given
         address, with the same value at that address.
+
         If the address is within a gap, its bounds are returned, and its
         value is ``None``.
+
         If the address is before or after any data, bounds are ``None``.
 
         Arguments:
@@ -3371,8 +3637,10 @@ class Memory:
 
         It searches for the biggest chunk of data adjacent to the given
         address.
+
         If the address is within a gap, its bounds are returned, and its
         value is ``None``.
+
         If the address is before or after any data, bounds are ``None``.
 
         Arguments:
