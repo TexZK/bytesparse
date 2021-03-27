@@ -1,13 +1,13 @@
-bytesparse.\_py.Memory
+﻿bytesparse.\_py.Memory
 ======================
 
 .. currentmodule:: bytesparse._py
 
 .. autoclass:: Memory
    :members:
-   :show-inheritance:
    :inherited-members:
-   :special-members: __call__, __add__, __mul__
+   :private-members:
+   :special-members:
 
    
    
@@ -16,6 +16,7 @@ bytesparse.\_py.Memory
    .. autosummary::
       :nosignatures:
    
+      ~Memory.__init__
       ~Memory.append
       ~Memory.block_span
       ~Memory.bound

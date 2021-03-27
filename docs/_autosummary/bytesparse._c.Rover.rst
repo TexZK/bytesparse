@@ -1,13 +1,13 @@
-bytesparse.\_c.Rover
+﻿bytesparse.\_c.Rover
 ====================
 
 .. currentmodule:: bytesparse._c
 
 .. autoclass:: Rover
    :members:
-   :show-inheritance:
    :inherited-members:
-   :special-members: __call__, __add__, __mul__
+   :private-members:
+   :special-members:
 
    
    
@@ -16,6 +16,7 @@ bytesparse.\_c.Rover
    .. autosummary::
       :nosignatures:
    
+      ~Rover.__init__
       ~Rover.dispose
    
    
