@@ -1,13 +1,13 @@
-bytesparse.\_c.BlockView
+﻿bytesparse.\_c.BlockView
 ========================
 
 .. currentmodule:: bytesparse._c
 
 .. autoclass:: BlockView
    :members:
-   :show-inheritance:
    :inherited-members:
-   :special-members: __call__, __add__, __mul__
+   :private-members:
+   :special-members:
 
    
    
@@ -16,6 +16,7 @@ bytesparse.\_c.BlockView
    .. autosummary::
       :nosignatures:
    
+      ~BlockView.__init__
       ~BlockView.check
       ~BlockView.dispose
    

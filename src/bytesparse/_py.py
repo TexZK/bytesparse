@@ -124,8 +124,11 @@ class Memory:
 
     This class is a handy wrapper around `blocks`, so that it can behave mostly
     like a :obj:`bytearray`, but on sparse chunks of data.
+
     Please look at examples of each method to get a glimpse of the features of
     this class.
+
+    On creation, at most one of `memory`, `blocks`, or `data` can be specified.
 
     Attributes:
         _blocks (list of blocks):
@@ -679,11 +682,11 @@ class Memory:
         self: 'Memory',
         item: Union[AnyBytes, Value],
     ) -> bool:
-        r"""Checks if some value is contained.
+        r"""Checks if some items are contained.
 
         Arguments:
             item (items):
-                Value to find. Can be either some byte string or an integer.
+                Items to find. Can be either some byte string or an integer.
 
         Returns:
             bool: Item is contained.
@@ -768,6 +771,50 @@ class Memory:
         self: 'Memory',
         key: Union[Address, slice],
     ) -> Any:
+        r"""Gets data.
+
+        Arguments:
+            key (slice or int):
+                Selection range or address.
+                If it is a :obj:`slice` with bytes-like `step`, the latter is
+                interpreted as the filling pattern.
+
+        Returns:
+            items: Items from the requested range.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 68|   | 36|   |120|121|122|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory[9]  # -> ord('y') = 121
+            121
+            >>> memory[:3]._blocks
+            [[1, b'AB']]
+            >>> memory[3:10]._blocks
+            [[3, b'CD'], [6, b'$'], [8, b'xy']]
+            >>> bytes(memory[3:10:b'.'])
+            b'CD.$.xy'
+            >>> memory[memory.endex]
+            None
+            >>> bytes(memory[3:10:3])
+            b'C$y'
+            >>> memory[3:10:2]._blocks
+            [[3, b'C'], [6, b'y']]
+            >>> bytes(memory[3:10:2])
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+        """
 
         if isinstance(key, slice):
             start = key.start
@@ -791,6 +838,75 @@ class Memory:
         key: Union[Address, slice],
         value: Optional[Union[AnyBytes, Value]],
     ) -> None:
+        r"""Sets data.
+
+        Arguments:
+            key (slice or int):
+                Selection range or address.
+
+            value (items):
+                Items to write at the selection address.
+                If `value` is null, the range is cleared.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |[C]|   |   | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | 1 | C]|   |[2 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory[7:10] = None
+            >>> memory._blocks
+            [[5, b'AB'], [10, b'yz']]
+            >>> memory[7] = b'C'
+            >>> memory[9] = b'x'
+            >>> memory._blocks == [[5, b'ABC'], [9, b'xyz']]
+            True
+            >>> memory[6:12:3] = None
+            >>> memory._blocks
+            [[5, b'A'], [7, b'C'], [10, b'yz']]
+            >>> memory[6:13:3] = b'123'
+            >>> memory._blocks
+            [[5, b'A1C'], [9, b'2yz3']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |   |   |[A | B | C]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | 6 | 7 | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | < | > | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory[0:4] = b'$'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'ABC'], [6, b'xyz']]
+            >>> memory[4:7] = b'45678'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'AB45678yz']]
+            >>> memory[6:8] = b'<>'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'AB45<>8yz']]
+        """
 
         if isinstance(key, slice):
             start = key.start
@@ -860,6 +976,55 @@ class Memory:
         self: 'Memory',
         key: Union[Address, slice],
     ) -> None:
+        r"""Deletes data.
+
+        Arguments:
+            key (slice or int):
+                Deletion range or address.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[4:9]
+            >>> memory._blocks
+            [[1, b'ABCyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | z]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |   |[x]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[9]
+            >>> memory._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'xz']]
+            >>> del memory[3]
+            >>> memory._blocks
+            [[1, b'ABD'], [5, b'$'], [7, b'xz']]
+            >>> del memory[2:10:3]
+            >>> memory._blocks
+            [[1, b'AD'], [5, b'x']]
+        """
 
         if self._blocks:
             if isinstance(key, slice):
@@ -998,7 +1163,7 @@ class Memory:
             bytearray: The underlying bytearray.
 
         Raises:
-            ValueError: Data not contiguous (see :attr:`contiguous`).
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
         """
 
         blocks = self._blocks
@@ -1030,12 +1195,28 @@ class Memory:
     def __bytes__(
         self: 'Memory',
     ) -> bytes:
+        r"""Creates a bytes clone.
+
+        Returns:
+            :obj:`bytes`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return bytes(self._bytearray())
 
     def to_bytes(
         self: 'Memory',
     ) -> bytes:
+        r"""Creates a bytes clone.
+
+        Returns:
+            :obj:`bytes`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return bytes(self._bytearray())
 
@@ -1043,6 +1224,19 @@ class Memory:
         self: 'Memory',
         copy: bool = True,
     ) -> bytearray:
+        r"""Creates a bytearray clone.
+
+        Arguments:
+            copy (bool):
+                Creates a clone of the underlying :obj:`bytearray` data
+                structure.
+
+        Returns:
+            :obj:`bytearray`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         block_data = self._bytearray()
         return bytearray(block_data) if copy else block_data
@@ -1050,18 +1244,36 @@ class Memory:
     def to_memoryview(
         self: 'Memory',
     ) -> memoryview:
+        r"""Creates a memory view.
+
+        Returns:
+            :obj:`memoryview`: View over data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return memoryview(self._bytearray())
 
     def __copy__(
         self: 'Memory',
     ) -> 'Memory':
+        r"""Creates a shallow copy.
+
+        Returns:
+            :obj:`Memory`: Shallow copy.
+        """
 
         return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=False)
 
     def __deepcopy__(
         self: 'Memory',
     ) -> 'Memory':
+        r"""Creates a deep copy.
+
+        Returns:
+            :obj:`Memory`: Deep copy.
+        """
 
         return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=True)
 
@@ -1647,7 +1859,7 @@ class Memory:
         address, and that all the blocks are non-overlapping.
 
         Raises:
-            ValueError: Invalid data detected (see exception message).
+            :obj:`ValueError`: Invalid data detected (see exception message).
         """
 
         start, endex = self.bound(None, None)
