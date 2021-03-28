@@ -3142,13 +3142,67 @@ cdef class Rover:
 # ---------------------------------------------------------------------------------------------------------------------
 
 cdef class Memory:
+    r"""Virtual memory.
+
+    This class is a handy wrapper around `blocks`, so that it can behave mostly
+    like a :obj:`bytearray`, but on sparse chunks of data.
+
+    Please look at examples of each method to get a glimpse of the features of
+    this class.
+
+    On creation, at most one of `memory`, `blocks`, or `data` can be specified.
+
+    The Cython implementation limits the address range to that of the integral
+    type ``uint_fast64_t``.
+
+    Arguments:
+        memory (Memory):
+            An optional :obj:`Memory` to copy data from.
+
+        data (bytes):
+            An optional :obj:`bytes` string to create a single block of data.
+
+        offset (int):
+            Start address of the initial block, built if `data` is given.
+
+        blocks (list of blocks):
+            A sequence of non-overlapping blocks, sorted by address.
+
+        start (int):
+            Optional memory start address.
+            Anything before will be trimmed away.
+
+        endex (int):
+            Optional memory exclusive end address.
+            Anything at or after it will be trimmed away.
+
+        copy (bool):
+            Forces copy of provided input data.
+
+        validate (bool):
+            Validates the resulting :obj:`Memory` object.
+
+    Raises:
+        :obj:`ValueError`: More than one of `memory`, `data`, and `blocks`.
+
+    Examples:
+        >>> memory = Memory()
+        >>> memory._blocks
+        []
+
+        >>> memory = Memory(data=b'Hello, World!', offset=5)
+        >>> memory._blocks
+        [[5, b'Hello, World!']]
+    """
 
     def __cinit__(self):
+        r"""Cython constructor."""
         self._ = NULL
         self._trim_start = 0
         self._trim_endex = ADDR_MAX
 
     def __dealloc__(self):
+        r"""Cython deallocation method."""
         self._ = Rack_Free(self._)
 
     def __init__(
@@ -3236,6 +3290,28 @@ cdef class Memory:
     def __str__(
         self: 'Memory',
     ) -> str:
+        r"""String representation.
+
+        If :attr:`content_size` is lesser than ``STR_MAX_CONTENT_SIZE``, then
+        the memory is represented as a list of blocks.
+
+        If exceeding, it is equivalent to :meth:`__repr__`.
+
+
+        Returns:
+            str: String representation.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [7, b'xyz']])
+            >>> memory._blocks
+            'ABCxyz'
+        """
         cdef:
             addr_t size = self.content_size_()
             addr_t start
@@ -3252,6 +3328,20 @@ cdef class Memory:
     def __bool__(
         self: 'Memory',
     ) -> bool:
+        r"""Has any items.
+
+        Returns:
+            bool: Has any items.
+
+        Examples:
+            >>> memory = Memory()
+            >>> bool(memory)
+            False
+
+            >>> memory = Memory(data=b'Hello, World!', offset=5)
+            >>> bool(memory)
+            True
+        """
 
         return Rack_Length(self._) > 0
 
@@ -3294,6 +3384,42 @@ cdef class Memory:
         self: 'Memory',
         other: Any,
     ) -> bool:
+        r"""Equality comparison.
+
+        Arguments:
+            other (Memory):
+                Data to compare with `self`.
+
+                If it is a :obj:`Memory`, all of its blocks must match.
+
+                If it is a :obj:`list`, it is expected that it contains the
+                same blocks as `self`.
+
+                Otherwise, it must match the first stored block, considered
+                equal if also starts at 0.
+
+        Returns:
+            bool: `self` is equal to `other`.
+
+        Examples:
+            >>> data = b'Hello, World!'
+            >>> memory = Memory(data=data)
+            >>> memory == data
+            True
+            >>> memory.shift(1)
+            >>> memory == data
+            False
+
+            >>> data = b'Hello, World!'
+            >>> memory = Memory(data=data)
+            >>> memory == [[0, data]]
+            True
+            >>> memory == list(data)
+            False
+            >>> memory.shift(1)
+            >>> memory == [[0, data]]
+            False
+        """
         cdef:
             const byte_t[:] view
 
@@ -3310,12 +3436,27 @@ cdef class Memory:
     def __iter__(
         self: 'Memory',
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values.
+
+        Iterates over values between :attr:`start` and :attr:`endex`.
+
+        Yields:
+            int: Value as byte integer, or ``None``.
+        """
 
         yield from self.values()
 
     def __reversed__(
         self: 'Memory',
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values, reversed order.
+
+        Iterates over values between :attr:`start` and :attr:`endex`, in
+        reversed order.
+
+        Yields:
+            int: Value as byte integer, or ``None``.
+        """
 
         yield from self.rvalues()
 
@@ -3390,6 +3531,15 @@ cdef class Memory:
     def __len__(
         self: 'Memory',
     ) -> Address:
+        r"""Actual length.
+
+        Computes the actual length of the stored items, i.e.
+        (:attr:`endex` - :attr:`start`).
+        This will consider any trimmings being active.
+
+        Returns:
+            int: Memory length.
+        """
 
         return self.endex_() - self.start_()
 
@@ -3399,6 +3549,23 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Optional[Address]:
+        r"""Index of an item.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the first item equal to `value`, or ``None``.
+        """
 
         offset = self.find(item, start, endex)
         if offset >= 0:
@@ -3412,6 +3579,23 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Optional[Address]:
+        r"""Index of an item, reversed search.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the last item equal to `value`, or ``None``.
+        """
 
         offset = self.rfind(item, start, endex)
         if offset >= 0:
@@ -3465,6 +3649,23 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Address:
+        r"""Index of an item.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the first item equal to `value`, or -1.
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -3537,6 +3738,23 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Address:
+        r"""Index of an item, reversed search.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the last item equal to `value`, or -1.
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -3569,6 +3787,26 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Address:
+        r"""Index of an item.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the first item equal to `value`.
+
+        Raises:
+            :obj:`ValueError`: Item not found.
+        """
 
         offset = self.find(item, start, endex)
         if offset >= 0:
@@ -3582,6 +3820,26 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Address:
+        r"""Index of an item, reversed search.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the last item equal to `value`.
+
+        Raises:
+            :obj:`ValueError`: Item not found.
+        """
 
         offset = self.rfind(item, start, endex)
         if offset >= 0:
@@ -3593,6 +3851,30 @@ cdef class Memory:
         self: 'Memory',
         item: Union[AnyBytes, Value],
     ) -> bool:
+        r"""Checks if some items are contained.
+
+        Arguments:
+            item (items):
+                Items to find. Can be either some byte string or an integer.
+
+        Returns:
+            bool: Item is contained.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[1 | 2 | 3]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'123'], [9, b'xyz']])
+            >>> b'23' in memory
+            True
+            >>> ord('y') in memory
+            True
+            >>> b'$' in memory
+            False
+        """
 
         return self.find(item) >= 0
 
@@ -3640,6 +3922,34 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> int:
+        r"""Counts items.
+
+        Arguments:
+            item (items):
+                Reference value to count.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The number of items equal to `value`.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[B | a | t]|   |[t | a | b]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'Bat'], [9, b'tab']])
+            >>> memory.count(b'a')
+            2
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -3670,6 +3980,50 @@ cdef class Memory:
         self: 'Memory',
         key: Union[Address, slice],
     ) -> Any:
+        r"""Gets data.
+
+        Arguments:
+            key (slice or int):
+                Selection range or address.
+                If it is a :obj:`slice` with bytes-like `step`, the latter is
+                interpreted as the filling pattern.
+
+        Returns:
+            items: Items from the requested range.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 68|   | 36|   |120|121|122|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory[9]  # -> ord('y') = 121
+            121
+            >>> memory[:3]._blocks
+            [[1, b'AB']]
+            >>> memory[3:10]._blocks
+            [[3, b'CD'], [6, b'$'], [8, b'xy']]
+            >>> bytes(memory[3:10:b'.'])
+            b'CD.$.xy'
+            >>> memory[memory.endex]
+            None
+            >>> bytes(memory[3:10:3])
+            b'C$y'
+            >>> memory[3:10:2]._blocks
+            [[3, b'C'], [6, b'y']]
+            >>> bytes(memory[3:10:2])
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+        """
         cdef:
             slice key_
             addr_t start
@@ -3711,6 +4065,75 @@ cdef class Memory:
         key: Union[Address, slice],
         value: Optional[Union[AnyBytes, Value]],
     ) -> None:
+        r"""Sets data.
+
+        Arguments:
+            key (slice or int):
+                Selection range or address.
+
+            value (items):
+                Items to write at the selection address.
+                If `value` is null, the range is cleared.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |[C]|   |   | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | 1 | C]|   |[2 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory[7:10] = None
+            >>> memory._blocks
+            [[5, b'AB'], [10, b'yz']]
+            >>> memory[7] = b'C'
+            >>> memory[9] = b'x'
+            >>> memory._blocks == [[5, b'ABC'], [9, b'xyz']]
+            True
+            >>> memory[6:12:3] = None
+            >>> memory._blocks
+            [[5, b'A'], [7, b'C'], [10, b'yz']]
+            >>> memory[6:13:3] = b'123'
+            >>> memory._blocks
+            [[5, b'A1C'], [9, b'2yz3']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |   |   |[A | B | C]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | 6 | 7 | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | < | > | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory[0:4] = b'$'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'ABC'], [6, b'xyz']]
+            >>> memory[4:7] = b'45678'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'AB45678yz']]
+            >>> memory[6:8] = b'<>'
+            >>> memory._blocks
+            [[0, b'$'], [2, b'AB45<>8yz']]
+        """
         cdef:
             slice key_
             addr_t start
@@ -3820,6 +4243,55 @@ cdef class Memory:
         self: 'Memory',
         key: Union[Address, slice],
     ) -> None:
+        r"""Deletes data.
+
+        Arguments:
+            key (slice or int):
+                Deletion range or address.
+
+        Note:
+            This method is not optimized for a :class:`slice` where its `step`
+            is an integer greater than 1.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[4:9]
+            >>> memory._blocks
+            [[1, b'ABCyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | z]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |   |[x]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[9]
+            >>> memory._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'xz']]
+            >>> del memory[3]
+            >>> memory._blocks
+            [[1, b'ABD'], [5, b'$'], [7, b'xz']]
+            >>> del memory[2:10:3]
+            >>> memory._blocks
+            [[1, b'AD'], [5, b'x']]
+        """
         cdef:
             slice key_
             addr_t start
@@ -3873,6 +4345,25 @@ cdef class Memory:
         self: 'Memory',
         item: Union[AnyBytes, Value],
     ) -> None:
+        r"""Appends a single item.
+
+        Arguments:
+            item (int):
+                Value to append. Can be a single byte string or integer.
+
+        Examples:
+            >>> memory = Memory()
+            >>> memory.append(b'$')
+            >>> memory._blocks
+            [[0, b'$']]
+
+            ~~~
+
+            >>> memory = Memory()
+            >>> memory.append(3)
+            >>> memory._blocks
+            [[0, b'\x03']]
+        """
 
         if isinstance(item, int):
             self.append_(<byte_t>item)
@@ -3903,6 +4394,20 @@ cdef class Memory:
         items: Union[AnyBytes, 'Memory'],
         offset: Address = 0,
     ) -> None:
+        r"""Concatenates items.
+
+        Equivalent to ``self += items``.
+
+        Arguments:
+            items (items):
+                Items to append at the end of the current virtual space.
+
+                If a :obj:`list`, it is interpreted as a sequence of
+                non-overlapping blocks, sorted by start address.
+
+            offset (int):
+                Optional offset w.r.t. :attr:`content_endex`.
+        """
         cdef:
             const byte_t[:] items_view
             byte_t items_value
@@ -3958,6 +4463,33 @@ cdef class Memory:
         self: 'Memory',
         address: Optional[Address] = None,
     ) -> Optional[Value]:
+        r"""Takes a value away.
+
+        Arguments:
+            address (int):
+                Address of the byte to pop.
+                If ``None``, the very last byte is popped.
+
+        Return:
+            int: Value at `address`; ``None`` within emptiness.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | y]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | y]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.pop()  # -> ord('z') = 122
+            122
+            >>> memory.pop(3)  # -> ord('C') = 67
+            67
+        """
         cdef:
             int value
 
@@ -4000,24 +4532,61 @@ cdef class Memory:
     def __bytes__(
         self: 'Memory',
     ) -> bytes:
+        r"""Creates a bytes clone.
+
+        Returns:
+            :obj:`bytes`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return bytes(self._memview())
 
     def to_bytes(
         self: 'Memory',
     ) -> bytes:
+        r"""Creates a bytes clone.
+
+        Returns:
+            :obj:`bytes`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return bytes(self._memview())
 
     def to_bytearray(
         self: 'Memory',
     ) -> bytearray:
+        r"""Creates a bytearray clone.
+
+        Arguments:
+            copy (bool):
+                Creates a clone of the underlying :obj:`bytearray` data
+                structure.
+
+        Returns:
+            :obj:`bytearray`: Cloned data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return bytearray(self._memview())
 
     def to_memoryview(
         self: 'Memory',
     ) -> memoryview:
+        r"""Creates a memory view.
+
+        Returns:
+            :obj:`memoryview`: View over data.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+        """
 
         return self._memview()
 
@@ -4038,12 +4607,25 @@ cdef class Memory:
     def __copy__(
         self: 'Memory',
     ) -> 'Memory':
+        r"""Creates a shallow copy.
+
+        Note:
+            The Cython implementation actually creates a deep copy.
+
+        Returns:
+            :obj:`Memory`: Shallow copy.
+        """
 
         return self.copy_()
 
     def __deepcopy__(
         self: 'Memory',
     ) -> 'Memory':
+        r"""Creates a deep copy.
+
+        Returns:
+            :obj:`Memory`: Deep copy.
+        """
 
         return self.copy_()
 
@@ -4051,6 +4633,13 @@ cdef class Memory:
     def contiguous(
         self: 'Memory',
     ) -> bool:
+        r"""bool: Contains contiguous data.
+
+        The memory is considered to have contiguous data if there is no empty
+        space between blocks.
+
+        If trimming is defined, there must be no empty space also towards it.
+        """
 
         try:
             self._memview()
@@ -4062,6 +4651,11 @@ cdef class Memory:
     def trim_start(
         self: 'Memory',
     ) -> Optional[Address]:
+        r"""int: Trimming start address.
+
+        Any data before this address is automatically discarded.
+        Disabled if ``None``.
+        """
 
         return self._trim_start if self._trim_start_ else None
 
@@ -4093,6 +4687,11 @@ cdef class Memory:
     def trim_endex(
         self: 'Memory',
     ) -> Optional[Address]:
+        r"""int: Trimming exclusive end address.
+
+        Any data at or after this address is automatically discarded.
+        Disabled if ``None``.
+        """
 
         return self._trim_endex if self._trim_endex_ else None
 
@@ -4124,6 +4723,10 @@ cdef class Memory:
     def trim_span(
         self: 'Memory',
     ) -> OpenInterval:
+        r"""tuple of int: Trimming span addresses.
+
+        A :obj:`tuple` holding :attr:`trim_start` and :attr:`trim_endex`.
+        """
 
         return (self._trim_start if self._trim_start_ else None,
                 self._trim_endex if self._trim_endex_ else None)
@@ -4176,6 +4779,44 @@ cdef class Memory:
     def start(
         self: 'Memory',
     ) -> Address:
+        r"""int: Inclusive start address.
+
+        This property holds the inclusive start address of the virtual space.
+        By default, it is the current minimum inclusive start address of
+        the first stored block.
+
+        If :attr:`trim_start` not ``None``, that is returned.
+
+        If the memory has no data and no trimming, 0 is returned.
+
+        Examples:
+            >>> Memory().start
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'xyz']], start=1)
+            >>> memory.start
+            1
+        """
 
         return self.start_()
 
@@ -4197,6 +4838,44 @@ cdef class Memory:
     def endex(
         self: 'Memory',
     ) -> Address:
+        r"""int: Exclusive end address.
+
+        This property holds the exclusive end address of the virtual space.
+        By default, it is the current maximmum exclusive end address of
+        the last stored block.
+
+        If  :attr:`trim_endex` not ``None``, that is returned.
+
+        If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Examples:
+            >>> Memory().endex
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.endex
+            8
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.endex
+            8
+        """
 
         return self.endex_()
 
@@ -4207,6 +4886,28 @@ cdef class Memory:
     def span(
         self: 'Memory',
     ) -> ClosedInterval:
+        r"""tuple of int: Memory address span.
+
+        A :obj:`tuple` holding both :attr:`start` and :attr:`endex`.
+
+        Examples:
+            >>> Memory().span
+            (0, 0)
+            >>> Memory(start=1, endex=8).span
+            (1, 8)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.span
+            (1, 8)
+        """
 
         return self.span_()
 
@@ -4214,6 +4915,44 @@ cdef class Memory:
     def endin(
         self: 'Memory',
     ) -> Address:
+        r"""int: Inclusive end address.
+
+        This property holds the inclusive end address of the virtual space.
+        By default, it is the current maximmum inclusive end address of
+        the last stored block.
+
+        If  :attr:`trim_endex` not ``None``, that minus one is returned.
+
+        If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Examples:
+            >>> Memory().endin
+            -1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.endin
+            7
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.endin
+            7
+        """
         cdef:
             const Rack_* blocks
 
@@ -4242,6 +4981,48 @@ cdef class Memory:
     def content_start(
         self: 'Memory',
     ) -> Address:
+        r"""int: Inclusive content start address.
+
+        This property holds the inclusive start address of the memory content.
+        By default, it is the current minimum inclusive start address of
+        the first stored block.
+
+        If the memory has no data and no trimming, 0 is returned.
+
+        Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> Memory().content_start
+            0
+            >>> Memory(start=1).content_start
+            1
+            >>> Memory(start=1, endex=8).content_start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'xyz']], start=1)
+            >>> memory.content_start
+            5
+        """
 
         return self.content_start_()
 
@@ -4260,6 +5041,48 @@ cdef class Memory:
     def content_endex(
         self: 'Memory',
     ) -> Address:
+        r"""int: Exclusive content end address.
+
+        This property holds the exclusive end address of the memory content.
+        By default, it is the current maximmum exclusive end address of
+        the last stored block.
+
+        If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> Memory().content_endex
+            0
+            >>> Memory(endex=8).content_endex
+            0
+            >>> Memory(start=1, endex=8).content_endex
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_endex
+            8
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.content_endex
+            4
+        """
 
         return self.content_endex_()
 
@@ -4270,6 +5093,33 @@ cdef class Memory:
     def content_span(
         self: 'Memory',
     ) -> ClosedInterval:
+        r"""tuple of int: Memory content address span.
+
+        A :attr:`tuple` holding both :attr:`content_start` and
+        :attr:`content_endex`.
+
+        Examples:
+            >>> Memory().content_span
+            (0, 0)
+            >>> Memory(start=1).content_span
+            (1, 1)
+            >>> Memory(endex=8).content_span
+            (0, 0)
+            >>> Memory(start=1, endex=8).content_span
+            (1, 1)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_span
+            (1, 8)
+        """
 
         return self.content_span_()
 
@@ -4277,6 +5127,49 @@ cdef class Memory:
     def content_endin(
         self: 'Memory',
     ) -> Address:
+        r"""int: Inclusive content end address.
+
+        This property holds the inclusive end address of the memory content.
+        By default, it is the current maximmum inclusive end address of
+        the last stored block.
+
+        If the memory has no data and no trimming, :attr:`start` minus one is
+        returned.
+
+        Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> Memory().content_endin
+            -1
+            >>> Memory(endex=8).content_endin
+            -1
+            >>> Memory(start=1, endex=8).content_endin
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_endin
+            7
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.content_endin
+            3
+        """
         cdef:
             const Rack_* blocks = self._
 
@@ -4303,6 +5196,41 @@ cdef class Memory:
     def content_size(
         self: 'Memory',
     ) -> Address:
+        r"""Actual content size.
+
+        Returns:
+            int: The sum of all block lengths.
+
+        Examples:
+            >>> Memory().content_size
+            0
+            >>> Memory(start=1, endex=8).content_size
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_size
+            6
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.content_size
+            3
+        """
 
         return self.content_size_()
 
@@ -4313,6 +5241,39 @@ cdef class Memory:
     def content_parts(
         self: 'Memory',
     ) -> int:
+        r"""Number of blocks.
+
+        Returns:
+            int: The number of blocks.
+
+        Examples:
+            >>> Memory().content_parts
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_parts
+            2
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory.content_parts
+            1
+        """
 
         return self.content_parts_()
 
@@ -4361,6 +5322,14 @@ cdef class Memory:
     def validate(
         self: 'Memory',
     ) -> None:
+        r"""Validates internal structure.
+
+        It makes sure that all the allocated blocks are sorted by block start
+        address, and that all the blocks are non-overlapping.
+
+        Raises:
+            :obj:`ValueError`: Invalid data detected (see exception message).
+        """
 
         self.validate_()
 
@@ -4413,6 +5382,68 @@ cdef class Memory:
         start: Optional[Address],
         endex: Optional[Address],
     ) -> ClosedInterval:
+        r"""Bounds addresses.
+
+        It bounds the given addresses to stay within memory limits.
+        ``None`` is used to ignore a limit for the `start` or `endex`
+        directions.
+
+        In case of stored data, :attr:`content_start` and
+        :attr:`content_endex` are used as bounds.
+
+        In case of trimming limits, :attr:`trim_start` or :attr:`trim_endex`
+        are used as bounds, when not ``None``.
+
+        In case `start` and `endex` are in the wrong order, one clamps
+        the other if present (see the Python implementation for details).
+
+        Returns:
+            tuple of int: Bounded `start` and `endex`, closed interval.
+
+        Examples:
+            >>> Memory().bound()
+            (0, 0)
+            >>> Memory().bound(endex=100)
+            (0, 0)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory.bound(0, 30)
+            (1, 8)
+            >>> memory.bound(2, 6)
+            (2, 6)
+            >>> memory.bound(endex=6)
+            (1, 6)
+            >>> memory.bound(start=2)
+            (2, 8)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |[A | B | C]|   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[3, b'ABC']], start=1, endex=8)
+            >>> memory.bound()
+            (1, 8)
+            >>> memory.bound(0, 30)
+            (1, 8)
+            >>> memory.bound(2, 6)
+            (2, 6)
+            >>> memory.bound(start=2)
+            (2, 8)
+            >>> memory.bound(endex=6)
+            (1, 6)
+        """
 
         return self.bound_(start, endex)
 
@@ -4420,6 +5451,30 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> Optional[BlockIndex]:
+        r"""Locates the block enclosing an address.
+
+        Returns the index of the block enclosing the given address.
+
+        Arguments:
+            address (int):
+                Address of the target item.
+
+        Returns:
+            int: Block index if found, ``None`` otherwise.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   | 0 | 0 | 0 | 0 |   | 1 |   | 2 | 2 | 2 |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_at(i) for i in range(12)]
+            [None, 0, 0, 0, 0, None, 1, None, 2, 2, 2, None]
+        """
         cdef:
             ssize_t block_index
 
@@ -4430,6 +5485,33 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> BlockIndex:
+        r"""Locates the first block inside of an address range.
+
+        Returns the index of the first block whose start address is greater than
+        or equal to `address`.
+
+        Useful to find the initial block index in a ranged search.
+
+        Arguments:
+            address (int):
+                Inclusive start address of the scanned range.
+
+        Returns:
+            int: First block index since `address`.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 3 |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_start(i) for i in range(12)]
+            [0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 3]
+        """
 
         return Rack_IndexStart(self._, address)
 
@@ -4437,6 +5519,33 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> BlockIndex:
+        r"""Locates the first block after an address range.
+
+        Returns the index of the first block whose end address is lesser than or
+        equal to `address`.
+
+        Useful to find the termination block index in a ranged search.
+
+        Arguments:
+            address (int):
+                Exclusive end address of the scanned range.
+
+        Returns:
+            int: First block index after `address`.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_endex(i) for i in range(12)]
+            [0, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3]
+        """
 
         return Rack_IndexEndex(self._, address)
 
@@ -4457,6 +5566,32 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> Optional[Value]:
+        r"""Gets the item at an address.
+
+        Returns:
+            int: The item at `address`, ``None`` if empty.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.peek(3)  # -> ord('C') = 67
+            67
+            >>> memory.peek(6)  # -> ord('$') = 36
+            36
+            >>> memory.peek(10)  # -> ord('z') = 122
+            122
+            >>> memory.peek(0)
+            None
+            >>> memory.peek(7)
+            None
+            >>> memory.peek(11)
+            None
+        """
         cdef:
             int value
 
@@ -4544,6 +5679,36 @@ cdef class Memory:
         address: Address,
         item: Optional[Union[AnyBytes, Value]],
     ) -> Optional[Value]:
+        r"""Sets the item at an address.
+
+        Arguments:
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to set, ``None`` to clear the cell.
+
+        Returns:
+            int: The previous item at `address`, ``None`` if empty.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.poke(3, b'@')  # -> ord('C') = 67
+            67
+            >>> memory.peek(3)  # -> ord('@') = 64
+            64
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.poke(5, '@')
+            None
+            >>> memory.peek(5)  # -> ord('@') = 64
+            64
+        """
         cdef:
             addr_t address_ = <addr_t>address
             int value
@@ -4657,6 +5822,59 @@ cdef class Memory:
         step: Optional[Address] = None,
         bound: bool = True,
     ) -> 'Memory':
+        r"""Selects items from a range.
+
+        Arguments:
+            start (int):
+                Inclusive start of the extracted range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the extracted range.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Optional pattern of items to fill the emptiness.
+
+            step (int):
+                Optional address stepping between bytes extracted from the
+                range. It has the same meaning of Python's :attr:`slice.step`,
+                but negative steps are ignored.
+                Please note that a `step` greater than 1 could take much more
+                time to process than the default unitary step.
+
+            bound (bool):
+                The selected address range is applied to the resulting memory
+                as its trimming range. This retains information about any
+                initial and final emptiness of that range, which would be lost
+                otherwise.
+
+        Returns:
+            :obj:`Memory`: A copy of the memory from the selected range.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.extract()._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(2, 9)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(start=2)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(endex=9)._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(5, 8).span
+            (5, 8)
+            >>> memory.extract(pattern='.')._blocks
+            [[1, b'ABCD.$.xyz']]
+            >>> memory.extract(pattern='.', step=3)._blocks
+            [[1, b'AD.z']]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -4718,6 +5936,50 @@ cdef class Memory:
         offset: Address,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Shifts the items.
+
+        Arguments:
+            offset (int):
+                Signed amount of address shifting.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.shift(-2)
+            >>> memory._blocks
+            [[3, b'ABC'], [7, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[y | z]|   |   |   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], start=2)
+            >>> backups = []
+            >>> memory.shift(-7, backups=backups)
+            >>> memory._blocks
+            [[2, b'yz']]
+            >>> len(backups)
+            1
+            >>> backups[0]._blocks
+            [[5, b'ABC'], [9, b'x']]
+        """
 
         if offset < 0:
             return self.shift_left_(<addr_t>-offset, backups)
@@ -4774,6 +6036,55 @@ cdef class Memory:
         size: Address,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Inserts emptiness.
+
+        Reserves emptiness at the provided address.
+
+        Arguments:
+            address (int):
+                Start address of the emptiness to insert.
+
+            size (int):
+                Size of the emptiness to insert.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[3, b'ABC'], [7, b'xyz']])
+            >>> memory.reserve(4, 2)
+            >>> memory._blocks
+            [[2, b'A'], [6, b'BC'], [9, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |   |   |   |   |   |   |   |[A | B]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], endex=12)
+            >>> backups = []
+            >>> memory.reserve(5, 5, backups=backups)
+            >>> memory._blocks
+            [[10, b'AB']]
+            >>> len(backups)
+            1
+            >>> backups[0]._blocks
+            [[7, b'C'], [9, b'xyz']]
+        """
 
         self.reserve_(<addr_t>address, <addr_t>size, backups)
 
@@ -4884,6 +6195,21 @@ cdef class Memory:
         data: bytearray,
         shift_after: bool,
     ) -> None:
+        r"""Inserts data.
+
+        Low-level method to insert data into the underlying data structure.
+
+        Arguments:
+            address (int):
+                Address of the insertion point.
+
+            data (:obj:`bytearray`):
+                Data to insert.
+
+            shift_after (bool):
+                Shifts the addresses of blocks after the insertion point,
+                adding the size of the inserted data.
+        """
         cdef:
             size_t size
             const byte_t[:] view
@@ -5000,6 +6326,25 @@ cdef class Memory:
         shift_after: bool,
         merge_deletion: bool,
     ) -> None:
+        r"""Erases an address range.
+
+        Low-level method to erase data within the underlying data structure.
+
+        Arguments:
+            start (int):
+                Start address of the erasure range.
+
+            endex (int):
+                Exclusive end address of the erasure range.
+
+            shift_after (bool):
+                Shifts addresses of blocks after the end of the range,
+                subtracting the size of the range itself.
+
+            merge_deletion (bool):
+                If data blocks before and after the address range are
+                contiguous after erasure, merge the two blocks together.
+        """
 
         self._erase_(<addr_t>start, <addr_t>endex, <bint>shift_after, <bint>merge_deletion)
 
@@ -5028,6 +6373,41 @@ cdef class Memory:
         data: Union[AnyBytes, Value, 'Memory'],
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Inserts data.
+
+        Inserts data, moving existing items after the insertion address by the
+        size of the inserted data.
+
+        Arguments::
+            address (int):
+                Address of the insertion point.
+
+            data (bytes):
+                Data to insert.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | z]|   |[$]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | 1 | z]|   |[$]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.insert(10, b'$')
+            >>> memory._blocks
+            [[1, b'ABC'], [6, b'xyz'], [10, b'$']]
+            >>> memory.insert(8, b'1')
+            >>> memory._blocks
+            [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
+        """
         cdef:
             addr_t address_ = <addr_t>address
             const byte_t[:] data_view
@@ -5064,6 +6444,35 @@ cdef class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Deletes an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for deletion.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for deletion.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.delete(6, 10)
+            >>> memory._blocks
+            [[5, b'Ayz']]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5084,6 +6493,35 @@ cdef class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Clears an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for clearing.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for clearing.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.clear(6, 10)
+            >>> memory._blocks
+            [[5, b'A'], [10, b'yz']]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5117,6 +6555,22 @@ cdef class Memory:
         size: Address,
         backups: Optional[MemoryList],
     ) -> None:
+        r"""Trims initial data.
+
+        Low-level method to manage trimming of data starting from an address.
+
+        Arguments:
+            endex_max (int):
+                Exclusive end address of the erasure range.
+                If ``None``, :attr:`trim_start` plus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
         cdef:
             addr_t endex_max_ = ADDR_MAX if endex_max is None else <addr_t>endex_max
 
@@ -5148,6 +6602,22 @@ cdef class Memory:
         size: Address,
         backups: Optional[MemoryList],
     ) -> None:
+        r"""Trims final data.
+
+        Low-level method to manage trimming of data starting from an address.
+
+        Arguments:
+            start_min (int):
+                Starting address of the erasure range.
+                If ``None``, :attr:`trim_endex` minus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
         cdef:
             addr_t start_min_ = ADDR_MIN if start_min is None else <addr_t>start_min
 
@@ -5184,6 +6654,23 @@ cdef class Memory:
         endex: Address,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Keeps data within an address range.
+
+        Low-level method to crop the underlying data structure.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cropping.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cropping.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5197,6 +6684,35 @@ cdef class Memory:
         endex: Optional[Address] = None,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Keeps data within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cropping.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cropping.
+                If ``None``, :attr:`endex` is considered.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |[B | C]|   |[x]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory.crop(6, 10)
+            >>> memory._blocks
+            [[6, b'BC'], [9, b'x']]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5304,6 +6820,37 @@ cdef class Memory:
         clear: bool = False,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Writes data.
+
+        Arguments:
+            address (int):
+                Address where to start writing data.
+
+            data (bytes):
+                Data to write.
+
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[1 | 2 | 3 | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.write(5, b'123')
+            >>> memory._blocks
+            [[1, b'ABC'], [5, b'123z']]
+        """
         cdef:
             addr_t address_ = <addr_t>address
             const byte_t[:] data_view
@@ -5360,6 +6907,53 @@ cdef class Memory:
         pattern: Union[AnyBytes, Value] = 0,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Overwrites a range with a pattern.
+
+        Arguments:
+            start (int):
+                Inclusive start address for filling.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for filling.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Pattern of items to fill the range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(pattern=b'123')
+            >>> memory._blocks
+            [[1, b'12312312']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | 1 | 2 | 3 | 1 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(3, 7, b'123')
+            >>> memory._blocks
+            [[1, b'AB1231yz']]
+        """
         cdef:
             addr_t start__
             addr_t start_
@@ -5449,6 +7043,53 @@ cdef class Memory:
         pattern: Union[AnyBytes, Value] = 0,
         backups: Optional[MemoryList] = None,
     ) -> None:
+        r"""Fills emptiness between non-touching blocks.
+
+        Arguments:
+            start (int):
+                Inclusive start address for flooding.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for flooding.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Pattern of items to fill the range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items, before trimming.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 1 | 2 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(pattern=b'123')
+            >>> memory._blocks
+            [[1, b'ABC12xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 2 | 3 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(3, 7, b'123')
+            >>> memory._blocks
+            [[1, b'ABC23xyz']]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5468,6 +7109,54 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Union[Address, EllipsisType]] = None,
     ) -> Iterator[Address]:
+        r"""Iterates over addresses.
+
+        Iterates over addresses, from `start` to `endex`.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+                If ``Ellipsis``, the iterator is infinite.
+
+        Yields:
+            int: Range address.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.keys())
+            []
+            >>> list(memory.keys(endex=8))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.keys())
+            [1, 2, 3, 4, 5, 6, 7, 8]
+            >>> list(memory.keys(endex=8))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5494,6 +7183,55 @@ cdef class Memory:
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values.
+
+        Iterates over values, from `start` to `endex`.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+                If ``Ellipsis``, the iterator is infinite.
+
+            pattern (items):
+                Pattern of values to fill emptiness.
+
+        Yields:
+            int: Range values.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.values(endex=8))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.values(3, ...), 7))
+            [None, None, None, None, None, None, None]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.values())
+            [65, 66, 67, None, None, 120, 121, 122]
+            >>> list(memory.values(3, 8))
+            [67, None, None, 120, 121]
+            >>> list(islice(memory.values(3, ...), 7))
+            [67, None, None, 120, 121, 122, None]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5518,6 +7256,54 @@ cdef class Memory:
         endex: Optional[Address] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values, reversed order.
+
+        Iterates over values, from `endex` to `start`.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+                If ``Ellipsis``, the iterator is infinite.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Pattern of values to fill emptiness.
+
+        Yields:
+            int: Range values.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.values(endex=8))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.values(3, ...), 7))
+            [None, None, None, None, None, None, None]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.values())
+            [65, 66, 67, None, None, 120, 121, 122]
+            >>> list(memory.values(3, 8))
+            [67, None, None, 120, 121]
+            >>> list(islice(memory.values(3, ...), 7))
+            [67, None, None, 120, 121, 122, None]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5542,6 +7328,55 @@ cdef class Memory:
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
+        r"""Iterates over address and value couples.
+
+        Iterates over address and value couples, from `start` to `endex`.
+        Implemets the interface of :obj:`dict`.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+                If ``Ellipsis``, the iterator is infinite.
+
+            pattern (items):
+                Pattern of values to fill emptiness.
+
+        Yields:
+            int: Range address and value couples.
+
+        Examples:
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.items(endex=8))
+            [(0, None), (1, None), (2, None), (3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(memory.items(3, 8))
+            [(3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, None), (4, None), (5, None), (6, None), (7, None), (8, None), (9, None)]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.items())
+            [(1, 65), (2, 66), (3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122)]
+            >>> list(memory.items(3, 8))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122), (9, None)]
+        """
 
         yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
 
@@ -5550,6 +7385,37 @@ cdef class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Iterator[ClosedInterval]:
+        r"""Iterates over block intervals.
+
+        Iterates over data boundaries within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            couple of addresses: Block data interval boundaries.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.intervals())
+            [(1, 3), (5, 6), (7, 10)]
+            >>> list(memory.intervals(2, 9))
+            [(2, 3), (5, 6), (7, 9)]
+            >>> list(memory.intervals(3, 5))
+            []
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5584,6 +7450,43 @@ cdef class Memory:
         endex: Optional[Address] = None,
         bound: bool = False,
     ) -> Iterator[OpenInterval]:
+        r"""Iterates over block gaps.
+
+        Iterates over gaps emptiness bounds within an address range.
+        If a yielded bound is ``None``, that direction is infinitely empty
+        (valid before or after global data bounds).
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+            bound (bool):
+                Only gaps within blocks are considered; emptiness before and
+                after global data bounds are ignored.
+
+        Yields:
+            couple of addresses: Block data interval boundaries.
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.gaps())
+            [(None, 1), (3, 5), (6, 7), (10, None)]
+            >>> list(memory.gaps(bound=True))
+            [(3, 5), (6, 7)]
+            >>> list(memory.gaps(2, 6))
+            [(3, 5)]
+        """
         cdef:
             addr_t start_
             addr_t endex_
@@ -5635,6 +7538,48 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+        r"""Span of homogeneous data.
+
+        It searches for the biggest chunk of data adjacent to the given
+        address, with the same value at that address.
+
+        If the address is within a gap, its bounds are returned, and its
+        value is ``None``.
+
+        If the address is before or after any data, bounds are ``None``.
+
+        Arguments:
+            address (int):
+                Reference address.
+
+        Returns:
+            tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> memory = Memory()
+            >>> memory.equal_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.equal_span(2)
+            (1, 4, 66)
+            >>> memory.equal_span(4)
+            (4, 5, 67)
+            >>> memory.equal_span(5)
+            (5, 7, None)
+            >>> memory.equal_span(10)
+            (10, None, None)
+        """
         cdef:
             const Rack_* blocks = self._
             size_t block_count = Rack_Length(blocks)
@@ -5709,6 +7654,48 @@ cdef class Memory:
         self: 'Memory',
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+        r"""Span of block data.
+
+        It searches for the biggest chunk of data adjacent to the given
+        address.
+
+        If the address is within a gap, its bounds are returned, and its
+        value is ``None``.
+
+        If the address is before or after any data, bounds are ``None``.
+
+        Arguments:
+            address (int):
+                Reference address.
+
+        Returns:
+            tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> memory = Memory()
+            >>> memory.block_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.block_span(2)
+            (0, 5, 66)
+            >>> memory.block_span(4)
+            (0, 5, 67)
+            >>> memory.block_span(5)
+            (5, 7, None)
+            >>> memory.block_span(10)
+            (10, None, None)
+        """
         cdef:
             addr_t address_ = <addr_t>address
             const Rack_* blocks = self._
@@ -5759,6 +7746,7 @@ cdef class Memory:
         self: 'Memory',
         size_max: Optional[Address] = STR_MAX_CONTENT_SIZE,
     ) -> BlockList:
+        r"""Converts into a list of blocks."""
         cdef:
             const Rack_* blocks1 = self._
             size_t block_count = Rack_Length(blocks1)
@@ -5780,5 +7768,6 @@ cdef class Memory:
     def _blocks(
         self: 'Memory',
     ) -> BlockList:
+        r"""list of blocks: A sequence of spaced blocks, sorted by address."""
 
         return self._to_blocks(size_max=None)
