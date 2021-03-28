@@ -181,6 +181,7 @@ class Memory:
         >>> memory._blocks
         [[5, b'Hello, World!']]
     """
+
     def __init__(
         self: 'Memory',
         memory: Optional['Memory'] = None,
@@ -362,14 +363,29 @@ class Memory:
     def __iter__(
         self: 'Memory',
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values.
+
+        Iterates over values between :attr:`start` and :attr:`endex`.
+
+        Yields:
+            int: Value as byte integer, or ``None``.
+        """
 
         yield from self.values(self.start, self.endex)
 
     def __reversed__(
         self: 'Memory',
     ) -> Iterator[Optional[Value]]:
+        r"""Iterates over values, reversed order.
 
-        yield from self.rvalues()
+        Iterates over values between :attr:`start` and :attr:`endex`, in
+        reversed order.
+
+        Yields:
+            int: Value as byte integer, or ``None``.
+        """
+
+        yield from self.rvalues(self.start, self.endex)
 
     def __add__(
         self: 'Memory',
@@ -588,7 +604,7 @@ class Memory:
             int: The index of the first item equal to `value`.
 
         Raises:
-            :obj:`ValueError` Item not found
+            :obj:`ValueError`: Item not found.
         """
 
         # Faster code for unbounded slice
@@ -644,7 +660,7 @@ class Memory:
             int: The index of the last item equal to `value`.
 
         Raises:
-            :obj:`ValueError` Item not found
+            :obj:`ValueError`: Item not found.
         """
 
         # Faster code for unbounded slice
@@ -2876,6 +2892,22 @@ class Memory:
         size: Address,
         backups: Optional[MemoryList],
     ) -> None:
+        r"""Trims initial data.
+
+        Low-level method to manage trimming of data starting from an address.
+
+        Arguments:
+            endex_max (int):
+                Exclusive end address of the erasure range.
+                If ``None``, :attr:`trim_start` plus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
 
         trim_start = self._trim_start
         if trim_start is not None and size > 0:
@@ -2895,6 +2927,22 @@ class Memory:
         size: Address,
         backups: Optional[MemoryList],
     ) -> None:
+        r"""Trims final data.
+
+        Low-level method to manage trimming of data starting from an address.
+
+        Arguments:
+            start_min (int):
+                Starting address of the erasure range.
+                If ``None``, :attr:`trim_endex` minus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the cleared
+                items.
+        """
 
         trim_endex = self._trim_endex
         if trim_endex is not None and size > 0:
