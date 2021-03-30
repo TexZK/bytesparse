@@ -6,5 +6,6 @@ Reference
     :template: custom-module-template.rst
     :recursive:
 
+    bytesparse
     bytesparse._py
     bytesparse._c

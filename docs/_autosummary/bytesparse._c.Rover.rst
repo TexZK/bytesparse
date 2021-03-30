@@ -1,4 +1,4 @@
-﻿bytesparse.\_c.Rover
+bytesparse.\_c.Rover
 ====================
 
 .. currentmodule:: bytesparse._c

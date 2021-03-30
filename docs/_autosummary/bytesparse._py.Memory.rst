@@ -1,4 +1,4 @@
-﻿bytesparse.\_py.Memory
+bytesparse.\_py.Memory
 ======================
 
 .. currentmodule:: bytesparse._py
