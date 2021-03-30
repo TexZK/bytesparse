@@ -1,0 +1,23 @@
+﻿bytesparse
+==========
+
+.. automodule:: bytesparse
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

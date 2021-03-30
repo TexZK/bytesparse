@@ -36,9 +36,9 @@ This module also provides the :obj:`Memory` class, which is a handy wrapper
 around blocks, giving the user the flexibility of most operations of a
 :obj:`bytearray` on sparse byte-like chunks.
 
-A `block` is a tuple ``(start, items)`` where `start` is the start address and
-`items` is the container of items (e.g. :obj:`bytes`, :obj:`str`,
-:obj:`tuple`).  The length of the block is ``len(items)``.
+A `block` is a tuple ``(start, data)`` where `start` is the start address and
+`data` is the container of data items (e.g. :obj:`bytearray`).
+The length of the block is ``len(data)``.
 Actually, the module uses lists instead of tuples, because the latter are
 mutables, thus can be changed in-place, without reallocation.
 

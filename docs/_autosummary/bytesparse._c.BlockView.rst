@@ -1,4 +1,4 @@
-﻿bytesparse.\_c.BlockView
+bytesparse.\_c.BlockView
 ========================
 
 .. currentmodule:: bytesparse._c

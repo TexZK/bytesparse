@@ -1,4 +1,4 @@
-﻿bytesparse.\_c.Memory
+bytesparse.\_c.Memory
 =====================
 
 .. currentmodule:: bytesparse._c
