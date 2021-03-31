@@ -26,6 +26,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+r"""Cython implementation."""
+
 cimport cython
 from cpython.bytearray cimport PyByteArray_FromStringAndSize
 from cpython.bytes cimport PyBytes_FromStringAndSize
@@ -1714,6 +1716,14 @@ cdef BlockView Block_ViewSlice(Block_* that, ssize_t start, ssize_t endex):
 # ---------------------------------------------------------------------------------------------------------------------
 
 cdef class BlockView:
+    r"""Block viewer.
+
+    Memory view around an underlying block slice, implementing Python's `buffer`
+    protocol API.
+
+    Accessing a block makes it read-only. Please ensure any views get
+    disposed before trying to write to the memory block again.
+    """
 
     def __cinit__(self):
         self._block = NULL
@@ -1779,6 +1789,11 @@ cdef class BlockView:
     def __bool__(
         self: 'BlockView',
     ) -> bool:
+        r"""Has any data.
+
+        Returns:
+            bool: Non-null slice length.
+        """
 
         self.check_()
         return self._start < self._endex
@@ -1786,6 +1801,11 @@ cdef class BlockView:
     def __bytes__(
         self: 'BlockView',
     ) -> bytes:
+        r"""Converts into bytes.
+
+        Returns:
+            bytes: :class:`bytes` clone of the viewed slice.
+        """
 
         return bytes(self.memview)
 
@@ -1793,6 +1813,7 @@ cdef class BlockView:
     def memview(
         self: 'BlockView',
     ) -> memoryview:
+        r"""memoryview: Python :class:`memoryview` wrapper."""
 
         self.check_()
         if self._memview is None:
@@ -1802,6 +1823,7 @@ cdef class BlockView:
     def __len__(
         self: 'BlockView',
     ) -> Address:
+        r"""int: Slice length."""
 
         self.check_()
         return self._endex - self._start
@@ -1825,6 +1847,7 @@ cdef class BlockView:
     def start(
         self: 'BlockView',
     ) -> Address:
+        r"""int: Slice inclusive start address."""
 
         self.check()
         return self._block.address
@@ -1833,6 +1856,7 @@ cdef class BlockView:
     def endex(
         self: 'BlockView',
     ) -> Address:
+        r"""int: Slice exclusive end address."""
 
         self.check()
         return self._block.address + self._endex - self._start
@@ -1841,6 +1865,7 @@ cdef class BlockView:
     def endin(
         self: 'BlockView',
     ) -> Address:
+        r"""int: Slice inclusive end address."""
 
         return self.endex - 1
 
@@ -1848,6 +1873,7 @@ cdef class BlockView:
     def acquired(
         self: 'BlockView',
     ) -> bool:
+        r"""bool: Underlying block currently acquired."""
 
         return self._block != NULL
 
@@ -1858,12 +1884,20 @@ cdef class BlockView:
     def check(
         self: 'BlockView',
     ) -> None:
+        r"""Checks for data consistency."""
 
         self.check_()
 
     def dispose(
         self: 'BlockView',
     ) -> None:
+        r"""Forces object disposal.
+
+        Useful to make sure that any memory blocks are unreferenced before automatic
+        garbage collection.
+
+        Any access to the object after calling this function could raise exceptions.
+        """
 
         if self._block:
             self._block = Block_Release(self._block)
@@ -2881,6 +2915,29 @@ cdef ssize_t Rack_IndexEndex(const Rack_* that, addr_t address) except -2:
 # =====================================================================================================================
 
 cdef class Rover:
+    r"""Memory iterator.
+
+    Iterates over values stored within a :class:`Memory`.
+
+    Arguments:
+        memory (:class:`Memory`):
+            Memory to iterate.
+
+        start (int):
+            Inclusive start address of the iterated range.
+
+        endex (int):
+            Exclusive end address of the iterated range.
+
+        pattern (bytes):
+            Pattern to fill emptiness.
+
+        forward (bool):
+            Forward iterator.
+
+        infinite (bool):
+            Infinite iterator.
+    """
 
     def __cinit__(self):
         pass
@@ -2975,6 +3032,11 @@ cdef class Rover:
                     self._block_ptr = Block_At__(block, <size_t>offset)
 
     def __len__(self):
+        r"""Address range length.
+
+        Returns:
+            int: Address range length.
+        """
         return self._endex - self._start
 
     cdef int next_(self) except -2:
@@ -3096,6 +3158,11 @@ cdef class Rover:
             raise
 
     def __next__(self):
+        r"""Next iterated value.
+
+        Returns:
+            int: Byte value at the current address; ``None`` within emptiness.
+        """
         cdef:
             int value
 
@@ -3103,6 +3170,11 @@ cdef class Rover:
         return None if value < 0 else value
 
     def __iter__(self):
+        r"""Values iterator.
+
+        Yields:
+            int: Byte value at the current address; ``None`` within emptiness.
+        """
         cdef:
             int value
 
@@ -3116,26 +3188,38 @@ cdef class Rover:
         self._memory = None
 
     def dispose(self):
+        r"""Forces object disposal.
+
+        Useful to make sure that any memory blocks are unreferenced before automatic
+        garbage collection.
+
+        Any access to the object after calling this function could raise exceptions.
+        """
         self.dispose_()
 
     @property
     def forward(self) -> bool:
+        r"""bool: Forward iterator."""
         return self._forward
 
     @property
     def infinite(self) -> bool:
+        r"""bool: Infinite iterator."""
         return self._infinite
 
     @property
     def address(self) -> Address:
+        r"""int: Current address being iterated."""
         return self._address
 
     @property
     def start(self) -> Address:
+        r"""int: Inclusive start address of the iterated range."""
         return self._start
 
     @property
     def endex(self) -> Address:
+        r"""int: Exclusive end address of the iterated range."""
         return self._endex
 
 
