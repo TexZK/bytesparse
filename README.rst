@@ -72,16 +72,16 @@ constsis in a virtual addressing space where sparse `chunks` of data can be
 stored.
 
 In order to be easy to use, its interface should be close to that of a
-:class:`bytearray`, which is the closest pythonic way to store dynamic data.
-The main downside of a :class:`bytearray` is that it requires a contiguous
-data allocation starting from address 0. This is not good when sparse data
-have to be stored, such as when emulating the addressing space of a generic
+``bytearray``, which is the closest pythonic way to store dynamic data.
+The main downside of a ``bytearray`` is that it requires a contiguous data
+allocation starting from address 0. This is not good when sparse data have to
+be stored, such as when emulating the addressing space of a generic
 microcontroller.
 
-The main idea is to provide a :class:`bytearray`-like class with the
-possibility to internally hold the sparse `blocks` of data.
+The main idea is to provide a ``bytearray``-like class with the possibility to
+internally hold the sparse `blocks` of data.
 A `block` is ideally a tuple ``(start, data)`` where `start` is the start
-address and `data` is the container of data items (e.g. :class:`bytearray`).
+address and `data` is the container of data items (e.g. ``bytearray``).
 The length of the block is ``len(data)``.
 Those blocks are usually not overlapping nor contiguous, and sorted by start
 address.
@@ -95,17 +95,17 @@ This library provides a pure Python implementation, for maximum compatibility.
 Its implementation should be correct and robust, whilst trying to be as fast
 as common sense suggests. This means that the code should be reasonably
 optimized for general use, while still providing features that are less likely
-to be used, yet compatible with the existing Python API (e.g.
-:class:`bytearray` or :class:`dict`).
+to be used, yet compatible with the existing Python API (e.g. ``bytearray`` or
+``dict``).
 
 The Python implementation can also exploit the capabilities of its powerful
-:class:`int` type, so that a virtually infinite addressing space can be used,
+``int`` type, so that a virtually infinite addressing space can be used,
 even with negative addresses!
 
-Data chunks are stored as common mutable :class:`bytearray` objects, whose
-size is limited by the Python engine (e.g. that of ``size_t``).
+Data chunks are stored as common mutable ``bytearray`` objects, whose size is
+limited by the Python engine (e.g. that of ``size_t``).
 
-More details can be found within :mod:`bytesparse._py`.
+More details can be found within ``bytesparse._py``.
 
 
 Cython implementation
@@ -135,18 +135,18 @@ limits stated above.
 If in doubt about using the Cython implementation, just stick with the Python
 one, which is much easier to integrate and debug.
 
-More details can be found within :mod:`bytesparse._c`.
+More details can be found within ``bytesparse._c``.
 
 
 Background
 ==========
 
-This library started as a spin-off of :mod:`hexrec.blocks.Memory`.
+This library started as a spin-off of ``hexrec.blocks.Memory``.
 That is based on a simple Python implementation using immutable objects (i.e.
-:class:`tuple` and :class:`bytes`). While good enough to handle common
-hexadecimal files, it is totally unsuited for dynamic/interactive
-environments, such as emulators, IDEs, data editors, and so on.
-Instead, :mod:`bytesparse` should be more flexible and faster, hopefully
+``tuple`` and ``bytes``). While good enough to handle common hexadecimal files,
+it is totally unsuited for dynamic/interactive environments, such as emulators,
+IDEs, data editors, and so on.
+Instead, ``bytesparse`` should be more flexible and faster, hopefully
 suitable for generic usage.
 
 While developing the Python implementation, why not also jump on the Cython
