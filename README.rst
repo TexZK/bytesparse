@@ -10,7 +10,7 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - | |travis| |appveyor| |requires|
+      - | |gh_actions| |requires|
         | |codecov|
     * - package
       - | |version| |wheel| |supported-versions| |supported-implementations|
@@ -20,13 +20,9 @@ Overview
     :target: https://readthedocs.org/projects/bytesparse
     :alt: Documentation Status
 
-.. |travis| image:: https://api.travis-ci.org/TexZK/bytesparse.svg?branch=main
-    :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/TexZK/bytesparse
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/TexZK/bytesparse?branch=main&svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/TexZK/bytesparse
+.. |gh_actions| image:: https://github.com/TexZK/bytesparse/workflows/CI/badge.svg
+    :alt: GitHub Actions Status
+    :target: https://github.com/TexZK/bytesparse
 
 .. |requires| image:: https://requires.io/github/TexZK/bytesparse/requirements.svg?branch=main
     :alt: Requirements Status

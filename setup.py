@@ -49,9 +49,11 @@ setup(
         'Programming Language :: Cython',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering :: Interface Engine/Protocol Translator',
         'Topic :: Software Development',
@@ -63,5 +65,12 @@ setup(
     install_requires=[
     ],
     extras_require={
+        'testing': [
+            'cython',
+            'pytest',
+        ],
+        'performance': [
+            'cython',
+        ],
     },
 )
