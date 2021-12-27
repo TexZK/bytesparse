@@ -10,11 +10,12 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - | |gh_actions| |requires|
+      - | |gh_actions|
         | |codecov|
     * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
+      - | |version| |wheel|
+        | |supported-versions|
+        | |supported-implementations|
 
 .. |docs| image:: https://readthedocs.org/projects/bytesparse/badge/?style=flat
     :target: https://readthedocs.org/projects/bytesparse
@@ -24,10 +25,6 @@ Overview
     :alt: GitHub Actions Status
     :target: https://github.com/TexZK/bytesparse
 
-.. |requires| image:: https://requires.io/github/TexZK/bytesparse/requirements.svg?branch=main
-    :alt: Requirements Status
-    :target: https://requires.io/github/TexZK/bytesparse/requirements/?branch=main
-
 .. |codecov| image:: https://codecov.io/gh/TexZK/bytesparse/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
     :target: https://codecov.io/github/TexZK/bytesparse
@@ -35,10 +32,6 @@ Overview
 .. |version| image:: https://img.shields.io/pypi/v/bytesparse.svg
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/bytesparse/
-
-.. |commits-since| image:: https://img.shields.io/github/commits-since/TexZK/bytesparse/v0.0.2.svg
-    :alt: Commits since latest release
-    :target: https://github.com/TexZK/bytesparse/compare/v0.0.2...main
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/bytesparse.svg
     :alt: PyPI Wheel
@@ -169,21 +162,3 @@ To run the all the tests:
 .. code-block:: sh
 
     $ tox --skip-missing-interpreters
-
-
-Note, to combine the coverage data from all the tox environments run:
-
-.. list-table::
-    :widths: 10 90
-    :stub-columns: 1
-
-    - - Windows
-      - .. code-block:: sh
-
-            $ set PYTEST_ADDOPTS=--cov-append
-            $ tox
-
-    - - Other
-      - .. code-block:: sh
-
-            $ PYTEST_ADDOPTS=--cov-append tox
