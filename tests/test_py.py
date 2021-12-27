@@ -29,7 +29,7 @@ from bytesparse._py import Memory as _Memory
 
 
 class TestMemory(BaseMemorySuite):
-    Memory = _Memory
+    Memory: type = _Memory
 
     def test___init___nocopy(self):
         Memory = self.Memory
