@@ -6,7 +6,6 @@ import os
 import re
 from glob import glob
 
-from setuptools import Extension
 from setuptools import find_packages
 from setuptools import setup
 
@@ -20,7 +19,7 @@ def read(*names, **kwargs):
 
 setup(
     name='bytesparse',
-    version='0.0.1',
+    version='0.0.2',
     license='BSD 2-Clause License',
     description='Library to handle sparse bytes within a virtual memory space',
     long_description='%s\n%s' % (
@@ -35,7 +34,6 @@ setup(
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[os.path.splitext(os.path.basename(path))[0] for path in glob('src/*.py')],
-    ext_modules=[Extension('bytesparse._c', ['src/bytesparse/_c.c'], optional=True)],
     include_dirs=['.'],
     include_package_data=True,
     zip_safe=False,
@@ -46,7 +44,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        'Programming Language :: Cython',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
@@ -66,11 +63,7 @@ setup(
     ],
     extras_require={
         'testing': [
-            'cython',
             'pytest',
-        ],
-        'performance': [
-            'cython',
         ],
     },
 )

@@ -112,10 +112,6 @@ True
 
 """
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
-try:
-    from ._c import Memory  # noqa: F401
-
-except ImportError:
-    from ._py import Memory  # noqa: F401
+from ._py import *  # noqa: F401, F403

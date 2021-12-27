@@ -8,4 +8,3 @@ Reference
 
     bytesparse
     bytesparse._py
-    bytesparse._c

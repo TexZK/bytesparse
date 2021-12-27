@@ -36,9 +36,9 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/bytesparse/
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/TexZK/bytesparse/v0.0.1.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/TexZK/bytesparse/v0.0.2.svg
     :alt: Commits since latest release
-    :target: https://github.com/TexZK/bytesparse/compare/v0.0.1...main
+    :target: https://github.com/TexZK/bytesparse/compare/v0.0.2...main
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/bytesparse.svg
     :alt: PyPI Wheel
@@ -111,27 +111,7 @@ The library also provides an experimental `Cython` implementation. It tries to
 mimic the same algorithms of the Python implementation, while exploiting the
 speedup of compiled `C` code.
 
-Beware that the Cython implementation is meant to be potentially faster than
-the pure Python one, but there might be even faster `ad-hoc` implementations
-of virtual memory highly optimized for the underlying hardware.
-
-The addressing space is limited to that of an ``uint_fast64_t`` (typically
-32-bit or 64-bit as per the hosting machine), so it is not possible to have
-an infinite addressing space, nor negative addresses.
-To keep the implementation code simple enough, the highest address (e.g.
-``0xFFFFFFFF`` on a 32-bit machine) is reserved.
-
-Block data chunks cannot be greater than the maximum ``ssize_t`` value
-(typically half of the addressing space).
-
-The Cython implementation is optional, and potentially useful only when the
-Python implementation seems too slow for the user's algorithms, within the
-limits stated above.
-
-If in doubt about using the Cython implementation, just stick with the Python
-one, which is much easier to integrate and debug.
-
-More details can be found within ``bytesparse._c``.
+Please refer to the ``cbytesparse`` Python package for more details.
 
 
 Background
