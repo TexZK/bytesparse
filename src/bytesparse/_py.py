@@ -121,6 +121,82 @@ def _repeat2(
                 yield from _islice(pattern, size % pattern_size)
 
 
+def collapse_blocks(
+    blocks: BlockIterable,
+) -> BlockList:
+    r"""Collapses a generic sequence of blocks.
+
+    Given a generic sequence of blocks, writes them in the same order,
+    generating a new sequence of non-contiguous blocks, sorted by address.
+
+    Arguments:
+        blocks (sequence of blocks):
+            Sequence of blocks to collapse.
+
+    Returns:
+        list of blocks: Collapsed block list.
+
+    Examples:
+        +---+---+---+---+---+---+---+---+---+---+
+        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+        +===+===+===+===+===+===+===+===+===+===+
+        |[0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9]|
+        +---+---+---+---+---+---+---+---+---+---+
+        |[A | B | C | D]|   |   |   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |   |   |   |[E | F]|   |   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |[$]|   |   |   |   |   |   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |   |   |   |   |   |   |[x | y | z]|   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |[$ | B | C | E | F | 5 | x | y | z | 9]|
+        +---+---+---+---+---+---+---+---+---+---+
+
+        >>> blocks = [
+        ...     [0, b'0123456789'],
+        ...     [0, b'ABCD'],
+        ...     [3, b'EF'],
+        ...     [0, b'$'],
+        ...     [6, b'xyz'],
+        ... ]
+        >>> collapse_blocks(blocks)
+        [[0, b'$BCEF5xyz9']]
+
+        ~~~
+
+        +---+---+---+---+---+---+---+---+---+---+
+        | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+        +===+===+===+===+===+===+===+===+===+===+
+        |[0 | 1 | 2]|   |   |   |   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |   |   |   |   |[A | B]|   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |   |   |   |   |   |   |[x | y | z]|   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |   |[$]|   |   |   |   |   |   |   |   |
+        +---+---+---+---+---+---+---+---+---+---+
+        |[0 | $ | 2]|   |[A | B | x | y | z]|   |
+        +---+---+---+---+---+---+---+---+---+---+
+
+        >>> blocks = [
+        ...     [0, b'012'],
+        ...     [4, b'AB'],
+        ...     [6, b'xyz'],
+        ...     [1, b'$'],
+        ... ]
+        >>> collapse_blocks(blocks)
+        [[0, b'0$2'], [4, b'ABxyz']]
+    """
+
+    memory = Memory()
+
+    for block_start, block_data in blocks:
+        memory.write(block_start, block_data)
+
+    return memory._blocks
+
+
 class Memory:
     r"""Virtual memory.
 
@@ -1105,6 +1181,7 @@ class Memory:
         self: 'Memory',
         items: Union[AnyBytes, 'Memory'],
         offset: Address = 0,
+        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Concatenates items.
 
@@ -1119,11 +1196,15 @@ class Memory:
 
             offset (int):
                 Optional offset w.r.t. :attr:`content_endex`.
+
+            backups (list of :obj:`Memory`):
+                Optional output list holding backup copies of the deleted
+                items.
         """
 
         if offset < 0:
             raise ValueError('negative extension offset')
-        self.write(self.content_endex + offset, items)
+        self.write(self.content_endex + offset, items, backups=backups)
 
     def pop(
         self: 'Memory',
@@ -3144,6 +3225,14 @@ class Memory:
 
                 if backups is not None:
                     backups.append(self.extract(start, endex))
+
+                blocks = self._blocks
+                if blocks:
+                    block_start, block_data = blocks[-1]
+                    block_endex = block_start + len(block_data)
+                    if start == block_endex:
+                        block_data += data  # might be faster
+                        return
 
                 if size == 1:
                     self.poke(start, data[0])  # might be faster
