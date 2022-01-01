@@ -66,6 +66,13 @@ class TestMemory(BaseMemorySuite):
             block_data.clear()
             Memory.from_memory(memory)
 
+    def test_from_blocks_nocopy(self):
+        Memory = self.Memory
+        blocks = [[1, b'ABC'], [5, b'xyz']]
+        memory = Memory.from_blocks(blocks, copy=False, validate=False)
+        assert memory._blocks == blocks
+        assert all(b1[1] is b2[1] for b1, b2 in zip(memory._blocks, blocks))
+
     def test__bytearray(self):
         Memory = self.Memory
         memory = Memory()
@@ -124,6 +131,14 @@ class TestMemory(BaseMemorySuite):
         memory._trim_endex = 3
 
         with pytest.raises(ValueError, match='invalid bounds'):
+            memory.validate()
+
+    def test_validate_invalid_block_data_size(self):
+        Memory = self.Memory
+        blocks = [[0, b'ABC'], [5, b''], [10, b'xyz']]
+        memory = Memory.from_blocks(blocks, validate=False)
+
+        with pytest.raises(ValueError, match='invalid block data size'):
             memory.validate()
 
 

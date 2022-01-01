@@ -206,8 +206,6 @@ class Memory:
     Please look at examples of each method to get a glimpse of the features of
     this class.
 
-    On creation, at most one of `memory`, `blocks`, or `data` can be specified.
-
     Attributes:
         _blocks (list of blocks):
             A sequence of spaced blocks, sorted by address.
@@ -268,7 +266,6 @@ class Memory:
         endex: Optional[Address] = None,
         copy: bool = True,
         validate: bool = True,
-        collapse: bool = False,
     ) -> 'Memory':
         r"""Creates a virtual memory from blocks.
 
@@ -325,10 +322,6 @@ class Memory:
             >>> # NOTE: Record files typically require collapsing!
             >>> import hexrec.records as hr
             >>> blocks = hr.load_blocks('records.hex')
-            >>> memory = Memory.from_blocks(blocks, collapse=True)
-            >>> memory
-                ...
-            >>> # Alternatively:
             >>> memory = Memory.from_blocks(collapse_blocks(blocks))
             >>> memory
                 ...
@@ -336,15 +329,12 @@ class Memory:
 
         offset = Address(offset)
 
-        if copy and not collapse:
+        if copy:
             blocks = [[block_start + offset, bytearray(block_data)]
                       for block_start, block_data in blocks]
         elif offset:
             blocks = [[block_start + offset, block_data]
                       for block_start, block_data in blocks]
-
-        if collapse:
-            blocks = collapse_blocks(blocks)
 
         memory = Memory(start, endex)
         memory._blocks = blocks

@@ -370,21 +370,6 @@ class BaseMemorySuite:
         blocks_ref = [[4, b'ABC'], [8, b'xyz']]
         assert blocks_out == blocks_ref
 
-    def test_from_blocks_nocopy(self):
-        Memory = self.Memory
-        blocks = [[1, b'ABC'], [5, b'xyz']]
-        memory = Memory.from_blocks(blocks, copy=False, validate=False)
-        assert memory._blocks == blocks
-        assert all(b1[1] is b2[1] for b1, b2 in zip(memory._blocks, blocks))
-
-    def test_from_blocks_collapse(self):
-        Memory = self.Memory
-        blocks = [[5, b'ABC'], [3, b'xyz']]
-        memory = Memory.from_blocks(blocks, collapse=True)
-        blocks_out = memory._blocks
-        blocks_ref = [[3, b'xyzBC']]
-        assert blocks_out == blocks_ref
-
     def test___repr__(self):
         Memory = self.Memory
         start, endex = 0, 0
@@ -1916,14 +1901,6 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(blocks, validate=False)
 
         with pytest.raises(ValueError, match='invalid block interleaving'):
-            memory.validate()
-
-    def test_validate_invalid_block_data_size(self):
-        Memory = self.Memory
-        blocks = [[0, b'ABC'], [5, b''], [10, b'xyz']]
-        memory = Memory.from_blocks(blocks, validate=False)
-
-        with pytest.raises(ValueError, match='invalid block data size'):
             memory.validate()
 
     def test_validate_invalid_block_bounds(self):
