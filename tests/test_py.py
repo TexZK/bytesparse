@@ -38,22 +38,22 @@ class TestMemory(BaseMemorySuite):
         blocks = [[0, b'0'], [5, data], [9, b'9']]
         offset = 123
 
-        memory = Memory(data=data, copy=False)
+        memory = Memory.from_bytes(data, copy=False)
         assert memory._blocks[0][1] is data
 
-        memory = Memory(data=data, offset=offset, copy=False)
+        memory = Memory.from_bytes(data, offset, copy=False)
         assert memory._blocks[0][1] is data
 
-        memory = Memory(blocks=blocks, copy=False)
+        memory = Memory.from_blocks(blocks, copy=False)
         assert memory._blocks[1][1] is data
 
-        memory = Memory(blocks=blocks, offset=offset, copy=False)
+        memory = Memory.from_blocks(blocks, offset, copy=False)
         assert memory._blocks[1][1] is data
 
-        memory2 = Memory(memory=memory, copy=False)
+        memory2 = Memory.from_memory(memory, copy=False)
         assert all(memory._blocks[i][1] is memory2._blocks[i][1] for i in range(3))
 
-        memory2 = Memory(memory=memory, offset=offset, copy=False)
+        memory2 = Memory.from_memory(memory, offset, copy=False)
         assert all(memory._blocks[i][1] is memory2._blocks[i][1] for i in range(3))
 
     def test___init___bounds_invalid2(self):
@@ -61,21 +61,21 @@ class TestMemory(BaseMemorySuite):
         match = r'invalid bounds'
 
         with pytest.raises(ValueError, match=match):
-            memory = Memory(data=b'\0')
+            memory = Memory.from_bytes(b'\0')
             block_data = memory._blocks[0][1]
             block_data.clear()
-            Memory(memory=memory)
+            Memory.from_memory(memory)
 
     def test__bytearray(self):
         Memory = self.Memory
         memory = Memory()
         assert memory._bytearray() == b''
 
-        memory = Memory(data=b'xyz', offset=5)
+        memory = Memory.from_bytes(b'xyz', offset=5)
         assert memory._bytearray() == b'xyz'
 
         blocks = [[5, b'xyz']]
-        memory = Memory(blocks=blocks, copy=False)
+        memory = Memory.from_blocks(blocks, copy=False)
         assert memory._bytearray() is blocks[0][1]
 
     def test__bytearray_invalid(self):
@@ -86,15 +86,15 @@ class TestMemory(BaseMemorySuite):
         with pytest.raises(ValueError, match=match):
             memory._bytearray()
 
-        memory = Memory(data=b'xyz', offset=5, start=1)
+        memory = Memory.from_bytes(b'xyz', offset=5, start=1)
         with pytest.raises(ValueError, match=match):
             memory._bytearray()
 
-        memory = Memory(data=b'xyz', offset=5, endex=9)
+        memory = Memory.from_bytes(b'xyz', offset=5, endex=9)
         with pytest.raises(ValueError, match=match):
             memory._bytearray()
 
-        memory = Memory(blocks=create_template_blocks())
+        memory = Memory.from_blocks(create_template_blocks())
         with pytest.raises(ValueError, match=match):
             memory._bytearray()
 
@@ -110,7 +110,7 @@ class TestMemory(BaseMemorySuite):
     def test___copy___template(self):
         Memory = self.Memory
         blocks = create_template_blocks()
-        memory1 = Memory(blocks=blocks, copy=False)
+        memory1 = Memory.from_blocks(blocks, copy=False)
         memory2 = memory1.__copy__()
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span

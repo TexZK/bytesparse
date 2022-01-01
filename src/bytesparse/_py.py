@@ -221,18 +221,6 @@ class Memory:
             address is automatically discarded; disabled if ``None``.
 
     Arguments:
-        memory (Memory):
-            An optional :obj:`Memory` to copy data from.
-
-        data (bytes):
-            An optional :obj:`bytes` string to create a single block of data.
-
-        offset (int):
-            Start address of the initial block, built if `data` is given.
-
-        blocks (list of blocks):
-            A sequence of non-overlapping blocks, sorted by address.
-
         start (int):
             Optional memory start address.
             Anything before will be trimmed away.
@@ -240,12 +228,6 @@ class Memory:
         endex (int):
             Optional memory exclusive end address.
             Anything at or after it will be trimmed away.
-
-        copy (bool):
-            Forces copy of provided input data.
-
-        validate (bool):
-            Validates the resulting :obj:`Memory` object.
 
     Raises:
         :obj:`ValueError`: More than one of `memory`, `data`, and `blocks`.
@@ -255,71 +237,283 @@ class Memory:
         >>> memory._blocks
         []
 
-        >>> memory = Memory(data=b'Hello, World!', offset=5)
+        >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
         >>> memory._blocks
         [[5, b'Hello, World!']]
     """
 
     def __init__(
         self: 'Memory',
-        memory: Optional['Memory'] = None,
-        data: Optional[AnyBytes] = None,
-        offset: Optional[Address] = None,
-        blocks: Optional[BlockList] = None,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-        copy: bool = True,
-        validate: bool = True,
     ):
+
         if start is not None:
             start = Address(start)
         if endex is not None:
             endex = Address(endex)
-        if start is not None and endex is not None and endex < start:
-            endex = start
-        offset = 0 if offset is None else Address(offset)
+            if start is not None and endex < start:
+                endex = start
 
-        if (memory is not None) + (data is not None) + (blocks is not None) > 1:
-            raise ValueError('only one of [memory, data, blocks] is allowed')
-
-        if memory is not None:
-            if copy:
-                blocks = [[block_start + offset, bytearray(block_data)]
-                          for block_start, block_data in memory._blocks]
-            else:
-                if offset:
-                    blocks = [[block_start + offset, block_data]
-                              for block_start, block_data in memory._blocks]
-                else:
-                    blocks = memory._blocks
-
-        elif data is not None:
-            if copy:
-                data = bytearray(data)
-
-            if data:
-                blocks = [[offset, data]]
-            else:
-                blocks = []
-
-        elif blocks:
-            if copy:
-                blocks = [[block_start + offset, bytearray(block_data)]
-                          for block_start, block_data in blocks]
-            elif offset:
-                blocks = [[block_start + offset, block_data]
-                          for block_start, block_data in blocks]
-        else:
-            blocks = []
-
-        self._blocks: BlockList = blocks
+        self._blocks: BlockList = []
         self._trim_start: Optional[Address] = start
         self._trim_endex: Optional[Address] = endex
 
-        self._crop(start, endex, None)
+    @classmethod
+    def from_blocks(
+        cls: Type['Memory'],
+        blocks: BlockList,
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+        collapse: bool = False,
+    ) -> 'Memory':
+        r"""Creates a virtual memory from blocks.
+
+        Arguments:
+            blocks (list of blocks):
+                A sequence of non-overlapping blocks, sorted by address.
+
+            offset (int):
+                Some address offset applied to all the blocks.
+
+            start (int):
+                Optional memory start address.
+                Anything before will be trimmed away.
+
+            endex (int):
+                Optional memory exclusive end address.
+                Anything at or after it will be trimmed away.
+
+            copy (bool):
+                Forces copy of provided input data.
+
+            validate (bool):
+                Validates the resulting :obj:`Memory` object.
+
+            collapse (bool):
+                Collapses the provided blocks, prior to construction.
+                Useful when source blocks do not satisfy the requirements of
+                the underlying data structure, e.g. blocks are not sorted by
+                address or they have some overlapping or contiguity.
+
+        Raises:
+            :obj:`ValueError`: Some requirements are not satisfied.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> blocks = [[1, b'ABC'], [5, b'xyz']]
+            >>> memory = Memory.from_blocks(blocks)
+            >>> memory._blocks
+            [[1, b'ABC'], [5, b'xyz']]
+            >>> memory = Memory.from_blocks(blocks, offset=3)
+            >>> memory._blocks
+            [[4, b'ABC'], [8, b'xyz']]
+
+            ~~~
+
+            >>> # Loads data from an Intel HEX record file
+            >>> # NOTE: Record files typically require collapsing!
+            >>> import hexrec.records as hr
+            >>> blocks = hr.load_blocks('records.hex')
+            >>> memory = Memory.from_blocks(blocks, collapse=True)
+            >>> memory
+                ...
+            >>> # Alternatively:
+            >>> memory = Memory.from_blocks(collapse_blocks(blocks))
+            >>> memory
+                ...
+        """
+
+        offset = Address(offset)
+
+        if copy and not collapse:
+            blocks = [[block_start + offset, bytearray(block_data)]
+                      for block_start, block_data in blocks]
+        elif offset:
+            blocks = [[block_start + offset, block_data]
+                      for block_start, block_data in blocks]
+
+        if collapse:
+            blocks = collapse_blocks(blocks)
+
+        memory = Memory(start, endex)
+        memory._blocks = blocks
+
+        if (start is not None or endex is not None) and validate:  # fast check
+            memory._crop(start, endex, None)
 
         if validate:
-            self.validate()
+            memory.validate()
+
+        return memory
+
+    @classmethod
+    def from_bytes(
+        cls: Type['Memory'],
+        data: AnyBytes,
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+    ) -> 'Memory':
+        r"""Creates a virtual memory from a byte-like chunk.
+
+        Arguments:
+            data (byte-like data):
+                A byte-like chunk of data (e.g. :obj:`bytes`,
+                :obj:`bytearray`, :obj:`memoryview`).
+
+            offset (int):
+                Start address of the block of data.
+
+            start (int):
+                Optional memory start address.
+                Anything before will be trimmed away.
+
+            endex (int):
+                Optional memory exclusive end address.
+                Anything at or after it will be trimmed away.
+
+            copy (bool):
+                Forces copy of provided input data into the underlying data
+                structure.
+
+            validate (bool):
+                Validates the resulting :obj:`Memory` object.
+
+        Raises:
+            :obj:`ValueError`: Some requirements are not satisfied.
+
+        Examples:
+            >>> memory = Memory.from_bytes(b'')
+            >>> memory._blocks
+            []
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | B | C | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCxyz', 2)
+            >>> memory._blocks
+            [[2, b'ABCxyz']]
+        """
+
+        if data:
+            if copy:
+                data = bytearray(data)
+            blocks = [[offset, data]]
+        else:
+            blocks = []
+
+        return cls.from_blocks(
+            blocks,
+            start=start,
+            endex=endex,
+            copy=False,
+            validate=validate,
+        )
+
+    @classmethod
+    def from_memory(
+        cls: Type['Memory'],
+        memory: 'Memory',
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+    ) -> 'Memory':
+        r"""Creates a virtual memory from another one.
+
+        Arguments:
+            memory (Memory):
+                A :obj:`Memory` to copy data from.
+
+            offset (int):
+                Some address offset applied to all the blocks.
+
+            start (int):
+                Optional memory start address.
+                Anything before will be trimmed away.
+
+            endex (int):
+                Optional memory exclusive end address.
+                Anything at or after it will be trimmed away.
+
+            copy (bool):
+                Forces copy of provided input data into the underlying data
+                structure.
+
+            validate (bool):
+                Validates the resulting :obj:`Memory` object.
+
+        Raises:
+            :obj:`ValueError`: Some requirements are not satisfied.
+
+        Examples:
+            >>> memory1 = Memory.from_bytes(b'ABC', 5)
+            >>> memory2 = Memory.from_memory(memory1)
+            >>> memory2._blocks
+            [[5, b'ABC]]
+            >>> memory1 == memory2
+            True
+            >>> memory1 is memory2
+            False
+            >>> memory1._blocks is memory2._blocks
+            False
+
+            ~~~
+
+            >>> memory1 = Memory.from_bytes(b'ABC', 10)
+            >>> memory2 = Memory.from_memory(memory1, -3)
+            >>> memory2._blocks
+            [[7, b'ABC]]
+            >>> memory1 == memory2
+            False
+
+            ~~~
+
+            >>> memory1 = Memory.from_bytes(b'ABC', 10)
+            >>> memory2 = Memory.from_memory(memory2, copy=False)
+            >>> all((b1[1] is b2[1])  # compare block data
+            ...     for b1, b2 in zip(memory1._blocks, memory2._blocks))
+            True
+        """
+
+        offset = Address(offset)
+
+        if copy:
+            blocks = [[block_start + offset, bytearray(block_data)]
+                      for block_start, block_data in memory._blocks]
+        else:
+            if offset:
+                blocks = [[block_start + offset, block_data]
+                          for block_start, block_data in memory._blocks]
+            else:
+                blocks = memory._blocks
+
+        return cls.from_blocks(
+            blocks,
+            start=start,
+            endex=endex,
+            copy=False,
+            validate=validate,
+        )
 
     def __repr__(
         self: 'Memory',
@@ -470,7 +664,7 @@ class Memory:
         value: Union[AnyBytes, 'Memory'],
     ) -> 'Memory':
 
-        memory = type(self)(memory=self, validate=False)
+        memory = type(self).from_memory(self, validate=False)
         memory.extend(value)
         return memory
 
@@ -495,7 +689,7 @@ class Memory:
             start = self.start
             size = self.endex - start
             offset = size  # adjust first write
-            memory = type(self)(memory=self, validate=False)
+            memory = type(self).from_memory(self, validate=False)
 
             for time in range(times - 1):
                 memory.write(offset, self)
@@ -518,7 +712,7 @@ class Memory:
             start = self.start
             size = self.endex - start
             offset = size
-            memory = type(self)(memory=self, validate=False)
+            memory = type(self).from_memory(self, validate=False)
 
             for time in range(times - 1):
                 self.write(offset, memory)
@@ -1363,7 +1557,7 @@ class Memory:
             :obj:`Memory`: Shallow copy.
         """
 
-        return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=False)
+        return type(self).from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=False)
 
     def __deepcopy__(
         self: 'Memory',
@@ -1374,7 +1568,7 @@ class Memory:
             :obj:`Memory`: Deep copy.
         """
 
-        return type(self)(memory=self, start=self._trim_start, endex=self._trim_endex, copy=True)
+        return type(self).from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=True)
 
     @property
     def contiguous(
