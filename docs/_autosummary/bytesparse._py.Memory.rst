@@ -30,6 +30,9 @@ bytesparse.\_py.Memory
       ~Memory.fill
       ~Memory.find
       ~Memory.flood
+      ~Memory.from_blocks
+      ~Memory.from_bytes
+      ~Memory.from_memory
       ~Memory.gaps
       ~Memory.index
       ~Memory.insert
