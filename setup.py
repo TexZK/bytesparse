@@ -19,7 +19,7 @@ def read(*names, **kwargs):
 
 setup(
     name='bytesparse',
-    version='0.0.2',
+    version='0.0.3',
     license='BSD 2-Clause License',
     description='Library to handle sparse bytes within a virtual memory space',
     long_description='%s\n%s' % (

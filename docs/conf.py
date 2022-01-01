@@ -21,10 +21,10 @@ if os.getenv('SPELLCHECK'):
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'bytesparse'
-year = '2021'
+year = '2020-2022'
 author = 'Andrea Zoppi'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '0.0.1'
+version = release = '0.0.3'
 
 pygments_style = 'trac'
 templates_path = ['_templates']
