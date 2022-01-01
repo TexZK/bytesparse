@@ -3167,7 +3167,7 @@ class Memory:
                     if backups is not None:
                         backups.append(self.extract(data_start, data_endex))
 
-                    self._erase(data_start, data_endex, False, True)  # insert
+                    self._erase(data_start, data_endex, False, False)  # clear
 
                 else:
                     # Clear only overwritten ranges
@@ -3178,10 +3178,10 @@ class Memory:
                         if backups is not None:
                             backups.append(self.extract(block_start, block_endex))
 
-                        self._erase(block_start, block_endex, False, True)  # insert
+                        self._erase(block_start, block_endex, False, False)  # clear
 
                 for block_start, block_data in data._blocks:
-                    self._insert(block_start + address, bytearray(block_data), False)
+                    self._insert(block_start + address, bytearray(block_data), False)  # insert
 
                 self._crop(self._trim_start, self._trim_endex, None)
 
