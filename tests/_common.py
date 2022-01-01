@@ -36,8 +36,8 @@ from bytesparse import OpenInterval
 from bytesparse import Value
 from bytesparse import collapse_blocks
 
-MAX_START: Address = 20
-MAX_SIZE: Address = 24
+MAX_START: Address = 22
+MAX_SIZE: Address = 26
 MAX_TIMES: int = 5
 BITMASK_SIZE: int = 16
 
@@ -47,8 +47,8 @@ def create_template_blocks() -> BlockList:
         [2, bytearray(b'234')],
         [8, bytearray(b'89A')],
         [12, bytearray(b'C')],
-        [14, bytearray(b'EF')],
-        [18, bytearray(b'I')],
+        [16, bytearray(b'EF')],
+        [21, bytearray(b'I')],
     ]
 
 
@@ -255,7 +255,7 @@ def test_collapse_blocks___doctest__():
 
 class BaseMemorySuite:
 
-    Memory: type = None  # replace by subclassing
+    Memory: Any = None  # replace by subclassing 'Memory'
     ADDR_NEG: bool = True
 
     def test___init___bounds(self):
@@ -631,7 +631,7 @@ class BaseMemorySuite:
 
         memory = Memory(blocks=create_template_blocks())
         assert len(memory) == memory.endex - memory.start, (len(memory), memory.endex, memory.start)
-        assert len(memory) == (19 - 2), (len(memory), memory.endex, memory.start)
+        assert len(memory) == (22 - 2), (len(memory), memory.endex, memory.start)
 
     def test_ofind(self):
         Memory = self.Memory
@@ -1142,7 +1142,7 @@ class BaseMemorySuite:
                     memory = Memory(blocks=blocks)
                     endex = start + size
 
-                    memory[start:endex:step] = b''  # unreachable
+                    memory[start:endex:step] = b''
                     blocks_out = memory._blocks
                     blocks_ref = blocks
 
@@ -1150,18 +1150,38 @@ class BaseMemorySuite:
 
     def test___setitem___size_template(self):
         Memory = self.Memory
-        match = r'attempt to assign bytes of size \d+ to extended slice of size \d+'
+        match = r'attempt to assign'
 
         for start in range(MAX_START):
-            for size in range(MAX_SIZE):
-                for step in range(2, MAX_TIMES):
-                    blocks = create_template_blocks()
-                    memory = Memory(blocks=blocks)
-                    endex = start + size
-                    data = bytes(MAX_SIZE)
+            for source_size in range(MAX_SIZE):
+                for target_size in range(MAX_SIZE):
+                    for step in range(2, MAX_TIMES):
+                        blocks = create_template_blocks()
+                        values = blocks_to_values(blocks, MAX_SIZE)
+                        memory = Memory(blocks=blocks)
+                        endex = start + target_size
+                        data = bytes(source_size)
 
-                    with pytest.raises(ValueError, match=match):
-                        memory[start:endex:step] = data
+                        values_ref = values[:]
+                        try:
+                            values_ref[start:endex:step] = data
+                        except ValueError as e:
+                            assert str(e).startswith(match)
+
+                            with pytest.raises(ValueError, match=match):
+                                memory[start:endex:step] = data
+                        else:
+                            blocks_ref = values_to_blocks(values_ref)
+
+                            memory[start:endex:step] = data
+                            blocks_out = memory._blocks
+
+                            assert blocks_out == blocks_ref
+
+    def test___delitem___empty(self):
+        Memory = self.Memory
+        memory = Memory()
+        del memory[:]
 
     def test___delitem___single_template(self):
         Memory = self.Memory
@@ -1875,45 +1895,165 @@ class BaseMemorySuite:
         memory = Memory(validate=False)
         memory.validate()
 
-    def test_bound(self):
+    def test_bound_none(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        bound = memory.bound(11, 44)
+        assert bound == (11, 44), bound
+
+        bound = memory.bound(22, 33)
+        assert bound == (22, 33), bound
+
+        bound = memory.bound(0, 99)
+        assert bound == (0, 99), bound
+
+        bound = memory.bound(0, 0)
+        assert bound == (0, 0), bound
+
+        bound = memory.bound(99, 99)
+        assert bound == (99, 99), bound
+
+        bound = memory.bound(99, 0)
+        assert bound == (99, 99), bound
+
+        bound = memory.bound(None, 44)
+        assert bound == (0, 44), bound
+
+        bound = memory.bound(None, 33)
+        assert bound == (0, 33), bound
+
+        bound = memory.bound(None, 99)
+        assert bound == (0, 99), bound
+
+        bound = memory.bound(11, None)
+        assert bound == (11, 11), bound
+
+        bound = memory.bound(22, None)
+        assert bound == (22, 22), bound
+
+        bound = memory.bound(0, None)
+        assert bound == (0, 0), bound
+
+    def test_bound_span(self):
         Memory = self.Memory
         memory = Memory(start=11, endex=44)
 
         bound = memory.bound(11, 44)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
 
         bound = memory.bound(22, 33)
-        assert bound == (22, 33), (bound,)
+        assert bound == (22, 33), bound
 
         bound = memory.bound(0, 99)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
 
         bound = memory.bound(0, 0)
-        assert bound == (11, 11), (bound,)
+        assert bound == (11, 11), bound
 
         bound = memory.bound(99, 99)
-        assert bound == (44, 44), (bound,)
+        assert bound == (44, 44), bound
 
         bound = memory.bound(99, 0)
-        assert bound == (44, 44), (bound,)
+        assert bound == (44, 44), bound
 
         bound = memory.bound(None, 44)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
 
         bound = memory.bound(None, 33)
-        assert bound == (11, 33), (bound,)
+        assert bound == (11, 33), bound
 
         bound = memory.bound(None, 99)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
 
         bound = memory.bound(11, None)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
 
         bound = memory.bound(22, None)
-        assert bound == (22, 44), (bound,)
+        assert bound == (22, 44), bound
 
         bound = memory.bound(0, None)
-        assert bound == (11, 44), (bound,)
+        assert bound == (11, 44), bound
+
+    def test_bound_start(self):
+        Memory = self.Memory
+        memory = Memory(start=11)
+
+        bound = memory.bound(11, 44)
+        assert bound == (11, 44), bound
+
+        bound = memory.bound(22, 33)
+        assert bound == (22, 33), bound
+
+        bound = memory.bound(0, 99)
+        assert bound == (11, 99), bound
+
+        bound = memory.bound(0, 0)
+        assert bound == (11, 11), bound
+
+        bound = memory.bound(99, 99)
+        assert bound == (99, 99), bound
+
+        bound = memory.bound(99, 0)
+        assert bound == (99, 99), bound
+
+        bound = memory.bound(None, 44)
+        assert bound == (11, 44), bound
+
+        bound = memory.bound(None, 33)
+        assert bound == (11, 33), bound
+
+        bound = memory.bound(None, 99)
+        assert bound == (11, 99), bound
+
+        bound = memory.bound(11, None)
+        assert bound == (11, 11), bound
+
+        bound = memory.bound(22, None)
+        assert bound == (22, 22), bound
+
+        bound = memory.bound(0, None)
+        assert bound == (11, 11), bound
+
+    def test_bound_endex(self):
+        Memory = self.Memory
+        memory = Memory(endex=44)
+
+        bound = memory.bound(11, 44)
+        assert bound == (11, 44), bound
+
+        bound = memory.bound(22, 33)
+        assert bound == (22, 33), bound
+
+        bound = memory.bound(0, 99)
+        assert bound == (0, 44), bound
+
+        bound = memory.bound(0, 0)
+        assert bound == (0, 0), bound
+
+        bound = memory.bound(99, 99)
+        assert bound == (44, 44), bound
+
+        bound = memory.bound(99, 0)
+        assert bound == (44, 44), bound
+
+        bound = memory.bound(None, 44)
+        assert bound == (0, 44), bound
+
+        bound = memory.bound(None, 33)
+        assert bound == (0, 33), bound
+
+        bound = memory.bound(None, 99)
+        assert bound == (0, 44), bound
+
+        bound = memory.bound(11, None)
+        assert bound == (11, 44), bound
+
+        bound = memory.bound(22, None)
+        assert bound == (22, 44), bound
+
+        bound = memory.bound(0, None)
+        assert bound == (0, 44), bound
 
     def test__block_index_at_template(self):
         Memory = self.Memory
@@ -2068,10 +2208,11 @@ class BaseMemorySuite:
                 endex = start + size
 
                 for step in range(1, MAX_TIMES):
-                    extracted = memory.extract(start, endex, step=step)
-                    blocks_out = extracted._blocks
-                    blocks_ref = values_to_blocks(values[start:endex:step], start)
-                    assert blocks_out == blocks_ref, (start, size, step, blocks_out, blocks_ref)
+                    for bound in (False, True):
+                        extracted = memory.extract(start, endex, step=step, bound=bound)
+                        blocks_out = extracted._blocks
+                        blocks_ref = values_to_blocks(values[start:endex:step], start)
+                        assert blocks_out == blocks_ref, (start, size, step, blocks_out, blocks_ref)
 
     def test_extract_pattern_template(self):
         Memory = self.Memory
@@ -2113,7 +2254,7 @@ class BaseMemorySuite:
 
     def test_shift_backups_template(self):
         Memory = self.Memory
-        start, endex = 2, MAX_SIZE
+        start, endex = 1, MAX_SIZE - 1
         for offset in range(-start, endex):
             values = blocks_to_values(create_template_blocks()) + ([None] * MAX_SIZE)
             if offset < 0:
@@ -2323,17 +2464,69 @@ class BaseMemorySuite:
 
     def test_write_single(self):
         Memory = self.Memory
-        for start in range(MAX_START):
+        for offset in range(MAX_SIZE):
             blocks = create_template_blocks()
             values = blocks_to_values(blocks, MAX_SIZE)
             memory = Memory(blocks=blocks)
+            memory.trim_start = memory.content_start - 1
+            memory.trim_endex = memory.content_endex + 1
 
-            memory.write(start, start)
+            memory.write(offset, offset)
             blocks_out = memory._blocks
 
-            values[start] = start
+            if memory.trim_start <= offset < memory.trim_endex:
+                values[offset] = offset
             blocks_ref = values_to_blocks(values)
-            assert blocks_out == blocks_ref, (start, blocks_out, blocks_ref)
+            assert blocks_out == blocks_ref, (offset, blocks_out, blocks_ref)
+
+    def test_write_simple(self):
+        Memory = self.Memory
+        for offset in range(MAX_SIZE - 3):
+            blocks = create_template_blocks()
+            values = blocks_to_values(blocks, MAX_SIZE)
+            memory = Memory(blocks=blocks)
+            memory.trim_start = memory.content_start - 1
+            memory.trim_endex = memory.content_endex + 1
+
+            memory.write(offset, b'<=>')
+            blocks_out = memory._blocks
+
+            values[offset:(offset + 3)] = b'<=>'
+            values[:memory.trim_start] = [None] * memory.trim_start
+            values[memory.trim_endex:] = [None] * (len(values) - memory.trim_endex)
+            blocks_ref = values_to_blocks(values)
+            assert blocks_out == blocks_ref, (offset, blocks_out, blocks_ref)
+
+    def test_write_memory_empty(self):
+        Memory = self.Memory
+        memory1 = Memory()
+        memory2 = Memory()
+        memory2.write(0, memory1)
+        assert not memory2
+
+    def test_write_memory_clear(self):
+        Memory = self.Memory
+        memory1 = Memory(start=3, endex=7)
+        memory2 = Memory(data=b'0123456789')
+        memory2.write(0, memory1, clear=True)
+        blocks_out = memory2._blocks
+        blocks_ref = [[0, b'012'], [7, b'789']]
+        assert blocks_out == blocks_ref
+
+    def test_write_memory_clear_backups(self):
+        Memory = self.Memory
+        memory1 = Memory(start=3, endex=7)
+        memory2 = Memory(data=b'0123456789')
+        backups = []
+        memory2.write(0, memory1, clear=True, backups=backups)
+        blocks_out = memory2._blocks
+        blocks_ref = [[0, b'012'], [7, b'789']]
+        assert blocks_out == blocks_ref
+        assert len(backups) == 1
+        memory3 = backups[0]
+        blocks_out = memory3._blocks
+        blocks_ref = [[3, b'3456']]
+        assert blocks_out == blocks_ref
 
     def test_write_template(self):
         Memory = self.Memory
@@ -2395,8 +2588,7 @@ class BaseMemorySuite:
 
         blocks_out = [m._blocks for m in backups if m._blocks]
         blocks_ref = values_to_blocks(values1[start:endex], start)
-        if blocks_ref:
-            blocks_ref = [blocks_ref]
+        blocks_ref = [blocks_ref]
         assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
 
     def test_write_backups_template(self):
@@ -2561,7 +2753,11 @@ class BaseMemorySuite:
                 memory = Memory(blocks=blocks)
                 endex = start + size
 
-                values_out = list(memory.values(start, endex))
+                iterator = memory.values(start, ...)
+                values_out = []
+                for _ in range(size):
+                    values_out.append(next(iterator))
+
                 values_ref = list(islice(values, start, endex))
                 assert values_out == values_ref, (start, size, values_out, values_ref)
 
@@ -2627,7 +2823,11 @@ class BaseMemorySuite:
                 values = blocks_to_values(blocks, MAX_SIZE)
                 memory = Memory(blocks=blocks)
 
-                rvalues_out = list(memory.rvalues(start, endex))
+                iterator = memory.rvalues(..., endex)
+                rvalues_out = []
+                for _ in range(size):
+                    rvalues_out.append(next(iterator))
+
                 if start < 0:
                     rvalues_ref = list(islice(values, 0, endex))[::-1]
                     rvalues_ref += [None] * -start
@@ -2741,12 +2941,8 @@ class BaseMemorySuite:
             start, endex, value = memory.equal_span(address)
             span = values_to_equal_span(values, address)
 
-            if values[address] is None:
-                assert value is None, (value,)
-                assert (start, endex) == span, (start, endex, span)
-            else:
-                assert value is not None, (value,)
-                assert (start, endex) == span, (start, endex, span)
+            assert value is None, (value,)
+            assert (start, endex) == span, (start, endex, span)
 
     def test_block_span(self):
         Memory = self.Memory
@@ -2777,9 +2973,5 @@ class BaseMemorySuite:
         for address in range(MAX_START):
             start, endex, value = memory.block_span(address)
 
-            if values[address] is None:
-                assert value is None, (value,)
-                assert (start, endex) in gaps, (start, endex, gaps)
-            else:
-                assert value is not None, (value,)
-                assert (start, endex) in intervals, (start, endex, intervals)
+            assert value is None, (value,)
+            assert (start, endex) in gaps, (start, endex, gaps)

@@ -2089,9 +2089,8 @@ class Memory:
             if trim_endex is not None:
                 if endex > trim_endex:
                     endex = trim_endex
-            if start is not None:
-                if start > endex:
-                    start = endex
+            if start > endex:
+                start = endex
 
         return start, endex
 
@@ -2767,22 +2766,15 @@ class Memory:
             block_index = self._block_index_start(start)
 
             # Delete final/inner part of deletion start block
-            for block_index in range(block_index, len(blocks)):
+            if block_index < len(blocks):
                 block_start, block_data = blocks[block_index]
-                if start <= block_start:
-                    break  # inner starts here
-
-                block_endex = block_start + len(block_data)
-                if start < block_endex:
+                if start > block_start:
                     if shift_after:
                         del block_data[(start - block_start):(endex - block_start)]
                     else:
                         block_data = block_data[:(start - block_start)]
                         blocks.insert(block_index, [block_start, block_data])
                     block_index += 1  # skip this from inner part
-                    break
-            else:
-                block_index = len(blocks)
 
             # Delete initial part of deletion end block
             inner_start = block_index
@@ -3422,7 +3414,7 @@ class Memory:
             if backups is not None:
                 cls = type(self)
                 for gap_start, gap_endex in self.gaps(start, endex):
-                    backups.append(cls(start=gap_start, endex=gap_endex, validate=False))
+                    backups.append(cls(start=gap_start, endex=gap_endex))
 
             size = endex - start
             pattern *= (size + (pattern_size - 1)) // pattern_size
@@ -3651,9 +3643,12 @@ class Memory:
         """
 
         if start is None or start is Ellipsis:
-            if isinstance(pattern, Value):
-                pattern = (pattern,)
-                pattern = bytearray(pattern)
+            if pattern is not None:
+                if isinstance(pattern, Value):
+                    pattern = (pattern,)
+                    pattern = bytearray(pattern)
+                if not pattern:
+                    raise ValueError('non-empty pattern required')
 
             blocks = self._blocks
             if endex is None:
