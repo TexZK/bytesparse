@@ -1487,56 +1487,7 @@ class Memory:
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
         """
 
-        return bytes(self._bytearray())
-
-    def to_bytes(
-        self: 'Memory',
-    ) -> bytes:
-        r"""Creates a bytes clone.
-
-        Returns:
-            :obj:`bytes`: Cloned data.
-
-        Raises:
-            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
-        """
-
-        return bytes(self._bytearray())
-
-    def to_bytearray(
-        self: 'Memory',
-        copy: bool = True,
-    ) -> bytearray:
-        r"""Creates a bytearray clone.
-
-        Arguments:
-            copy (bool):
-                Creates a clone of the underlying :obj:`bytearray` data
-                structure.
-
-        Returns:
-            :obj:`bytearray`: Cloned data.
-
-        Raises:
-            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
-        """
-
-        block_data = self._bytearray()
-        return bytearray(block_data) if copy else block_data
-
-    def to_memoryview(
-        self: 'Memory',
-    ) -> memoryview:
-        r"""Creates a memory view.
-
-        Returns:
-            :obj:`memoryview`: View over data.
-
-        Raises:
-            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
-        """
-
-        return memoryview(self._bytearray())
+        return bytes(self.view())
 
     def __copy__(
         self: 'Memory',
@@ -2697,6 +2648,57 @@ class Memory:
             memory._trim_endex = endex_
 
         return memory
+
+    def view(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> memoryview:
+        r"""Creates a view over a range.
+
+        Creates a memory view over the selected address range.
+        Data within the range is required to be contiguous.
+
+        Arguments:
+            start (int):
+                Inclusive start of the viewed range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the viewed range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`memoryview`: A view of the selected address range.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> bytes(memory.view(2, 5))
+            b'BCD'
+        """
+
+        start, endex = self.bound(start, endex)
+        if start < endex:
+            block_index = self._block_index_at(start)
+
+            if block_index is not None:
+                block_start, block_data = self._blocks[block_index]
+
+                if endex <= block_start + len(block_data):
+                    return memoryview(block_data)[(start - block_start):(endex - block_start)]
+
+            raise ValueError('non-contiguous data within range')
+        else:
+            return memoryview(b'')
 
     def shift(
         self: 'Memory',
