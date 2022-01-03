@@ -49,11 +49,9 @@ bytesparse.\_py.Memory
       ~Memory.rofind
       ~Memory.rvalues
       ~Memory.shift
-      ~Memory.to_bytearray
-      ~Memory.to_bytes
-      ~Memory.to_memoryview
       ~Memory.validate
       ~Memory.values
+      ~Memory.view
       ~Memory.write
    
    
