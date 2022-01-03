@@ -25,8 +25,9 @@
 
 from typing import Type
 
-from bytesparse import Memory as _Memory
 from _common import *
+
+from bytesparse import Memory as _Memory
 
 
 class TestMemory(BaseMemorySuite):
