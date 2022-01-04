@@ -2686,7 +2686,9 @@ class Memory:
             b'BCD'
         """
 
-        start, endex = self.bound(start, endex)
+        start = self.start if start is None else start
+        endex = self.endex if endex is None else endex
+
         if start < endex:
             block_index = self._block_index_at(start)
 
