@@ -334,7 +334,7 @@ class Memory:
         memory._blocks = blocks
 
         if (start is not None or endex is not None) and validate:  # fast check
-            memory._crop(start, endex)
+            memory.crop(start, endex)
 
         if validate:
             memory.validate()
@@ -1670,7 +1670,7 @@ class Memory:
 
         self._trim_start = trim_start
         if trim_start is not None:
-            self._crop(trim_start, trim_endex)
+            self.crop(trim_start, trim_endex)
 
     @property
     def trim_endex(
@@ -1696,7 +1696,7 @@ class Memory:
 
         self._trim_endex = trim_endex
         if trim_endex is not None:
-            self._crop(trim_start, trim_endex)
+            self.crop(trim_start, trim_endex)
 
     @property
     def trim_span(
@@ -1722,7 +1722,7 @@ class Memory:
         self._trim_start = trim_start
         self._trim_endex = trim_endex
         if trim_start is not None or trim_endex is not None:
-            self._crop(trim_start, trim_endex)
+            self.crop(trim_start, trim_endex)
 
     @property
     def start(
@@ -2649,9 +2649,9 @@ class Memory:
 
             # There is no faster way than the standard block writing method
             self._erase(address, address + 1, False)  # clear
-            self._insert(address, bytearray((item,)), False)  # write
+            self._place(address, bytearray((item,)), False)  # write
 
-            self._crop(self._trim_start, self._trim_endex)
+            self.crop(self._trim_start, self._trim_endex)
 
     def poke_backup(
         self: 'Memory',
@@ -2775,7 +2775,7 @@ class Memory:
                 blocks = [[block_start, bytearray(block_data)]
                           for block_start, block_data in blocks[block_index_start:block_index_endex]]
                 memory._blocks = blocks
-                memory._crop(start, endex)
+                memory.crop(start, endex)
 
                 if pattern is not None:
                     memory.flood(start, endex, pattern)
@@ -3017,9 +3017,8 @@ class Memory:
 
         blocks = self._blocks
 
-        if size and blocks:
+        if size > 0 and blocks:
             self._pretrim_endex(address, size)
-
             block_index = self._block_index_start(address)
 
             if block_index < len(blocks):
@@ -3086,7 +3085,7 @@ class Memory:
         self.delete(address, address + len(backup))
         self.write(0, backup, clear=True)
 
-    def _insert(
+    def _place(
         self: 'Memory',
         address: Address,
         data: bytearray,
@@ -3283,56 +3282,9 @@ class Memory:
             :meth:`insert_restore`
         """
 
-        trim_start = self._trim_start
-        trim_endex = self._trim_endex
-
-        is_memory = isinstance(data, Memory)
-        if is_memory:
-            start = data.start + address
-            endex = data.endex + address
-            size = endex - start
-        else:
-            if isinstance(data, Value):
-                data = (data,)
-            data = bytearray(data)
-            size = len(data)
-            start = address
-            endex = start + size
-
-        if trim_start is not None and endex <= trim_start:
-            return
-        if trim_endex is not None and trim_endex <= start:
-            return
-        if not size:
-            return
-
-        if is_memory:
-            self.reserve(address, size)
-
-            for block_start, block_data in data._blocks:
-                self._insert(block_start + address, bytearray(block_data), False)  # write
-
-            if (((trim_start is not None and start < trim_start <= endex) or
-                 (trim_endex is not None and start <= trim_endex < endex))):
-                self._crop(trim_start, trim_endex)
-        else:
-            # Resize data to fit trimming
-            if trim_endex is not None and trim_endex < endex:
-                size -= endex - trim_endex
-                del data[size:]
-
-            # Check if extending the actual content
-            blocks = self._blocks
-            if blocks:
-                block_start, block_data = blocks[-1]
-                block_endex = block_start + len(block_data)
-                if start == block_endex:
-                    block_data += data  # might be faster
-                    size = None  # skip below
-
-            if size is not None:
-                self._pretrim_endex(address, size)
-                self._insert(address, data, True)  # insert
+        size = 1 if isinstance(data, Value) else len(data)
+        self.reserve(address, size)
+        self.write(address, data, clear=True)
 
     def insert_backup(
         self: 'Memory',
@@ -3676,42 +3628,6 @@ class Memory:
         else:
             return type(self)()
 
-    def _crop(
-        self: 'Memory',
-        start: Optional[Address],
-        endex: Optional[Address],
-    ) -> None:
-        r"""Keeps data within an address range.
-
-        Low-level method to crop the underlying data structure.
-
-        Arguments:
-            start (int):
-                Inclusive start address for cropping.
-                If ``None``, :attr:`start` is considered.
-
-            endex (int):
-                Exclusive end address for cropping.
-                If ``None``, :attr:`endex` is considered.
-        """
-
-        blocks = self._blocks  # may change
-
-        # Trim blocks exceeding before memory start
-        if start is not None and blocks:
-            block_start = blocks[0][0]
-
-            if block_start < start:
-                self._erase(block_start, start, False)  # clear
-
-        # Trim blocks exceeding after memory end
-        if endex is not None and blocks:
-            block_start, block_data = blocks[-1]
-            block_endex = block_start + len(block_data)
-
-            if endex < block_endex:
-                self._erase(endex, block_endex, False)  # clear
-
     def crop(
         self: 'Memory',
         start: Optional[Address] = None,
@@ -3747,7 +3663,22 @@ class Memory:
             :meth:`crop_restore`
         """
 
-        self._crop(start, endex)
+        blocks = self._blocks  # may change
+
+        # Trim blocks exceeding before memory start
+        if start is not None and blocks:
+            block_start = blocks[0][0]
+
+            if block_start < start:
+                self._erase(block_start, start, False)  # clear
+
+        # Trim blocks exceeding after memory end
+        if endex is not None and blocks:
+            block_start, block_data = blocks[-1]
+            block_endex = block_start + len(block_data)
+
+            if endex < block_endex:
+                self._erase(endex, block_endex, False)  # clear
 
     def crop_backup(
         self: 'Memory',
@@ -3852,27 +3783,30 @@ class Memory:
             :meth:`write_restore`
         """
 
-        trim_start = self._trim_start
-        trim_endex = self._trim_endex
-
+        if isinstance(data, Value):
+            self.poke(address, data)  # faster
+            return
         is_memory = isinstance(data, Memory)
         if is_memory:
             start = data.start + address
             endex = data.endex + address
             size = endex - start
         else:
-            if isinstance(data, Value):
-                data = (data,)
-            data = bytearray(data)
+            data = bytearray(data)  # clone
             size = len(data)
+            if size == 1:
+                self.poke(address, data[0])  # faster
+                return
             start = address
             endex = start + size
 
+        if not size:
+            return
+        trim_start = self._trim_start
         if trim_start is not None and endex <= trim_start:
             return
+        trim_endex = self._trim_endex
         if trim_endex is not None and trim_endex <= start:
-            return
-        if not size:
             return
 
         if is_memory:
@@ -3887,24 +3821,42 @@ class Memory:
                     self._erase(block_start, block_endex, False)  # clear
 
             for block_start, block_data in data._blocks:
-                self._insert(block_start + address, bytearray(block_data), False)  # write
+                block_endex = block_start + len(block_data)
 
-            if (((trim_start is not None and start < trim_start <= endex) or
-                 (trim_endex is not None and start <= trim_endex < endex))):
-                self._crop(trim_start, trim_endex)
+                if (((trim_start is None or trim_start <= block_start) and
+                     (trim_endex is None or block_endex <= trim_endex))):
+
+                    block_data = bytearray(block_data)  # clone
+                    block_start = block_start + address
+                    block_endex = block_start + len(block_data)
+
+                    # Trim before memory
+                    if trim_start is not None and block_start < trim_start:
+                        offset = trim_start - block_start
+                        block_start += offset
+                        del block_data[:offset]
+
+                    # Trim after memory
+                    if trim_endex is not None and trim_endex < block_endex:
+                        offset = block_endex - trim_endex
+                        block_endex -= offset
+                        del block_data[(block_endex - block_start):]
+
+                    self._place(block_start, block_data, False)  # write
         else:
-            # Resize data to fit trimming
-            if trim_endex is not None and trim_endex < endex:
-                size -= endex - trim_endex
-                endex = start + size
-                del data[size:]
-
+            # Trim before memory
             if trim_start is not None and start < trim_start:
                 offset = trim_start - start
                 size -= offset
-                start = trim_start
-                endex = start + size
+                start += offset
                 del data[:offset]
+
+            # Trim after memory
+            if trim_endex is not None and trim_endex < endex:
+                offset = endex - trim_endex
+                size -= offset
+                endex -= offset
+                del data[size:]
 
             # Check if extending the actual content
             blocks = self._blocks
@@ -3912,15 +3864,12 @@ class Memory:
                 block_start, block_data = blocks[-1]
                 block_endex = block_start + len(block_data)
                 if start == block_endex:
-                    block_data += data  # might be faster
-                    size = None  # skip below
+                    block_data += data  # faster
+                    return
 
-            if size is not None:
-                if size == 1:
-                    self.poke(start, data[0])  # might be faster
-                else:
-                    self._erase(start, endex, False)  # clear
-                    self._insert(start, data, False)  # write
+            # Standard write method
+            self._erase(start, endex, False)  # clear
+            self._place(start, data, False)  # write
 
     def write_backup(
         self: 'Memory',
@@ -4041,7 +3990,7 @@ class Memory:
 
             # Standard write method
             self._erase(start, endex, False)  # clear
-            self._insert(start, pattern, False)  # write
+            self._place(start, pattern, False)  # write
 
     def fill_backup(
         self: 'Memory',

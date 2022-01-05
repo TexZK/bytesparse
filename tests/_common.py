@@ -2361,7 +2361,7 @@ class BaseMemorySuite:
         Memory = self.Memory
         for offset in range(-MAX_SIZE if self.ADDR_NEG else 0, MAX_SIZE):
             blocks = create_template_blocks()
-            memory = Memory.from_blocks(blocks, start=1, endex=(MAX_SIZE - 1))
+            memory = Memory.from_blocks(blocks, 0, 1, MAX_SIZE - 1)
             values = blocks_to_values(blocks, MAX_SIZE)
 
             memory_backup = memory.__deepcopy__()
@@ -2410,7 +2410,7 @@ class BaseMemorySuite:
             for size in range(MAX_SIZE):
                 blocks = create_template_blocks()
                 values = blocks_to_values(blocks, MAX_SIZE)
-                memory = Memory.from_blocks(blocks, endex=MAX_SIZE)
+                memory = Memory.from_blocks(blocks, 0, 1, MAX_SIZE - 1)
 
                 memory_backup = memory.__deepcopy__()
                 backup_address, backup = memory.reserve_backup(start, size)
@@ -2421,7 +2421,8 @@ class BaseMemorySuite:
                 blocks_out = memory._blocks
 
                 values[start:start] = [None] * size
-                del values[MAX_SIZE:]
+                values[0] = None
+                del values[MAX_SIZE - 1:]
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
 
@@ -2467,7 +2468,7 @@ class BaseMemorySuite:
             for size in range(MAX_SIZE):
                 blocks = create_template_blocks()
                 values = blocks_to_values(blocks, MAX_SIZE)
-                memory = Memory.from_blocks(blocks, endex=MAX_SIZE)
+                memory = Memory.from_blocks(blocks, 0, 1, MAX_SIZE - 1)
                 data = bytes(range(ord('a'), ord('a') + size))
 
                 memory_backup = memory.__deepcopy__()
@@ -2479,13 +2480,14 @@ class BaseMemorySuite:
                 blocks_out = memory._blocks
 
                 values[start:start] = data
-                del values[MAX_SIZE:]
+                values[0] = None
+                del values[MAX_SIZE - 1:]
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, data, blocks_out, blocks_ref)
 
                 memory.insert_restore(backup_address, backup)
                 memory.validate()
-                assert memory == memory_backup, (start, size, backup._blocks, '|', memory._blocks, '|', memory_backup._blocks)
+                assert memory == memory_backup
 
     def test_delete_template(self):
         Memory = self.Memory
