@@ -2434,7 +2434,7 @@ class Memory:
         self: 'Memory',
         address: Address,
         item: Optional[Union[AnyBytes, Value]],
-    ) -> Optional[Value]:
+    ) -> None:
         r"""Sets the item at an address.
 
         Arguments:
@@ -2444,9 +2444,6 @@ class Memory:
             item (int or byte):
                 Item to set, ``None`` to clear the cell.
 
-        Returns:
-            int: The previous item at `address`, ``None`` if empty.
-
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2455,22 +2452,18 @@ class Memory:
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
-            >>> memory.poke(3, b'@')  # -> ord('C') = 67
-            67
+            >>> memory.poke(3, b'@')
             >>> memory.peek(3)  # -> ord('@') = 64
             64
             >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
-            >>> memory.poke(5, '@')
-            None
+            >>> memory.poke(5, b'@')
             >>> memory.peek(5)  # -> ord('@') = 64
             64
         """
 
         if item is None:
             # Standard clear method
-            value = self.peek(address)
             self._erase(address, address + 1, False, False)  # clear
-            return value
 
         else:
             if not isinstance(item, Value):
@@ -2488,9 +2481,8 @@ class Memory:
                 if block_start <= address < block_endex:
                     # Address within existing block, update directly
                     address -= block_start
-                    value = block_data[address]
                     block_data[address] = item
-                    return value
+                    return
 
                 elif address == block_endex:
                     # Address just after the end of the block, append
@@ -2504,7 +2496,7 @@ class Memory:
                             # Merge with the following contiguous block
                             block_data += block_data2
                             blocks.pop(block_index)
-                    return None
+                    return
 
                 else:
                     block_index += 1
@@ -2516,14 +2508,13 @@ class Memory:
                             # Prepend to the next block
                             block_data.insert(0, item)
                             block[0] -= 1  # update address
-                            return None
+                            return
 
             # There is no faster way than the standard block writing method
             self._erase(address, address + 1, False, True)  # insert
             self._insert(address, bytearray((item,)), False)
 
             self._crop(self._trim_start, self._trim_endex)
-            return None
 
     def extract(
         self: 'Memory',
