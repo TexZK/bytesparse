@@ -340,7 +340,7 @@ class Memory:
         memory._blocks = blocks
 
         if (start is not None or endex is not None) and validate:  # fast check
-            memory._crop(start, endex, None)
+            memory._crop(start, endex)
 
         if validate:
             memory.validate()
@@ -1365,7 +1365,6 @@ class Memory:
         self: 'Memory',
         items: Union[AnyBytes, 'Memory'],
         offset: Address = 0,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Concatenates items.
 
@@ -1380,15 +1379,11 @@ class Memory:
 
             offset (int):
                 Optional offset w.r.t. :attr:`content_endex`.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items.
         """
 
         if offset < 0:
             raise ValueError('negative extension offset')
-        self.write(self.content_endex + offset, items, backups=backups)
+        self.write(self.content_endex + offset, items)
 
     def pop(
         self: 'Memory',
@@ -1553,7 +1548,7 @@ class Memory:
 
         self._trim_start = trim_start
         if trim_start is not None:
-            self._crop(trim_start, trim_endex, None)
+            self._crop(trim_start, trim_endex)
 
     @property
     def trim_endex(
@@ -1579,7 +1574,7 @@ class Memory:
 
         self._trim_endex = trim_endex
         if trim_endex is not None:
-            self._crop(trim_start, trim_endex, None)
+            self._crop(trim_start, trim_endex)
 
     @property
     def trim_span(
@@ -1605,7 +1600,7 @@ class Memory:
         self._trim_start = trim_start
         self._trim_endex = trim_endex
         if trim_start is not None or trim_endex is not None:
-            self._crop(trim_start, trim_endex, None)
+            self._crop(trim_start, trim_endex)
 
     @property
     def start(
@@ -2533,7 +2528,7 @@ class Memory:
             self._erase(address, address + 1, False, True)  # insert
             self._insert(address, bytearray((item,)), False)
 
-            self._crop(self._trim_start, self._trim_endex, None)
+            self._crop(self._trim_start, self._trim_endex)
             return None
 
     def extract(
@@ -2612,7 +2607,7 @@ class Memory:
                 blocks = [[block_start, bytearray(block_data)]
                           for block_start, block_data in blocks[block_index_start:block_index_endex]]
                 memory._blocks = blocks
-                memory._crop(start, endex, None)
+                memory._crop(start, endex)
 
                 if pattern is not None:
                     memory.flood(start, endex, pattern)
@@ -2705,17 +2700,12 @@ class Memory:
     def shift(
         self: 'Memory',
         offset: Address,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Shifts the items.
 
         Arguments:
             offset (int):
                 Signed amount of address shifting.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items, before trimming.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -2742,21 +2732,16 @@ class Memory:
             +---+---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], start=2)
-            >>> backups = []
-            >>> memory.shift(-7, backups=backups)
+            >>> memory.shift(-7)
             >>> memory._blocks
             [[2, b'yz']]
-            >>> len(backups)
-            1
-            >>> backups[0]._blocks
-            [[5, b'ABC'], [9, b'x']]
         """
 
         if offset and self._blocks:
             if offset < 0:
-                self._pretrim_start(None, -offset, backups)
+                self._pretrim_start(None, -offset)
             else:
-                self._pretrim_endex(None, +offset, backups)
+                self._pretrim_endex(None, +offset)
 
             for block in self._blocks:
                 block[0] += offset
@@ -2765,7 +2750,6 @@ class Memory:
         self: 'Memory',
         address: Address,
         size: Address,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Inserts emptiness.
 
@@ -2777,10 +2761,6 @@ class Memory:
 
             size (int):
                 Size of the emptiness to insert.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items, before trimming.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -2807,20 +2787,15 @@ class Memory:
             +---+---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], endex=12)
-            >>> backups = []
-            >>> memory.reserve(5, 5, backups=backups)
+            >>> memory.reserve(5, 5)
             >>> memory._blocks
             [[10, b'AB']]
-            >>> len(backups)
-            1
-            >>> backups[0]._blocks
-            [[7, b'C'], [9, b'xyz']]
         """
 
         blocks = self._blocks
 
         if size and blocks:
-            self._pretrim_endex(address, size, backups)
+            self._pretrim_endex(address, size)
 
             block_index = self._block_index_start(address)
 
@@ -3006,7 +2981,6 @@ class Memory:
         self: 'Memory',
         address: Address,
         data: Union[AnyBytes, Value, 'Memory'],
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Inserts data.
 
@@ -3019,10 +2993,6 @@ class Memory:
 
             data (bytes):
                 Data to insert.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items, before trimming.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -3050,23 +3020,22 @@ class Memory:
 
             if data_start < data_endex:
                 address = address + data_start
-                self.reserve(address, data_endex - data_start, backups=backups)
+                self.reserve(address, data_endex - data_start)
                 self.write(address, data)
         else:
             if isinstance(data, Value):
                 data = (data,)
             data = bytearray(data)
 
-            self._insert(address, data, True)  # TODO: backups
+            self._insert(address, data, True)
 
             if data:
-                self._crop(self._trim_start, self._trim_endex, None)  # TODO: pre-trimming
+                self._crop(self._trim_start, self._trim_endex)  # TODO: pre-trimming
 
     def delete(
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Deletes an address range.
 
@@ -3078,10 +3047,6 @@ class Memory:
             endex (int):
                 Exclusive end address for deletion.
                 If ``None``, :attr:`endex` is considered.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+
@@ -3101,16 +3066,12 @@ class Memory:
         start, endex = self.bound(start, endex)
 
         if start < endex:
-            if backups is not None:
-                backups.append(self.extract(start, endex))
-
             self._erase(start, endex, True, True)  # delete
 
     def clear(
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Clears an address range.
 
@@ -3122,10 +3083,6 @@ class Memory:
             endex (int):
                 Exclusive end address for clearing.
                 If ``None``, :attr:`endex` is considered.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the cleared
-                items.
 
         Example:
             +---+---+---+---+---+---+---+---+---+
@@ -3145,16 +3102,12 @@ class Memory:
         start, endex = self.bound(start, endex)
 
         if start < endex:
-            if backups is not None:
-                backups.append(self.extract(start, endex))
-
             self._erase(start, endex, False, False)  # clear
 
     def _pretrim_start(
         self: 'Memory',
         endex_max: Optional[Address],
         size: Address,
-        backups: Optional[MemoryList],
     ) -> None:
         r"""Trims initial data.
 
@@ -3167,10 +3120,6 @@ class Memory:
 
             size (int):
                 Size of the erasure range.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the cleared
-                items.
         """
 
         trim_start = self._trim_start
@@ -3180,16 +3129,12 @@ class Memory:
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
 
-            if backups is not None:
-                backups.append(self.extract(endex=endex))
-
             self._erase(self.content_start, endex, False, False)  # clear
 
     def _pretrim_endex(
         self: 'Memory',
         start_min: Optional[Address],
         size: Address,
-        backups: Optional[MemoryList],
     ) -> None:
         r"""Trims final data.
 
@@ -3202,10 +3147,6 @@ class Memory:
 
             size (int):
                 Size of the erasure range.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the cleared
-                items.
         """
 
         trim_endex = self._trim_endex
@@ -3215,16 +3156,12 @@ class Memory:
             if start_min is not None and start < start_min:
                 start = start_min
 
-            if backups is not None:
-                backups.append(self.extract(start=start))
-
             self._erase(start, self.content_endex, False, False)  # clear
 
     def _crop(
         self: 'Memory',
         start: Optional[Address],
         endex: Optional[Address],
-        backups: Optional[MemoryList],
     ) -> None:
         r"""Keeps data within an address range.
 
@@ -3238,10 +3175,6 @@ class Memory:
             endex (int):
                 Exclusive end address for cropping.
                 If ``None``, :attr:`endex` is considered.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the cleared
-                items.
         """
 
         blocks = self._blocks  # may change
@@ -3251,9 +3184,6 @@ class Memory:
             block_start = blocks[0][0]
 
             if block_start < start:
-                if backups is not None:
-                    backups.append(self.extract(block_start, start))
-
                 self._erase(block_start, start, False, False)  # clear
 
         # Trim blocks exceeding after memory end
@@ -3262,16 +3192,12 @@ class Memory:
             block_endex = block_start + len(block_data)
 
             if endex < block_endex:
-                if backups is not None:
-                    backups.append(self.extract(endex, block_endex))
-
                 self._erase(endex, block_endex, False, False)  # clear
 
     def crop(
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Keeps data within an address range.
 
@@ -3283,10 +3209,6 @@ class Memory:
             endex (int):
                 Exclusive end address for cropping.
                 If ``None``, :attr:`endex` is considered.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the cleared
-                items.
 
         Example:
             +---+---+---+---+---+---+---+---+---+
@@ -3303,14 +3225,13 @@ class Memory:
             [[6, b'BC'], [9, b'x']]
         """
 
-        self._crop(start, endex, backups)
+        self._crop(start, endex)
 
     def write(
         self: 'Memory',
         address: Address,
         data: Union[AnyBytes, Value, 'Memory'],
         clear: bool = False,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Writes data.
 
@@ -3324,10 +3245,6 @@ class Memory:
             clear (bool):
                 Clears the target range before writing data.
                 Useful only if `data` is a :obj:`Memory` with empty spaces.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+
@@ -3353,9 +3270,6 @@ class Memory:
             if size:
                 if clear:
                     # Clear anything between source data boundaries
-                    if backups is not None:
-                        backups.append(self.extract(data_start, data_endex))
-
                     self._erase(data_start, data_endex, False, False)  # clear
 
                 else:
@@ -3364,15 +3278,12 @@ class Memory:
                         block_start += address
                         block_endex = block_start + len(block_data)
 
-                        if backups is not None:
-                            backups.append(self.extract(block_start, block_endex))
-
                         self._erase(block_start, block_endex, False, False)  # clear
 
                 for block_start, block_data in data._blocks:
                     self._insert(block_start + address, bytearray(block_data), False)  # insert
 
-                self._crop(self._trim_start, self._trim_endex, None)
+                self._crop(self._trim_start, self._trim_endex)
 
         else:
             if isinstance(data, Value):
@@ -3404,9 +3315,6 @@ class Memory:
                         endex = start + size
                         del data[:offset]
 
-                if backups is not None:
-                    backups.append(self.extract(start, endex))
-
                 blocks = self._blocks
                 if blocks:
                     block_start, block_data = blocks[-1]
@@ -3426,7 +3334,6 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
         pattern: Union[AnyBytes, Value] = 0,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Overwrites a range with a pattern.
 
@@ -3441,10 +3348,6 @@ class Memory:
 
             pattern (items):
                 Pattern of items to fill the range.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items, before trimming.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+
@@ -3491,9 +3394,6 @@ class Memory:
                     offset = (start - start_) % pattern_size
                     pattern = pattern[offset:] + pattern[:offset]  # rotate
 
-            if backups is not None:
-                backups.append(self.extract(start, endex))
-
             # Resize the pattern to the target range
             size = endex - start
             if pattern_size < size:
@@ -3509,7 +3409,6 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
         pattern: Union[AnyBytes, Value] = 0,
-        backups: Optional[MemoryList] = None,
     ) -> None:
         r"""Fills emptiness between non-touching blocks.
 
@@ -3524,10 +3423,6 @@ class Memory:
 
             pattern (items):
                 Pattern of items to fill the range.
-
-            backups (list of :obj:`Memory`):
-                Optional output list holding backup copies of the deleted
-                items, before trimming.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+
@@ -3599,11 +3494,6 @@ class Memory:
                 block_endex = block_start + len(block_data)
                 if endex < block_endex:
                     endex = block_endex
-
-            if backups is not None:
-                cls = type(self)
-                for gap_start, gap_endex in self.gaps(start, endex):
-                    backups.append(cls(start=gap_start, endex=gap_endex))
 
             size = endex - start
             pattern *= (size + (pattern_size - 1)) // pattern_size
