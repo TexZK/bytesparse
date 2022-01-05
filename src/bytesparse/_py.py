@@ -3381,7 +3381,7 @@ class Memory:
             size = len(data)
 
             if size:
-                start = address
+                start = address + 0
                 endex = start + size
 
                 trim_endex = self._trim_endex
