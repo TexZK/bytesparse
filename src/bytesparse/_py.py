@@ -1090,9 +1090,11 @@ class Memory:
 
         if isinstance(key, slice):
             start = key.start
+            if start is None:
+                start = self.start
             endex = key.stop
-            start = self.start if start is None else start
-            endex = self.endex if endex is None else endex
+            if endex is None:
+                endex = self.endex
             step = key.step
 
             if isinstance(step, Value):
@@ -1355,6 +1357,21 @@ class Memory:
         else:
             blocks.append([0, bytearray((item,))])
 
+    # noinspection PyMethodMayBeStatic
+    def append_backup(
+        self: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        return None
+
+    def append_restore(
+        self: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.pop()
+
     def extend(
         self: 'Memory',
         items: Union[AnyBytes, 'Memory'],
@@ -1378,6 +1395,25 @@ class Memory:
         if offset < 0:
             raise ValueError('negative extension offset')
         self.write(self.content_endex + offset, items)
+
+    def extend_backup(
+        self: 'Memory',
+        items: Union[AnyBytes, 'Memory'],
+        offset: Address = 0,
+    ) -> MemoryList:
+        # TODO: docstring
+
+        if offset < 0:
+            raise ValueError('negative extension offset')
+        return self.write_backup(self.content_endex + offset, items)
+
+    def extend_restore(
+        self: 'Memory',
+        backups: MemoryList,
+    ) -> None:
+        # TODO: docstring
+
+        self.write_restore(backups)
 
     def pop(
         self: 'Memory',
@@ -1425,6 +1461,28 @@ class Memory:
             backup = self.peek(address)
             self._erase(address, address + 1, True, True)  # delete
             return backup
+
+    def pop_backup(
+        self: 'Memory',
+        address: Optional[Address] = None,
+    ) -> Tuple[Address, Optional[Value]]:
+        # TODO: docstring
+
+        if address is None:
+            address = self.endex - 1
+        return address, self.peek(address)
+
+    def pop_restore(
+        self: 'Memory',
+        address: Address,
+        value: Optional[Value],
+    ) -> None:
+        # TODO: docstring
+
+        if value is None:
+            self.reserve(address, 1)
+        else:
+            self.insert(address, value)
 
     def _bytearray(
         self: 'Memory',
@@ -2525,6 +2583,23 @@ class Memory:
             self._crop(self._trim_start, self._trim_endex)
             return None
 
+    def poke_backup(
+        self: 'Memory',
+        address: Address,
+    ) -> Tuple[Address, Optional[Value]]:
+        # TODO: docstring
+
+        return address, self.peek(address)
+
+    def poke_restore(
+        self: 'Memory',
+        address: Address,
+        value: Optional[Value],
+    ) -> None:
+        # TODO: docstring
+
+        self.poke(address, value)
+
     def extract(
         self: 'Memory',
         start: Optional[Address] = None,
@@ -2675,8 +2750,10 @@ class Memory:
             b'BCD'
         """
 
-        start = self.start if start is None else start
-        endex = self.endex if endex is None else endex
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
 
         if start < endex:
             block_index = self._block_index_at(start)
@@ -2739,6 +2816,28 @@ class Memory:
 
             for block in self._blocks:
                 block[0] += offset
+
+    def shift_backup(
+        self: 'Memory',
+        offset: Address,
+    ) -> Tuple[Address, 'Memory']:
+        # TODO: docstring
+
+        if offset < 0:
+            backup = self._pretrim_start_backup(None, -offset)
+        else:
+            backup = self._pretrim_endex_backup(None, +offset)
+        return offset, backup
+
+    def shift_restore(
+        self: 'Memory',
+        offset: Address,
+        backup: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.shift(-offset)
+        self.write(0, backup)
 
     def reserve(
         self: 'Memory',
@@ -2809,6 +2908,26 @@ class Memory:
 
                 for block_index in range(block_index, len(blocks)):
                     blocks[block_index][0] += size
+
+    def reserve_backup(
+        self: 'Memory',
+        address: Address,
+        size: Address,
+    ) -> Tuple[Address, 'Memory']:
+        # TODO: docstring
+
+        backup = self._pretrim_endex_backup(address, size)
+        return address, backup
+
+    def reserve_restore(
+        self: 'Memory',
+        address: Address,
+        backup: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.delete(address, len(backup))
+        self.write(0, backup)
 
     def _insert(
         self: 'Memory',
@@ -3024,6 +3143,26 @@ class Memory:
             self._pretrim_start(address, len(data))
             self._insert(address, data, True)
 
+    def insert_backup(
+        self: 'Memory',
+        address: Address,
+        data: Union[AnyBytes, Value, 'Memory'],
+    ) -> Tuple[Address, 'Memory']:
+        # TODO: docstring
+
+        backup = self._pretrim_endex_backup(address, len(data))
+        return address, backup
+
+    def insert_restore(
+        self: 'Memory',
+        address: Address,
+        backup: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.delete(address, len(backup))
+        self.write(0, backup)
+
     def delete(
         self: 'Memory',
         start: Optional[Address] = None,
@@ -3059,6 +3198,24 @@ class Memory:
 
         if start < endex:
             self._erase(start, endex, True, True)  # delete
+
+    # TODO: delete_backup
+    def delete_backup(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+        # TODO: docstring
+
+        return self.extract(start, endex)
+
+    # TODO: delete_restore
+    def delete_restore(
+        self: 'Memory',
+        backup: 'Memory',
+    ) -> None:
+
+        self.insert(0, backup)
 
     def clear(
         self: 'Memory',
@@ -3096,6 +3253,23 @@ class Memory:
         if start < endex:
             self._erase(start, endex, False, False)  # clear
 
+    def clear_backup(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+        # TODO: docstring
+
+        return self.extract(start, endex)
+
+    def clear_restore(
+        self: 'Memory',
+        backup: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.write(0, backup)
+
     def _pretrim_start(
         self: 'Memory',
         endex_max: Optional[Address],
@@ -3123,6 +3297,22 @@ class Memory:
 
             self._erase(self.content_start, endex, False, False)  # clear
 
+    def _pretrim_start_backup(
+        self: 'Memory',
+        endex_max: Optional[Address],
+        size: Address,
+    ) -> 'Memory':
+        # TODO: docstring
+
+        trim_start = self._trim_start
+        if trim_start is not None and size > 0:
+            endex = trim_start + size
+            if endex_max is not None and endex > endex_max:
+                endex = endex_max
+            return self.extract(None, endex)
+        else:
+            return type(self)()
+
     def _pretrim_endex(
         self: 'Memory',
         start_min: Optional[Address],
@@ -3149,6 +3339,22 @@ class Memory:
                 start = start_min
 
             self._erase(start, self.content_endex, False, False)  # clear
+
+    def _pretrim_endex_backup(
+        self: 'Memory',
+        start_min: Optional[Address],
+        size: Address,
+    ) -> 'Memory':
+        # TODO: docstring
+
+        trim_endex = self._trim_endex
+        if trim_endex is not None and size > 0:
+            start = trim_endex - size
+            if start_min is not None and start < start_min:
+                start = start_min
+            return self.extract(start, None)
+        else:
+            return type(self)()
 
     def _crop(
         self: 'Memory',
@@ -3218,6 +3424,42 @@ class Memory:
         """
 
         self._crop(start, endex)
+
+    def crop_backup(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Tuple[Optional['Memory'], Optional['Memory']]:
+        # TODO: docstring
+
+        backup_start = None
+        backup_endex = None
+        blocks = self._blocks  # may change
+
+        if start is not None and blocks:
+            block_start = blocks[0][0]
+            if block_start < start:
+                backup_start = self.extract(block_start, start)
+
+        if endex is not None and blocks:
+            block_start, block_data = blocks[-1]
+            block_endex = block_start + len(block_data)
+            if endex < block_endex:
+                backup_endex = self.extract(endex, block_endex)
+
+        return backup_start, backup_endex
+
+    def crop_restore(
+        self: 'Memory',
+        backup_start: Optional['Memory'],
+        backup_endex: Optional['Memory'],
+    ) -> None:
+        # TODO: docstring
+
+        if backup_start is not None:
+            self.write(0, backup_start)
+        if backup_endex is not None:
+            self.write(0, backup_endex)
 
     def write(
         self: 'Memory',
@@ -3322,6 +3564,68 @@ class Memory:
                     self._erase(start, endex, False, True)  # insert
                     self._insert(start, data, False)
 
+    def write_backup(
+        self: 'Memory',
+        address: Address,
+        data: Union[AnyBytes, Value, 'Memory'],
+        clear: bool = False,
+    ) -> MemoryList:
+        # TODO: docstring
+
+        backups: MemoryList = []
+
+        if isinstance(data, Memory):
+            data_start = data.start
+            data_endex = data.endex
+            if data_start < data_endex:
+                if clear:
+                    backups.append(self.extract(data_start, data_endex))
+                else:
+                    for block_start, block_data in data._blocks:
+                        block_start += address
+                        block_endex = block_start + len(block_data)
+                        backups.append(self.extract(block_start, block_endex))
+        else:
+            if isinstance(data, Value):
+                size = 1
+            else:
+                size = len(data)
+
+            if size:
+                start = address
+                endex = start + size
+
+                trim_endex = self._trim_endex
+                if trim_endex is not None:
+                    if start >= trim_endex:
+                        return backups
+                    elif endex > trim_endex:
+                        size -= endex - trim_endex
+                        endex = start + size
+
+                trim_start = self._trim_start
+                if trim_start is not None:
+                    if endex <= trim_start:
+                        return backups
+                    elif trim_start > start:
+                        offset = trim_start - start
+                        size -= offset
+                        start += offset
+                        endex = start + size
+
+                backups.append(self.extract(start, endex))
+
+        return backups
+
+    def write_restore(
+        self: 'Memory',
+        backups: MemoryList,
+    ) -> None:
+        # TODO: docstring
+
+        for backup in backups:
+            self.write(0, backup)
+
     def fill(
         self: 'Memory',
         start: Optional[Address] = None,
@@ -3396,6 +3700,23 @@ class Memory:
             # Standard write method
             self._erase(start, endex, False, True)  # insert
             self._insert(start, pattern, False)
+
+    def fill_backup(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+        # TODO: docstring
+
+        return self.extract(start, endex)
+
+    def fill_restore(
+        self: 'Memory',
+        backup: 'Memory',
+    ) -> None:
+        # TODO: docstring
+
+        self.write(0, backup)
 
     def flood(
         self: 'Memory',
@@ -3498,6 +3819,24 @@ class Memory:
             for block_start, block_data in blocks_inner:
                 block_endex = block_start + len(block_data)
                 pattern[(block_start - start):(block_endex - start)] = block_data
+
+    def flood_backup(
+        self: 'Memory',
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> List[OpenInterval]:
+        # TODO: docstring
+
+        return list(self.gaps(start, endex))
+
+    def flood_restore(
+        self: 'Memory',
+        gaps: List[OpenInterval],
+    ) -> None:
+        # TODO: docstring
+
+        for gap_start, gap_endex in gaps:
+            self.clear(gap_start, gap_endex)
 
     def keys(
         self: 'Memory',
