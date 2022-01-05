@@ -2416,7 +2416,7 @@ class BaseMemorySuite:
                 memory_backup = memory.__deepcopy__()
                 backup = memory.clear_backup(start, endex)
                 assert backup.span == (start, endex)
-                assert backup == memory.extract(start, endex)
+                assert backup == memory_backup.extract(start, endex)
 
                 memory.clear(start, endex)
                 memory.validate()
@@ -2439,6 +2439,15 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
                 endex = start + size
 
+                memory_backup = memory.__deepcopy__()
+                backup_start, backup_endex = memory.crop_backup(start, endex)
+                if backup_start is not None:
+                    assert backup_start.endex == start
+                    assert backup_start == memory_backup.extract(None, start)
+                if backup_endex is not None:
+                    assert backup_endex.start == endex
+                    assert backup_endex == memory_backup.extract(endex, None)
+
                 memory.crop(start, endex)
                 memory.validate()
                 blocks_out = memory._blocks
@@ -2447,6 +2456,9 @@ class BaseMemorySuite:
                 values[endex:] = [None] * (len(values) - endex)
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, endex, blocks_out, blocks_ref)
+
+                memory.crop_restore(backup_start, backup_endex)
+                assert memory == memory_backup
 
     def test_write_single(self):
         Memory = self.Memory
@@ -2468,6 +2480,7 @@ class BaseMemorySuite:
 
     def test_write_simple(self):
         Memory = self.Memory
+        chunk = b'<=>'
         for offset in range(MAX_SIZE - 3):
             blocks = create_template_blocks()
             values = blocks_to_values(blocks, MAX_SIZE)
@@ -2475,15 +2488,23 @@ class BaseMemorySuite:
             memory.trim_start = memory.content_start - 1
             memory.trim_endex = memory.content_endex + 1
 
-            memory.write(offset, b'<=>')
+            memory_backup = memory.__deepcopy__()
+            backup = memory.write_backup(offset, chunk)
+            assert backup.span == (offset, offset + len(chunk)), (backup.span, offset)
+            assert backup == memory_backup.extract(offset, offset + len(chunk))
+
+            memory.write(offset, chunk)
             memory.validate()
             blocks_out = memory._blocks
 
-            values[offset:(offset + 3)] = b'<=>'
+            values[offset:(offset + 3)] = chunk
             values[:memory.trim_start] = [None] * memory.trim_start
             values[memory.trim_endex:] = [None] * (len(values) - memory.trim_endex)
             blocks_ref = values_to_blocks(values)
             assert blocks_out == blocks_ref, (offset, blocks_out, blocks_ref)
+
+            memory.write_restore(backup)
+            assert memory == memory_backup
 
     def test_write_memory_empty(self):
         Memory = self.Memory

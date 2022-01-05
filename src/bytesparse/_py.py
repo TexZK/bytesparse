@@ -3878,8 +3878,7 @@ class Memory:
         self: 'Memory',
         address: Address,
         data: Union[AnyBytes, Value, 'Memory'],
-        clear: bool = False,
-    ) -> MemoryList:
+    ) -> 'Memory':
         r"""Backups a `write()` operation.
 
         Arguments:
@@ -3889,10 +3888,6 @@ class Memory:
             data (bytes):
                 Data to write.
 
-            clear (bool):
-                Clears the target range before writing data.
-                Useful only if `data` is a :obj:`Memory` with empty spaces.
-
         Returns:
             :obj:`Memory` list: Backup memory regions.
 
@@ -3901,68 +3896,25 @@ class Memory:
             :meth:`write_restore`
         """
 
-        backups: MemoryList = []
-
-        if isinstance(data, Memory):
-            data_start = data.start
-            data_endex = data.endex
-            if data_start < data_endex:
-                if clear:
-                    backups.append(self.extract(data_start, data_endex))
-                else:
-                    for block_start, block_data in data._blocks:
-                        block_start += address
-                        block_endex = block_start + len(block_data)
-                        backups.append(self.extract(block_start, block_endex))
-        else:
-            if isinstance(data, Value):
-                size = 1
-            else:
-                size = len(data)
-
-            if size:
-                start = address
-                endex = start + size
-
-                trim_endex = self._trim_endex
-                if trim_endex is not None:
-                    if start >= trim_endex:
-                        return backups
-                    elif endex > trim_endex:
-                        size -= endex - trim_endex
-                        endex = start + size
-
-                trim_start = self._trim_start
-                if trim_start is not None:
-                    if endex <= trim_start:
-                        return backups
-                    elif trim_start > start:
-                        offset = trim_start - start
-                        size -= offset
-                        start += offset
-                        endex = start + size
-
-                backups.append(self.extract(start, endex))
-
-        return backups
+        size = 1 if isinstance(data, Value) else len(data)
+        return self.extract(address, address + size)
 
     def write_restore(
         self: 'Memory',
-        backups: MemoryList,
+        backup: 'Memory',
     ) -> None:
         r"""Restores a `write()` operation.
 
         Arguments:
-            backups (:obj:`Memory` list):
-                Backup memory regions to restore.
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
 
         See Also:
             :meth:`write`
             :meth:`write_backup`
         """
 
-        for backup in backups:
-            self.write(0, backup)
+        self.write(0, backup, True)
 
     def fill(
         self: 'Memory',

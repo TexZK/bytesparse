@@ -143,6 +143,6 @@ class TestMemory(BaseMemorySuite):
             memory.validate()
 
 
-class TestMemoryNonNegative(BaseMemorySuite):
-    Memory: Type['_Memory'] = _Memory
-    ADDR_NEG: bool = False
+#class TestMemoryNonNegative(BaseMemorySuite):
+#    Memory: Type['_Memory'] = _Memory
+#    ADDR_NEG: bool = False
