@@ -3126,7 +3126,6 @@ class Memory:
                         for block_index in range(block_index, len(blocks)):
                             blocks[block_index][0] += size
                     else:
-                        block_index += 1
                         if block_index < len(blocks):
                             block_endex += size
                             block_start2, block_data2 = blocks[block_index]

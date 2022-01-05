@@ -532,6 +532,7 @@ class BaseMemorySuite:
         memory1 = Memory.from_blocks(blocks1)
         memory2 = Memory.from_blocks(blocks2)
         memory3 = memory1 + memory2
+        memory3.validate()
         blocks_out = memory3._blocks
 
         values = blocks_to_values(blocks1)
@@ -552,6 +553,7 @@ class BaseMemorySuite:
         memory1 = Memory.from_blocks(blocks1)
         memory2 = Memory.from_blocks(blocks2)
         memory1 += memory2
+        memory1.validate()
         blocks_out = memory1._blocks
 
         values = blocks_to_values(blocks1)
@@ -566,6 +568,7 @@ class BaseMemorySuite:
 
             memory1 = Memory.from_blocks(blocks)
             memory2 = memory1 * times
+            memory2.validate()
             blocks_out = memory2._blocks
 
             values = blocks_to_values(blocks)
@@ -581,6 +584,7 @@ class BaseMemorySuite:
 
             memory = Memory.from_blocks(blocks)
             memory *= times
+            memory.validate()
             blocks_out = memory._blocks
 
             values = blocks_to_values(blocks)
@@ -960,6 +964,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             memory[start] = start
+            memory.validate()
             blocks_out = memory._blocks
 
             values[start] = start
@@ -977,6 +982,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory[start:endex] = data
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:endex] = list(data)
@@ -995,6 +1001,7 @@ class BaseMemorySuite:
 
                     memory = Memory.from_blocks(blocks)
                     memory[start:endex] = data
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     values_ref = values[:]
@@ -1016,6 +1023,7 @@ class BaseMemorySuite:
 
                     memory = Memory.from_blocks(blocks)
                     memory[:endex] = data
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     values_ref = values[:]
@@ -1037,6 +1045,7 @@ class BaseMemorySuite:
 
                     memory = Memory.from_blocks(blocks)
                     memory[start:] = data
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     values_ref = values[:]
@@ -1058,6 +1067,7 @@ class BaseMemorySuite:
                     endex = start + target_size
 
                     memory[start:endex] = data
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     values[start:endex] = list(data)
@@ -1076,6 +1086,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory[start:endex] = None
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:endex] = [None] * (endex - start)
@@ -1094,6 +1105,7 @@ class BaseMemorySuite:
                     endex = start + size
 
                     memory[start:endex:step] = None
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     values[start:endex:step] = [None] * ((size + step - 1) // step)
@@ -1111,6 +1123,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory[start:endex] = start
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:endex] = [start] * (endex - start)
@@ -1128,6 +1141,7 @@ class BaseMemorySuite:
                     endex = start + size
 
                     memory[start:endex:step] = b''
+                    memory.validate()
                     blocks_out = memory._blocks
                     blocks_ref = blocks
 
@@ -1159,6 +1173,7 @@ class BaseMemorySuite:
                             blocks_ref = values_to_blocks(values_ref)
 
                             memory[start:endex:step] = data
+                            memory.validate()
                             blocks_out = memory._blocks
 
                             assert blocks_out == blocks_ref
@@ -1167,6 +1182,7 @@ class BaseMemorySuite:
         Memory = self.Memory
         memory = Memory()
         del memory[:]
+        memory.validate()
 
     def test___delitem___single_template(self):
         Memory = self.Memory
@@ -1176,6 +1192,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             del memory[start]
+            memory.validate()
             blocks_out = memory._blocks
 
             del values[start]
@@ -1191,6 +1208,7 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
 
                 del memory[start::step]
+                memory.validate()
                 blocks_out = memory._blocks
                 assert blocks_out == blocks, (start, step)
 
@@ -1204,6 +1222,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 del memory[start:endex]
+                memory.validate()
                 blocks_out = memory._blocks
 
                 del values[start:endex]
@@ -1222,6 +1241,7 @@ class BaseMemorySuite:
                     endex = start + size
 
                     del memory[start:endex:step]
+                    memory.validate()
                     blocks_out = memory._blocks
 
                     del values[start:endex:step]
@@ -1239,6 +1259,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 del memory[:endex]
+                memory.validate()
                 blocks_out = memory._blocks
 
                 del values[blocks[0][0]:endex]
@@ -1256,6 +1277,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 del memory[start:]
+                memory.validate()
                 blocks_out = memory._blocks
 
                 del values[start:]
@@ -1267,6 +1289,7 @@ class BaseMemorySuite:
         Memory = self.Memory
         memory = Memory()
         memory.append(ord('X'))
+        memory.validate()
         values = [ord('X')]
 
         blocks_out = memory._blocks
@@ -1277,6 +1300,7 @@ class BaseMemorySuite:
         Memory = self.Memory
         memory = Memory()
         memory.append(b'X')
+        memory.validate()
         values = [ord('X')]
         blocks_out = memory._blocks
         blocks_ref = values_to_blocks(values)
@@ -1293,15 +1317,25 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(create_template_blocks())
         blocks_ref = create_template_blocks()
         blocks_ref[-1][1].append(ord('X'))
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory.append_backup()
+        assert backup is None
+
         memory.append(ord('X'))
+        memory.validate()
         blocks_out = memory._blocks
         assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+        memory.append_restore()
+        assert memory == memory_backup
 
     def test_extend_empty(self):
         Memory = self.Memory
         memory = Memory()
         blocks_ref = []
         memory.extend(b'')
+        memory.validate()
         blocks_out = memory._blocks
         assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
 
@@ -1321,6 +1355,7 @@ class BaseMemorySuite:
             data = bytes(range(size))
 
             memory.extend(data)
+            memory.validate()
             blocks_out = memory._blocks
 
             values.extend(data)
@@ -1341,6 +1376,7 @@ class BaseMemorySuite:
         memory1 = Memory.from_blocks(blocks1)
         memory2 = Memory.from_blocks(blocks2)
         memory1.extend(memory2)
+        memory1.validate()
         blocks_out = memory1._blocks
 
         values = blocks_to_values(blocks1)
@@ -1348,6 +1384,30 @@ class BaseMemorySuite:
         blocks_ref = values_to_blocks(values)
 
         assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+    def test_extend_bytes_bounded(self):
+        Memory = self.Memory
+        for size in range(MAX_SIZE):
+            for offset in range(MAX_SIZE):
+                blocks = create_template_blocks()
+                memory = Memory.from_blocks(blocks, endex=MAX_SIZE)
+                values = blocks_to_values(blocks)
+                data = bytes(range(size))
+
+                memory_backup = memory.__deepcopy__()
+                backup_content_endex = memory.extend_backup(offset)
+
+                memory.extend(data, offset)
+                memory.validate()
+                blocks_out = memory._blocks
+                values.extend(None for _ in range(offset))
+                values.extend(data)
+                del values[MAX_SIZE:]
+                blocks_ref = values_to_blocks(values)
+                assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+                memory.extend_restore(backup_content_endex)
+                assert memory == memory_backup
 
     def test_pop_empty(self):
         Memory = self.Memory
@@ -1362,6 +1422,7 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(blocks)
 
         value_out = memory.pop()
+        memory.validate()
         value_ref = values.pop()
         assert value_out == value_ref, (value_out, value_ref)
 
@@ -1377,6 +1438,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             value_out = memory.pop(start)
+            memory.validate()
             value_ref = values.pop(start)
             assert value_out == value_ref, (value_out, value_ref)
 
@@ -1489,11 +1551,13 @@ class BaseMemorySuite:
 
         for offset in range(8):
             memory.trim_start = offset
+            memory.validate()
             assert memory.content_start == offset, (memory.content_start, offset)
             assert memory.content_endex == 8, (memory.content_endex,)
 
         for offset in reversed(range(8)):
             memory.trim_start = offset
+            memory.validate()
             assert memory.content_start == 7, (memory.content_start,)
             assert memory.content_endex == 8, (memory.content_endex,)
 
@@ -1503,25 +1567,32 @@ class BaseMemorySuite:
 
         for offset in range(8):
             memory.trim_start = offset
+            memory.validate()
             assert memory.content_start == offset, (memory.content_start, offset)
             assert memory.content_endex == offset, (memory.content_endex, offset)
 
         for offset in reversed(range(8)):
             memory.trim_start = offset
+            memory.validate()
             assert memory.content_start == offset, (memory.content_start, offset)
             assert memory.content_endex == offset, (memory.content_endex, offset)
 
         memory.trim_endex = None
+        memory.validate()
         assert memory.trim_endex is None, (memory.trim_endex,)
         memory.trim_start = 9
+        memory.validate()
         assert memory.trim_start == 9, (memory.trim_start,)
         assert memory.trim_endex is None, (memory.trim_endex,)
 
         memory.trim_start = 1
+        memory.validate()
         memory.trim_endex = 5
+        memory.validate()
         assert memory.trim_start == 1, (memory.trim_start,)
         assert memory.trim_endex == 5, (memory.trim_endex,)
         memory.trim_start = 9
+        memory.validate()
         assert memory.trim_start == 9, (memory.trim_start,)
         assert memory.trim_endex == 9, (memory.trim_endex,)
 
@@ -1532,39 +1603,49 @@ class BaseMemorySuite:
 
         for offset in range(8, 0, -1):
             memory.trim_endex = offset
+            memory.validate()
             assert memory.content_start == 0, (memory.content_start,)
             assert memory.content_endex == offset, (memory.content_endex, offset)
 
         for offset in range(1, 8):
             memory.trim_endex = offset
+            memory.validate()
             assert memory.content_start == 0, (memory.content_start,)
             assert memory.content_endex == 1, (memory.content_endex,)
 
         memory.trim_endex = 0
+        memory.validate()
         assert memory.content_start == 0, (memory.content_start,)
         assert memory.content_endex == 0, (memory.content_endex,)
 
         for offset in range(8, 0, -1):
             memory.trim_endex = offset
+            memory.validate()
             assert memory.content_start == 0, (memory.content_start,)
             assert memory.content_endex == 0, (memory.content_endex,)
 
         for offset in range(1, 8):
             memory.trim_endex = offset
+            memory.validate()
             assert memory.content_start == 0, (memory.content_start,)
             assert memory.content_endex == 0, (memory.content_endex,)
 
         memory.trim_start = None
+        memory.validate()
         assert memory.trim_start is None, (memory.trim_start,)
         memory.trim_endex = 9
+        memory.validate()
         assert memory.trim_start is None, (memory.trim_start,)
         assert memory.trim_endex == 9, (memory.trim_endex,)
 
         memory.trim_start = 5
+        memory.validate()
         memory.trim_endex = 9
+        memory.validate()
         assert memory.trim_start == 5, (memory.trim_start,)
         assert memory.trim_endex == 9, (memory.trim_endex,)
         memory.trim_endex = 1
+        memory.validate()
         assert memory.trim_start == 1, (memory.trim_start,)
         assert memory.trim_endex == 1, (memory.trim_endex,)
 
@@ -1576,6 +1657,7 @@ class BaseMemorySuite:
 
         for offset in range(1, MAX_SIZE):
             memory.trim_start = offset
+            memory.validate()
             blocks_out = memory._blocks
             values[offset - 1] = None
             blocks_ref = values_to_blocks(values)
@@ -1584,6 +1666,7 @@ class BaseMemorySuite:
         blocks_ref = values_to_blocks(values)
         for offset in reversed(range(MAX_SIZE)):
             memory.trim_start = offset
+            memory.validate()
             blocks_out = memory._blocks
             assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
 
@@ -1595,6 +1678,7 @@ class BaseMemorySuite:
 
         for offset in reversed(range(MAX_SIZE)):
             memory.trim_endex = offset
+            memory.validate()
             blocks_out = memory._blocks
             values[offset] = None
             blocks_ref = values_to_blocks(values)
@@ -1603,6 +1687,7 @@ class BaseMemorySuite:
         blocks_ref = values_to_blocks(values)
         for offset in range(MAX_SIZE):
             memory.trim_endex = offset
+            memory.validate()
             blocks_out = memory._blocks
             assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
 
@@ -1611,8 +1696,10 @@ class BaseMemorySuite:
         memory = Memory()
         assert memory.trim_span == (None, None), (memory.trim_span,)
         memory.trim_span = (1, 9)
+        memory.validate()
         assert memory.trim_span == (1, 9), (memory.trim_span,)
         memory.trim_span = (5, 5)
+        memory.validate()
         assert memory.trim_span == (5, 5), (memory.trim_span,)
 
     def test_start_empty(self):
@@ -2107,6 +2194,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             memory.poke(start, start)
+            memory.validate()
             blocks_out = memory._blocks
 
             values[start] = start
@@ -2122,6 +2210,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             memory.poke(start, bytes([start]))
+            memory.validate()
             blocks_out = memory._blocks
 
             values[start] = start
@@ -2148,6 +2237,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             memory.poke(start, None)
+            memory.validate()
             blocks_out = memory._blocks
 
             values[start] = None
@@ -2245,6 +2335,7 @@ class BaseMemorySuite:
 
             memory = Memory.from_blocks(create_template_blocks())
             memory.shift(offset)
+            memory.validate()
             blocks_out = memory._blocks
             assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
 
@@ -2257,6 +2348,7 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
 
                 memory.reserve(start, size)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:start] = [None] * size
@@ -2271,6 +2363,7 @@ class BaseMemorySuite:
             memory = Memory.from_blocks(blocks)
 
             memory.insert(start, start)
+            memory.validate()
             blocks_out = memory._blocks
 
             values[start:start] = [start]
@@ -2287,6 +2380,7 @@ class BaseMemorySuite:
                 data = bytes(range(ord('a'), ord('a') + size))
 
                 memory.insert(start, data)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:start] = data
@@ -2303,6 +2397,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory.delete(start, endex)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 del values[start:endex]
@@ -2318,12 +2413,22 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
                 endex = start + size
 
+                memory_backup = memory.__deepcopy__()
+                backup = memory.clear_backup(start, endex)
+                assert backup.span == (start, endex)
+                assert backup == memory.extract(start, endex)
+
                 memory.clear(start, endex)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:endex] = [None] * (endex - start)
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, endex, blocks_out, blocks_ref)
+
+                memory.clear_restore(backup)
+                memory.validate()
+                assert memory == memory_backup
 
     def test_crop_template(self):
         Memory = self.Memory
@@ -2335,6 +2440,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory.crop(start, endex)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[:start] = [None] * start
@@ -2352,6 +2458,7 @@ class BaseMemorySuite:
             memory.trim_endex = memory.content_endex + 1
 
             memory.write(offset, offset)
+            memory.validate()
             blocks_out = memory._blocks
 
             if memory.trim_start <= offset < memory.trim_endex:
@@ -2369,6 +2476,7 @@ class BaseMemorySuite:
             memory.trim_endex = memory.content_endex + 1
 
             memory.write(offset, b'<=>')
+            memory.validate()
             blocks_out = memory._blocks
 
             values[offset:(offset + 3)] = b'<=>'
@@ -2382,6 +2490,7 @@ class BaseMemorySuite:
         memory1 = Memory()
         memory2 = Memory()
         memory2.write(0, memory1)
+        memory2.validate()
         assert not memory2
 
     def test_write_memory_clear(self):
@@ -2389,6 +2498,7 @@ class BaseMemorySuite:
         memory1 = Memory(start=3, endex=7)
         memory2 = Memory.from_bytes(b'0123456789')
         memory2.write(0, memory1, clear=True)
+        memory2.validate()
         blocks_out = memory2._blocks
         blocks_ref = [[0, b'012'], [7, b'789']]
         assert blocks_out == blocks_ref
@@ -2404,6 +2514,7 @@ class BaseMemorySuite:
                 endex = start + len(data)
 
                 memory.write(start, data)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 values[start:endex] = data
@@ -2421,6 +2532,7 @@ class BaseMemorySuite:
         memory2 = Memory.from_blocks(blocks2)
 
         memory1.write(0, memory2, clear=False)
+        memory1.validate()
 
         values_ref = values1[:]
         for block_start, block_data in blocks2:
@@ -2441,6 +2553,7 @@ class BaseMemorySuite:
         memory2 = Memory.from_blocks(blocks2)
 
         memory1.write(0, memory2, clear=True)
+        memory1.validate()
 
         values_ref = values1[:]
         start, endex = memory2.start, memory2.endex
@@ -2460,6 +2573,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory.fill(start, endex, pattern)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 tiled = pattern * ((size + len(pattern)) // len(pattern))
@@ -2479,6 +2593,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory.fill(start, endex, pattern)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 tiled = pattern * ((size + len(pattern)) // len(pattern))
@@ -2500,6 +2615,7 @@ class BaseMemorySuite:
         with pytest.raises(ValueError, match=match):
             memory.fill(pattern=Memory())
         memory.fill(pattern=0)
+        memory.validate()
 
     def test_flood_template(self):
         Memory = self.Memory
@@ -2512,6 +2628,7 @@ class BaseMemorySuite:
                 endex = start + size
 
                 memory.flood(start, endex, pattern)
+                memory.validate()
                 blocks_out = memory._blocks
 
                 tiled = pattern * ((size + len(pattern)) // len(pattern))
@@ -2533,6 +2650,7 @@ class BaseMemorySuite:
         with pytest.raises(ValueError, match=match):
             memory.flood(pattern=Memory())
         memory.flood(pattern=0)
+        memory.validate()
 
     def test_keys_template(self):
         Memory = self.Memory
