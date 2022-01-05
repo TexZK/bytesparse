@@ -1203,10 +1203,10 @@ class Memory:
             if value is None:
                 # Clear range
                 if step is None:
-                    self._erase(start, endex, False, False)  # clear
+                    self._erase(start, endex, False)  # clear
                 else:
                     for address in range(start, endex, step):
-                        self._erase(address, address + 1, False, False)  # clear
+                        self._erase(address, address + 1, False)  # clear
                 return  # nothing to write
 
             slice_size = endex - start
@@ -1223,7 +1223,7 @@ class Memory:
                 if step is None:
                     del_start = start + value_size
                     del_endex = del_start + (slice_size - value_size)
-                    self._erase(del_start, del_endex, True, True)  # delete
+                    self._erase(del_start, del_endex, True)  # delete
                     self.write(start, value)
                 else:
                     raise ValueError(f'attempt to assign bytes of size {value_size}'
@@ -1313,14 +1313,14 @@ class Memory:
                 if start < endex:
                     step = key.step
                     if step is None or step == 1:
-                        self._erase(start, endex, True, True)  # delete
+                        self._erase(start, endex, True)  # delete
 
                     elif step > 1:
                         for address in reversed(range(start, endex, step)):
-                            self._erase(address, address + 1, True, True)  # delete
+                            self._erase(address, address + 1, True)  # delete
             else:
                 address = key.__index__()
-                self._erase(address, address + 1, True, True)  # delete
+                self._erase(address, address + 1, True)  # delete
 
     def append(
         self: 'Memory',
@@ -1504,7 +1504,7 @@ class Memory:
                 return None
         else:
             backup = self.peek(address)
-            self._erase(address, address + 1, True, True)  # delete
+            self._erase(address, address + 1, True)  # delete
             return backup
 
     def pop_backup(
@@ -2593,9 +2593,14 @@ class Memory:
             :meth:`poke_restore`
         """
 
+        if self._trim_start is not None and address < self._trim_start:
+            return
+        if self._trim_endex is not None and address >= self._trim_endex:
+            return
+
         if item is None:
             # Standard clear method
-            self._erase(address, address + 1, False, False)  # clear
+            self._erase(address, address + 1, False)  # clear
 
         else:
             if not isinstance(item, Value):
@@ -2643,8 +2648,8 @@ class Memory:
                             return
 
             # There is no faster way than the standard block writing method
-            self._erase(address, address + 1, False, True)  # insert
-            self._insert(address, bytearray((item,)), False)
+            self._erase(address, address + 1, False)  # clear
+            self._insert(address, bytearray((item,)), False)  # write
 
             self._crop(self._trim_start, self._trim_endex)
 
@@ -3165,7 +3170,6 @@ class Memory:
         start: Address,
         endex: Address,
         shift_after: bool,
-        merge_deletion: bool,
     ) -> None:
         r"""Erases an address range.
 
@@ -3181,8 +3185,6 @@ class Memory:
             shift_after (bool):
                 Shifts addresses of blocks after the end of the range,
                 subtracting the size of the range itself.
-
-            merge_deletion (bool):
                 If data blocks before and after the address range are
                 contiguous after erasure, merge the two blocks together.
         """
@@ -3220,7 +3222,7 @@ class Memory:
                 block_index = len(blocks)
             inner_endex = block_index
 
-            if merge_deletion:
+            if shift_after:
                 # Check if inner deletion can be merged
                 if inner_start and inner_endex < len(blocks):
                     block_start, block_data = blocks[inner_start - 1]
@@ -3232,7 +3234,6 @@ class Memory:
                         inner_endex += 1  # add to inner deletion
                         block_index += 1  # skip address update
 
-            if shift_after:
                 # Shift blocks after deletion
                 for block_index in range(block_index, len(blocks)):
                     blocks[block_index][0] -= size  # update address
@@ -3282,21 +3283,56 @@ class Memory:
             :meth:`insert_restore`
         """
 
-        if isinstance(data, Memory):
-            data_start = data.start
-            data_endex = data.endex
+        trim_start = self._trim_start
+        trim_endex = self._trim_endex
 
-            if data_start < data_endex:
-                address = address + data_start
-                self.reserve(address, data_endex - data_start)
-                self.write(address, data)
+        is_memory = isinstance(data, Memory)
+        if is_memory:
+            start = data.start + address
+            endex = data.endex + address
+            size = endex - start
         else:
             if isinstance(data, Value):
                 data = (data,)
             data = bytearray(data)
+            size = len(data)
+            start = address
+            endex = start + size
 
-            self._pretrim_start(address, len(data))
-            self._insert(address, data, True)
+        if trim_start is not None and endex <= trim_start:
+            return
+        if trim_endex is not None and trim_endex <= start:
+            return
+        if not size:
+            return
+
+        if is_memory:
+            self.reserve(address, size)
+
+            for block_start, block_data in data._blocks:
+                self._insert(block_start + address, bytearray(block_data), False)  # write
+
+            if (((trim_start is not None and start < trim_start <= endex) or
+                 (trim_endex is not None and start <= trim_endex < endex))):
+                self._crop(trim_start, trim_endex)
+        else:
+            # Resize data to fit trimming
+            if trim_endex is not None and trim_endex < endex:
+                size -= endex - trim_endex
+                del data[size:]
+
+            # Check if extending the actual content
+            blocks = self._blocks
+            if blocks:
+                block_start, block_data = blocks[-1]
+                block_endex = block_start + len(block_data)
+                if start == block_endex:
+                    block_data += data  # might be faster
+                    size = None  # skip below
+
+            if size is not None:
+                self._pretrim_endex(address, size)
+                self._insert(address, data, True)  # insert
 
     def insert_backup(
         self: 'Memory',
@@ -3320,7 +3356,8 @@ class Memory:
             :meth:`insert_restore`
         """
 
-        backup = self._pretrim_endex_backup(address, len(data))
+        size = 1 if isinstance(data, Value) else len(data)
+        backup = self._pretrim_endex_backup(address, size)
         return address, backup
 
     def insert_restore(
@@ -3342,7 +3379,7 @@ class Memory:
             :meth:`insert_backup`
         """
 
-        self.delete(address, len(backup))
+        self.delete(address, address + len(backup))
         self.write(0, backup, clear=True)
 
     def delete(
@@ -3386,7 +3423,7 @@ class Memory:
             endex = self.endex
 
         if start < endex:
-            self._erase(start, endex, True, True)  # delete
+            self._erase(start, endex, True)  # delete
 
     def delete_backup(
         self: 'Memory',
@@ -3472,7 +3509,7 @@ class Memory:
             endex = self.endex
 
         if start < endex:
-            self._erase(start, endex, False, False)  # clear
+            self._erase(start, endex, False)  # clear
 
     def clear_backup(
         self: 'Memory',
@@ -3545,7 +3582,7 @@ class Memory:
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
 
-            self._erase(self.content_start, endex, False, False)  # clear
+            self._erase(self.content_start, endex, False)  # clear
 
     def _pretrim_start_backup(
         self: 'Memory',
@@ -3606,7 +3643,7 @@ class Memory:
             if start_min is not None and start < start_min:
                 start = start_min
 
-            self._erase(start, self.content_endex, False, False)  # clear
+            self._erase(start, self.content_endex, False)  # clear
 
     def _pretrim_endex_backup(
         self: 'Memory',
@@ -3665,7 +3702,7 @@ class Memory:
             block_start = blocks[0][0]
 
             if block_start < start:
-                self._erase(block_start, start, False, False)  # clear
+                self._erase(block_start, start, False)  # clear
 
         # Trim blocks exceeding after memory end
         if endex is not None and blocks:
@@ -3673,7 +3710,7 @@ class Memory:
             block_endex = block_start + len(block_data)
 
             if endex < block_endex:
-                self._erase(endex, block_endex, False, False)  # clear
+                self._erase(endex, block_endex, False)  # clear
 
     def crop(
         self: 'Memory',
@@ -3815,74 +3852,75 @@ class Memory:
             :meth:`write_restore`
         """
 
-        if isinstance(data, Memory):
-            data_start = data.start
-            data_endex = data.endex
-            size = data_endex - data_start
+        trim_start = self._trim_start
+        trim_endex = self._trim_endex
 
-            if size:
-                endex = self.endex
-                if endex < data_endex:
-                    data_endex = endex
-
-                if clear:
-                    # Clear anything between source data boundaries
-                    self._erase(data_start, data_endex, False, False)  # clear
-                else:
-                    # Clear only overwritten ranges
-                    for block_start, block_data in data._blocks:
-                        block_start += address
-                        block_endex = block_start + len(block_data)
-
-                        self._erase(block_start, block_endex, False, False)  # clear
-
-                for block_start, block_data in data._blocks:
-                    self._insert(block_start + address, bytearray(block_data), False)  # insert
-
-                self._crop(self._trim_start, self._trim_endex)
+        is_memory = isinstance(data, Memory)
+        if is_memory:
+            start = data.start + address
+            endex = data.endex + address
+            size = endex - start
         else:
             if isinstance(data, Value):
                 data = (data,)
             data = bytearray(data)
             size = len(data)
+            start = address
+            endex = start + size
 
-            if size:
-                start = address + 0
-                endex = start + size
+        if trim_start is not None and endex <= trim_start:
+            return
+        if trim_endex is not None and trim_endex <= start:
+            return
+        if not size:
+            return
 
-                trim_endex = self._trim_endex
-                if trim_endex is not None:
-                    if start >= trim_endex:
-                        return
-                    elif endex > trim_endex:
-                        size -= endex - trim_endex
-                        endex = start + size
-                        del data[size:]
-
-                trim_start = self._trim_start
-                if trim_start is not None:
-                    if endex <= trim_start:
-                        return
-                    elif trim_start > start:
-                        offset = trim_start - start
-                        size -= offset
-                        start += offset
-                        endex = start + size
-                        del data[:offset]
-
-                blocks = self._blocks
-                if blocks:
-                    block_start, block_data = blocks[-1]
+        if is_memory:
+            if clear:
+                # Clear anything between source data boundaries
+                self._erase(start, endex, False)  # clear
+            else:
+                # Clear only overwritten ranges
+                for block_start, block_data in data._blocks:
+                    block_start = block_start + address
                     block_endex = block_start + len(block_data)
-                    if start == block_endex:
-                        block_data += data  # might be faster
-                        return
+                    self._erase(block_start, block_endex, False)  # clear
 
+            for block_start, block_data in data._blocks:
+                self._insert(block_start + address, bytearray(block_data), False)  # write
+
+            if (((trim_start is not None and start < trim_start <= endex) or
+                 (trim_endex is not None and start <= trim_endex < endex))):
+                self._crop(trim_start, trim_endex)
+        else:
+            # Resize data to fit trimming
+            if trim_endex is not None and trim_endex < endex:
+                size -= endex - trim_endex
+                endex = start + size
+                del data[size:]
+
+            if trim_start is not None and start < trim_start:
+                offset = trim_start - start
+                size -= offset
+                start = trim_start
+                endex = start + size
+                del data[:offset]
+
+            # Check if extending the actual content
+            blocks = self._blocks
+            if blocks:
+                block_start, block_data = blocks[-1]
+                block_endex = block_start + len(block_data)
+                if start == block_endex:
+                    block_data += data  # might be faster
+                    size = None  # skip below
+
+            if size is not None:
                 if size == 1:
                     self.poke(start, data[0])  # might be faster
                 else:
-                    self._erase(start, endex, False, True)  # insert
-                    self._insert(start, data, False)
+                    self._erase(start, endex, False)  # clear
+                    self._insert(start, data, False)  # write
 
     def write_backup(
         self: 'Memory',
@@ -4002,8 +4040,8 @@ class Memory:
             del pattern[size:]
 
             # Standard write method
-            self._erase(start, endex, False, True)  # insert
-            self._insert(start, pattern, False)
+            self._erase(start, endex, False)  # clear
+            self._insert(start, pattern, False)  # write
 
     def fill_backup(
         self: 'Memory',

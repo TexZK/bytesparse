@@ -2427,7 +2427,7 @@ class BaseMemorySuite:
 
                 memory.reserve_restore(backup_address, backup)
                 memory.validate()
-                assert memory == memory_backup, (start, size, backup._blocks, '|', memory._blocks, '|', memory_backup._blocks)
+                assert memory == memory_backup
 
     def test_insert_single(self):
         Memory = self.Memory
@@ -2460,6 +2460,32 @@ class BaseMemorySuite:
                 values[start:start] = data
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, data, blocks_out, blocks_ref)
+
+    def test_insert_bounded_template(self):
+        Memory = self.Memory
+        for start in range(MAX_START):
+            for size in range(MAX_SIZE):
+                blocks = create_template_blocks()
+                values = blocks_to_values(blocks, MAX_SIZE)
+                memory = Memory.from_blocks(blocks, endex=MAX_SIZE)
+                data = bytes(range(ord('a'), ord('a') + size))
+
+                memory_backup = memory.__deepcopy__()
+                backup_address, backup = memory.insert_backup(start, data)
+                assert backup_address == start
+
+                memory.insert(start, data)
+                memory.validate()
+                blocks_out = memory._blocks
+
+                values[start:start] = data
+                del values[MAX_SIZE:]
+                blocks_ref = values_to_blocks(values)
+                assert blocks_out == blocks_ref, (start, size, data, blocks_out, blocks_ref)
+
+                memory.insert_restore(backup_address, backup)
+                memory.validate()
+                assert memory == memory_backup, (start, size, backup._blocks, '|', memory._blocks, '|', memory_backup._blocks)
 
     def test_delete_template(self):
         Memory = self.Memory
