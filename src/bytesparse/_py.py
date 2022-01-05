@@ -290,12 +290,6 @@ class Memory:
             validate (bool):
                 Validates the resulting :obj:`Memory` object.
 
-            collapse (bool):
-                Collapses the provided blocks, prior to construction.
-                Useful when source blocks do not satisfy the requirements of
-                the underlying data structure, e.g. blocks are not sorted by
-                address or they have some overlapping or contiguity.
-
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
@@ -3027,10 +3021,8 @@ class Memory:
                 data = (data,)
             data = bytearray(data)
 
+            self._pretrim_start(address, len(data))
             self._insert(address, data, True)
-
-            if data:
-                self._crop(self._trim_start, self._trim_endex)  # TODO: pre-trimming
 
     def delete(
         self: 'Memory',
@@ -3265,13 +3257,15 @@ class Memory:
             data_start = data.start
             data_endex = data.endex
             size = data_endex - data_start
-            # TODO: trim data to fit within self.trim_span (avoid cropping afterwards)
 
             if size:
+                endex = self.endex
+                if endex < data_endex:
+                    data_endex = endex
+
                 if clear:
                     # Clear anything between source data boundaries
                     self._erase(data_start, data_endex, False, False)  # clear
-
                 else:
                     # Clear only overwritten ranges
                     for block_start, block_data in data._blocks:
@@ -3284,7 +3278,6 @@ class Memory:
                     self._insert(block_start + address, bytearray(block_data), False)  # insert
 
                 self._crop(self._trim_start, self._trim_endex)
-
         else:
             if isinstance(data, Value):
                 data = (data,)
