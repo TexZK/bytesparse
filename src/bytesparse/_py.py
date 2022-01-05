@@ -2753,10 +2753,15 @@ class Memory:
 
         start_ = start
         endex_ = endex
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
+        if endex < start:
+            endex = start
         memory = type(self)()
 
         if step is None or step == 1:
-            start, endex = self.bound(start, endex)
             blocks = self._blocks
 
             if start < endex and blocks:
@@ -2772,7 +2777,6 @@ class Memory:
         else:
             step = int(step)
             if step > 1:
-                start, endex = self.bound(start, endex)
                 blocks = []
                 block_start = None
                 block_data = None
@@ -2797,8 +2801,8 @@ class Memory:
                 if bound:
                     endex_ = offset
         if bound:
-            memory._trim_start = start_
-            memory._trim_endex = endex_
+            memory._trim_start = start
+            memory._trim_endex = endex
 
         return memory
 
@@ -3074,7 +3078,7 @@ class Memory:
             :meth:`reserve_backup`
         """
 
-        self.delete(address, len(backup))
+        self.delete(address, address + len(backup))
         self.write(0, backup, clear=True)
 
     def _insert(
@@ -3376,7 +3380,10 @@ class Memory:
             :meth:`delete_restore`
         """
 
-        start, endex = self.bound(start, endex)
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
 
         if start < endex:
             self._erase(start, endex, True, True)  # delete
@@ -3459,7 +3466,10 @@ class Memory:
             :meth:`clear_restore`
         """
 
-        start, endex = self.bound(start, endex)
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
 
         if start < endex:
             self._erase(start, endex, False, False)  # clear

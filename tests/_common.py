@@ -870,7 +870,7 @@ class BaseMemorySuite:
 
         for start in range(3, 6):
             for endex in range(start, 6):
-                data_out = list(memory[start:endex].view())
+                data_out = list(memory[start:endex].values())
                 data_ref = values[start:endex]
                 assert data_out == data_ref, (start, endex, data_out, data_ref)
 
@@ -885,7 +885,7 @@ class BaseMemorySuite:
         for start in range(3, stop):
             for endex in range(start, stop):
                 for step in range(1, 4):
-                    data_out = list(memory[start:endex:step].view())
+                    data_out = list(memory[start:endex:step].values())
                     data_ref = values[start:endex:step]
                     assert data_out == data_ref, (start, endex, step, data_out, data_ref)
 
@@ -1437,6 +1437,11 @@ class BaseMemorySuite:
             values = blocks_to_values(blocks, MAX_SIZE)
             memory = Memory.from_blocks(blocks)
 
+            memory_backup = memory.__deepcopy__()
+            backup_address, backup_value = memory.pop_backup(start)
+            assert backup_address == start
+            assert backup_value == values[start]
+
             value_out = memory.pop(start)
             memory.validate()
             value_ref = values.pop(start)
@@ -1445,6 +1450,10 @@ class BaseMemorySuite:
             blocks_out = memory._blocks
             blocks_ref = values_to_blocks(values)
             assert blocks_out == blocks_ref, (start, blocks_out, blocks_ref)
+
+            memory.pop_restore(backup_address, backup_value)
+            memory.validate()
+            assert memory == memory_backup
 
     def test___bytes__(self):
         Memory = self.Memory
@@ -2193,6 +2202,11 @@ class BaseMemorySuite:
             values = blocks_to_values(blocks, MAX_SIZE)
             memory = Memory.from_blocks(blocks)
 
+            memory_backup = memory.__deepcopy__()
+            backup_address, backup_value = memory.poke_backup(start)
+            assert backup_address == start
+            assert backup_value == values[start]
+
             memory.poke(start, start)
             memory.validate()
             blocks_out = memory._blocks
@@ -2201,6 +2215,10 @@ class BaseMemorySuite:
             blocks_ref = values_to_blocks(values)
 
             assert blocks_out == blocks_ref, (start, blocks_out, blocks_ref)
+
+            memory.poke_restore(backup_address, backup_value)
+            memory.validate()
+            assert memory == memory_backup
 
     def test_poke_single_template(self):
         Memory = self.Memory
@@ -2329,15 +2347,46 @@ class BaseMemorySuite:
     def test_shift_template(self):
         Memory = self.Memory
         for offset in range(-MAX_SIZE if self.ADDR_NEG else 0, MAX_SIZE):
+            memory = Memory.from_blocks(create_template_blocks())
             blocks_ref = create_template_blocks()
             for block in blocks_ref:
                 block[0] += offset
 
-            memory = Memory.from_blocks(create_template_blocks())
             memory.shift(offset)
             memory.validate()
             blocks_out = memory._blocks
             assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+    def test_shift_bounded_template(self):
+        Memory = self.Memory
+        for offset in range(-MAX_SIZE if self.ADDR_NEG else 0, MAX_SIZE):
+            blocks = create_template_blocks()
+            memory = Memory.from_blocks(blocks, start=1, endex=(MAX_SIZE - 1))
+            values = blocks_to_values(blocks, MAX_SIZE)
+
+            memory_backup = memory.__deepcopy__()
+            backup_offset, backup = memory.shift_backup(offset)
+            assert backup_offset == offset
+
+            memory.shift(offset)
+            memory.validate()
+            blocks_out = memory._blocks
+
+            if offset < 0:
+                values_ref = values[-offset:]
+                values_ref += [None] * (MAX_SIZE + offset)
+                values_ref[0] = None
+            else:
+                values_ref = values[:(MAX_SIZE - offset)]
+                values_ref[0:0] = [None] * offset
+                values_ref[-1] = None
+            blocks_ref = values_to_blocks(values_ref)
+
+            assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+            memory.shift_restore(backup_offset, backup)
+            memory.validate()
+            assert memory == memory_backup
 
     def test_reserve_template(self):
         Memory = self.Memory
@@ -2354,6 +2403,31 @@ class BaseMemorySuite:
                 values[start:start] = [None] * size
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
+
+    def test_reserve_bounded_template(self):
+        Memory = self.Memory
+        for start in range(MAX_START):
+            for size in range(MAX_SIZE):
+                blocks = create_template_blocks()
+                values = blocks_to_values(blocks, MAX_SIZE)
+                memory = Memory.from_blocks(blocks, endex=MAX_SIZE)
+
+                memory_backup = memory.__deepcopy__()
+                backup_address, backup = memory.reserve_backup(start, size)
+                assert backup_address == start
+
+                memory.reserve(start, size)
+                memory.validate()
+                blocks_out = memory._blocks
+
+                values[start:start] = [None] * size
+                del values[MAX_SIZE:]
+                blocks_ref = values_to_blocks(values)
+                assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
+
+                memory.reserve_restore(backup_address, backup)
+                memory.validate()
+                assert memory == memory_backup, (start, size, backup._blocks, '|', memory._blocks, '|', memory_backup._blocks)
 
     def test_insert_single(self):
         Memory = self.Memory
