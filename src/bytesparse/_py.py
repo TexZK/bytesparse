@@ -3049,8 +3049,9 @@ class Memory:
             data_endex = data.endex
 
             if data_start < data_endex:
-                self.reserve(data_start, data_endex, backups=backups)
-                self.write(data_start, data)
+                address = address + data_start
+                self.reserve(address, data_endex - data_start, backups=backups)
+                self.write(address, data)
         else:
             if isinstance(data, Value):
                 data = (data,)

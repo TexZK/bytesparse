@@ -2348,7 +2348,7 @@ class BaseMemorySuite:
                 backups = []
                 memory.insert(start, Memory.from_bytes(data), backups=backups)
 
-                offset = MAX_SIZE - size
+                offset = max(start, MAX_SIZE - size)
                 blocks_out = [m._blocks for m in backups if m._blocks]
                 blocks_ref = values_to_blocks(values[offset:], offset)
                 if blocks_ref:
