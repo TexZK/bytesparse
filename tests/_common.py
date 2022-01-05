@@ -2504,6 +2504,7 @@ class BaseMemorySuite:
             assert blocks_out == blocks_ref, (offset, blocks_out, blocks_ref)
 
             memory.write_restore(backup)
+            memory.validate()
             assert memory == memory_backup
 
     def test_write_memory_empty(self):
@@ -2585,13 +2586,18 @@ class BaseMemorySuite:
 
     def test_fill_template(self):
         Memory = self.Memory
+        pattern = b'<xyz>'
         for start in range(MAX_START):
             for size in range(MAX_SIZE):
                 blocks = create_template_blocks()
                 values = blocks_to_values(blocks, MAX_SIZE)
                 memory = Memory.from_blocks(blocks)
-                pattern = b'<xyz>'
                 endex = start + size
+
+                memory_backup = memory.__deepcopy__()
+                backup = memory.fill_backup(start, endex)
+                assert backup.span == (start, endex)
+                assert backup == memory_backup.extract(start, endex)
 
                 memory.fill(start, endex, pattern)
                 memory.validate()
@@ -2602,6 +2608,10 @@ class BaseMemorySuite:
                 values[start:endex] = tiled
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, pattern, blocks_out, blocks_ref)
+
+                memory.fill_restore(backup)
+                memory.validate()
+                assert memory == memory_backup
 
     def test_fill_bounded_template(self):
         Memory = self.Memory
@@ -2648,6 +2658,10 @@ class BaseMemorySuite:
                 pattern = b'<xyz>'
                 endex = start + size
 
+                memory_backup = memory.__deepcopy__()
+                backup = memory.flood_backup(start, endex)
+                assert backup == list(memory_backup.gaps(start, endex))
+
                 memory.flood(start, endex, pattern)
                 memory.validate()
                 blocks_out = memory._blocks
@@ -2659,6 +2673,10 @@ class BaseMemorySuite:
                         values[start + index] = tiled[index]
                 blocks_ref = values_to_blocks(values)
                 assert blocks_out == blocks_ref, (start, size, pattern, blocks_out, blocks_ref)
+
+                memory.flood_restore(backup)
+                memory.validate()
+                assert memory == memory_backup
 
     def test_flood_invalid_template(self):
         Memory = self.Memory

@@ -2954,7 +2954,7 @@ class Memory:
         """
 
         self.shift(-offset)
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def reserve(
         self: 'Memory',
@@ -3075,7 +3075,7 @@ class Memory:
         """
 
         self.delete(address, len(backup))
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def _insert(
         self: 'Memory',
@@ -3339,7 +3339,7 @@ class Memory:
         """
 
         self.delete(address, len(backup))
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def delete(
         self: 'Memory',
@@ -3505,7 +3505,7 @@ class Memory:
             :meth:`clear_backup`
         """
 
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def _pretrim_start(
         self: 'Memory',
@@ -3763,9 +3763,9 @@ class Memory:
         """
 
         if backup_start is not None:
-            self.write(0, backup_start)
+            self.write(0, backup_start, clear=True)
         if backup_endex is not None:
-            self.write(0, backup_endex)
+            self.write(0, backup_endex, clear=True)
 
     def write(
         self: 'Memory',
@@ -3914,7 +3914,7 @@ class Memory:
             :meth:`write_backup`
         """
 
-        self.write(0, backup, True)
+        self.write(0, backup, clear=True)
 
     def fill(
         self: 'Memory',
@@ -4036,7 +4036,7 @@ class Memory:
             :meth:`fill_backup`
         """
 
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def flood(
         self: 'Memory',
