@@ -3533,6 +3533,9 @@ class Memory:
 
             size (int):
                 Size of the erasure range.
+
+        See Also:
+            :meth:`_pretrim_start_backup`
         """
 
         trim_start = self._trim_start
@@ -3549,7 +3552,22 @@ class Memory:
         endex_max: Optional[Address],
         size: Address,
     ) -> 'Memory':
-        # TODO: docstring
+        r"""Backups a `_pretrim_start()` operation.
+
+        Arguments:
+            endex_max (int):
+                Exclusive end address of the erasure range.
+                If ``None``, :attr:`trim_start` plus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`_pretrim_start`
+        """
 
         trim_start = self._trim_start
         if trim_start is not None and size > 0:
@@ -3576,6 +3594,9 @@ class Memory:
 
             size (int):
                 Size of the erasure range.
+
+        See Also:
+            :meth:`_pretrim_endex_backup`
         """
 
         trim_endex = self._trim_endex
@@ -3592,7 +3613,22 @@ class Memory:
         start_min: Optional[Address],
         size: Address,
     ) -> 'Memory':
-        # TODO: docstring
+        r"""Backups a `_pretrim_endex()` operation.
+
+        Arguments:
+            start_min (int):
+                Starting address of the erasure range.
+                If ``None``, :attr:`trim_endex` minus `size` is considered.
+
+            size (int):
+                Size of the erasure range.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`_pretrim_endex`
+        """
 
         trim_endex = self._trim_endex
         if trim_endex is not None and size > 0:
