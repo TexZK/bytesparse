@@ -1344,6 +1344,10 @@ class Memory:
             >>> memory.append(3)
             >>> memory._blocks
             [[0, b'\x03']]
+
+        See Also:
+            :meth:`append_backup`
+            :meth:`append_restore`
         """
 
         if not isinstance(item, Value):
@@ -1361,14 +1365,27 @@ class Memory:
     def append_backup(
         self: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Backups an `append()` operation.
+
+        Returns:
+            None: Nothing.
+
+        See Also:
+            :meth:`append`
+            :meth:`append_restore`
+        """
 
         return None
 
     def append_restore(
         self: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores an `append()` operation.
+
+        See Also:
+            :meth:`append`
+            :meth:`append_backup`
+        """
 
         self.pop()
 
@@ -1385,11 +1402,12 @@ class Memory:
             items (items):
                 Items to append at the end of the current virtual space.
 
-                If a :obj:`list`, it is interpreted as a sequence of
-                non-overlapping blocks, sorted by start address.
-
             offset (int):
                 Optional offset w.r.t. :attr:`content_endex`.
+
+        See Also:
+            :meth:`extend_backup`
+            :meth:`extend_restore`
         """
 
         if offset < 0:
@@ -1398,22 +1416,45 @@ class Memory:
 
     def extend_backup(
         self: 'Memory',
-        items: Union[AnyBytes, 'Memory'],
         offset: Address = 0,
-    ) -> MemoryList:
-        # TODO: docstring
+    ) -> Address:
+        r"""Backups an `extend()` operation.
+
+        Arguments:
+            items (items):
+                Items to append at the end of the current virtual space.
+
+            offset (int):
+                Optional offset w.r.t. :attr:`content_endex`.
+
+        Returns:
+            int: Content exclusive end address.
+
+        See Also:
+            :meth:`extend`
+            :meth:`extend_restore`
+        """
 
         if offset < 0:
             raise ValueError('negative extension offset')
-        return self.write_backup(self.content_endex + offset, items)
+        return self.content_endex + offset
 
     def extend_restore(
         self: 'Memory',
-        backups: MemoryList,
+        content_endex: Address,
     ) -> None:
-        # TODO: docstring
+        r"""Restores an `extend()` operation.
 
-        self.write_restore(backups)
+        Arguments:
+            content_endex (int):
+                Content exclusive end address to restore.
+
+        See Also:
+            :meth:`extend`
+            :meth:`extend_backup`
+        """
+
+        self.clear(content_endex)
 
     def pop(
         self: 'Memory',
@@ -1445,6 +1486,10 @@ class Memory:
             122
             >>> memory.pop(3)  # -> ord('C') = 67
             67
+
+        See Also:
+            :meth:`pop_backup`
+            :meth:`pop_restore`
         """
 
         if address is None:
@@ -1466,7 +1511,20 @@ class Memory:
         self: 'Memory',
         address: Optional[Address] = None,
     ) -> Tuple[Address, Optional[Value]]:
-        # TODO: docstring
+        r"""Backups a `pop()` operation.
+
+        Arguments:
+            address (int):
+                Address of the byte to pop.
+                If ``None``, the very last byte is popped.
+
+        Returns:
+            (int, int): `address`, item at `address` (``None`` if empty).
+
+        See Also:
+            :meth:`pop`
+            :meth:`pop_restore`
+        """
 
         if address is None:
             address = self.endex - 1
@@ -1475,14 +1533,26 @@ class Memory:
     def pop_restore(
         self: 'Memory',
         address: Address,
-        value: Optional[Value],
+        item: Optional[Value],
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `pop()` operation.
 
-        if value is None:
+        Arguments:
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to restore, ``None`` if empty.
+
+        See Also:
+            :meth:`pop`
+            :meth:`pop_backup`
+        """
+
+        if item is None:
             self.reserve(address, 1)
         else:
-            self.insert(address, value)
+            self.insert(address, item)
 
     def _bytearray(
         self: 'Memory',
@@ -2522,6 +2592,10 @@ class Memory:
             None
             >>> memory.peek(5)  # -> ord('@') = 64
             64
+
+        See Also:
+            :meth:`poke_backup`
+            :meth:`poke_restore`
         """
 
         if item is None:
@@ -2587,18 +2661,42 @@ class Memory:
         self: 'Memory',
         address: Address,
     ) -> Tuple[Address, Optional[Value]]:
-        # TODO: docstring
+        r"""Backups a `poke()` operation.
+
+        Arguments:
+            address (int):
+                Address of the target item.
+
+        Returns:
+            (int, int): `address`, item at `address` (``None`` if empty).
+
+        See Also:
+            :meth:`poke`
+            :meth:`poke_restore`
+        """
 
         return address, self.peek(address)
 
     def poke_restore(
         self: 'Memory',
         address: Address,
-        value: Optional[Value],
+        item: Optional[Value],
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `poke()` operation.
 
-        self.poke(address, value)
+        Arguments:
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to restore.
+
+        See Also:
+            :meth:`poke`
+            :meth:`poke_backup`
+        """
+
+        self.poke(address, item)
 
     def extract(
         self: 'Memory',
@@ -2806,6 +2904,10 @@ class Memory:
             >>> memory.shift(-7)
             >>> memory._blocks
             [[2, b'yz']]
+
+        See Also:
+            :meth:`shift_backup`
+            :meth:`shift_restore`
         """
 
         if offset and self._blocks:
@@ -2821,7 +2923,19 @@ class Memory:
         self: 'Memory',
         offset: Address,
     ) -> Tuple[Address, 'Memory']:
-        # TODO: docstring
+        r"""Backups a `shift()` operation.
+
+        Arguments:
+            offset (int):
+                Signed amount of address shifting.
+
+        Returns:
+            (int, :obj:`Memory`): Shifting, backup memory region.
+
+        See Also:
+            :meth:`shift`
+            :meth:`shift_restore`
+        """
 
         if offset < 0:
             backup = self._pretrim_start_backup(None, -offset)
@@ -2834,7 +2948,19 @@ class Memory:
         offset: Address,
         backup: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores an `shift()` operation.
+
+        Arguments:
+            offset (int):
+                Signed amount of address shifting.
+
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`shift`
+            :meth:`shift_backup`
+        """
 
         self.shift(-offset)
         self.write(0, backup)
@@ -2883,6 +3009,10 @@ class Memory:
             >>> memory.reserve(5, 5)
             >>> memory._blocks
             [[10, b'AB']]
+
+        See Also:
+            :meth:`reserve_backup`
+            :meth:`reserve_restore`
         """
 
         blocks = self._blocks
@@ -2914,7 +3044,22 @@ class Memory:
         address: Address,
         size: Address,
     ) -> Tuple[Address, 'Memory']:
-        # TODO: docstring
+        r"""Backups a `reserve()` operation.
+
+        Arguments:
+            address (int):
+                Start address of the emptiness to insert.
+
+            size (int):
+                Size of the emptiness to insert.
+
+        Returns:
+            (int, :obj:`Memory`): Reservation address, backup memory region.
+
+        See Also:
+            :meth:`reserve`
+            :meth:`reserve_restore`
+        """
 
         backup = self._pretrim_endex_backup(address, size)
         return address, backup
@@ -2924,7 +3069,19 @@ class Memory:
         address: Address,
         backup: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `reserve()` operation.
+
+        Arguments:
+            address (int):
+                Address of the reservation point.
+
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`reserve`
+            :meth:`reserve_backup`
+        """
 
         self.delete(address, len(backup))
         self.write(0, backup)
@@ -3125,6 +3282,10 @@ class Memory:
             >>> memory.insert(8, b'1')
             >>> memory._blocks
             [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
+
+        See Also:
+            :meth:`insert_backup`
+            :meth:`insert_restore`
         """
 
         if isinstance(data, Memory):
@@ -3148,7 +3309,22 @@ class Memory:
         address: Address,
         data: Union[AnyBytes, Value, 'Memory'],
     ) -> Tuple[Address, 'Memory']:
-        # TODO: docstring
+        r"""Backups an `insert()` operation.
+
+        Arguments:
+            address (int):
+                Address of the insertion point.
+
+            data (bytes):
+                Data to insert.
+
+        Returns:
+            (int, :obj:`Memory`): Insertion address, backup memory region.
+
+        See Also:
+            :meth:`insert`
+            :meth:`insert_restore`
+        """
 
         backup = self._pretrim_endex_backup(address, len(data))
         return address, backup
@@ -3158,7 +3334,19 @@ class Memory:
         address: Address,
         backup: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores an `insert()` operation.
+
+        Arguments:
+            address (int):
+                Address of the insertion point.
+
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`insert`
+            :meth:`insert_backup`
+        """
 
         self.delete(address, len(backup))
         self.write(0, backup)
@@ -3192,6 +3380,10 @@ class Memory:
             >>> memory.delete(6, 10)
             >>> memory._blocks
             [[5, b'Ayz']]
+
+        See Also:
+            :meth:`delete_backup`
+            :meth:`delete_restore`
         """
 
         start, endex = self.bound(start, endex)
@@ -3199,21 +3391,46 @@ class Memory:
         if start < endex:
             self._erase(start, endex, True, True)  # delete
 
-    # TODO: delete_backup
     def delete_backup(
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> 'Memory':
-        # TODO: docstring
+        r"""Backups a `delete()` operation.
+
+        Arguments:
+            start (int):
+                Inclusive start address for deletion.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for deletion.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`delete`
+            :meth:`delete_restore`
+        """
 
         return self.extract(start, endex)
 
-    # TODO: delete_restore
     def delete_restore(
         self: 'Memory',
         backup: 'Memory',
     ) -> None:
+        r"""Restores a `delete()` operation.
+
+        Arguments:
+            backup (:obj:`Memory`):
+                Backup memory region
+
+        See Also:
+            :meth:`delete`
+            :meth:`delete_backup`
+        """
 
         self.insert(0, backup)
 
@@ -3246,6 +3463,10 @@ class Memory:
             >>> memory.clear(6, 10)
             >>> memory._blocks
             [[5, b'A'], [10, b'yz']]
+
+        See Also:
+            :meth:`clear_backup`
+            :meth:`clear_restore`
         """
 
         start, endex = self.bound(start, endex)
@@ -3258,7 +3479,24 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> 'Memory':
-        # TODO: docstring
+        r"""Backups a `clear()` operation.
+
+        Arguments:
+            start (int):
+                Inclusive start address for clearing.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for clearing.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`clear`
+            :meth:`clear_restore`
+        """
 
         return self.extract(start, endex)
 
@@ -3266,7 +3504,16 @@ class Memory:
         self: 'Memory',
         backup: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `clear()` operation.
+
+        Arguments:
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`clear`
+            :meth:`clear_backup`
+        """
 
         self.write(0, backup)
 
@@ -3421,6 +3668,10 @@ class Memory:
             >>> memory.crop(6, 10)
             >>> memory._blocks
             [[6, b'BC'], [9, b'x']]
+
+        See Also:
+            :meth:`crop_backup`
+            :meth:`crop_restore`
         """
 
         self._crop(start, endex)
@@ -3430,7 +3681,24 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Tuple[Optional['Memory'], Optional['Memory']]:
-        # TODO: docstring
+        r"""Backups a `crop()` operation.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cropping.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cropping.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory` couple: Backup memory regions.
+
+        See Also:
+            :meth:`crop`
+            :meth:`crop_restore`
+        """
 
         backup_start = None
         backup_endex = None
@@ -3454,7 +3722,19 @@ class Memory:
         backup_start: Optional['Memory'],
         backup_endex: Optional['Memory'],
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `crop()` operation.
+
+        Arguments:
+            backup_start (:obj:`Memory`):
+                Backup memory region to restore at the beginning.
+
+            backup_endex (:obj:`Memory`):
+                Backup memory region to restore at the end.
+
+        See Also:
+            :meth:`crop`
+            :meth:`crop_backup`
+        """
 
         if backup_start is not None:
             self.write(0, backup_start)
@@ -3493,6 +3773,10 @@ class Memory:
             >>> memory.write(5, b'123')
             >>> memory._blocks
             [[1, b'ABC'], [5, b'123z']]
+
+        See Also:
+            :meth:`write_backup`
+            :meth:`write_restore`
         """
 
         if isinstance(data, Memory):
@@ -3570,7 +3854,26 @@ class Memory:
         data: Union[AnyBytes, Value, 'Memory'],
         clear: bool = False,
     ) -> MemoryList:
-        # TODO: docstring
+        r"""Backups a `write()` operation.
+
+        Arguments:
+            address (int):
+                Address where to start writing data.
+
+            data (bytes):
+                Data to write.
+
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
+        Returns:
+            :obj:`Memory` list: Backup memory regions.
+
+        See Also:
+            :meth:`write`
+            :meth:`write_restore`
+        """
 
         backups: MemoryList = []
 
@@ -3621,7 +3924,16 @@ class Memory:
         self: 'Memory',
         backups: MemoryList,
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `write()` operation.
+
+        Arguments:
+            backups (:obj:`Memory` list):
+                Backup memory regions to restore.
+
+        See Also:
+            :meth:`write`
+            :meth:`write_backup`
+        """
 
         for backup in backups:
             self.write(0, backup)
@@ -3674,6 +3986,10 @@ class Memory:
             >>> memory.fill(3, 7, b'123')
             >>> memory._blocks
             [[1, b'AB1231yz']]
+
+        See Also:
+            :meth:`fill_backup`
+            :meth:`fill_restore`
         """
 
         start_ = start
@@ -3706,7 +4022,24 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> 'Memory':
-        # TODO: docstring
+        r"""Backups a `fill()` operation.
+
+        Arguments:
+            start (int):
+                Inclusive start address for filling.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for filling.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`fill`
+            :meth:`fill_restore`
+        """
 
         return self.extract(start, endex)
 
@@ -3714,7 +4047,16 @@ class Memory:
         self: 'Memory',
         backup: 'Memory',
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `fill()` operation.
+
+        Arguments:
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`fill`
+            :meth:`fill_backup`
+        """
 
         self.write(0, backup)
 
@@ -3766,6 +4108,10 @@ class Memory:
             >>> memory.flood(3, 7, b'123')
             >>> memory._blocks
             [[1, b'ABC23xyz']]
+
+        See Also:
+            :meth:`flood_backup`
+            :meth:`flood_restore`
         """
 
         start, endex = self.bound(start, endex)
@@ -3825,7 +4171,24 @@ class Memory:
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> List[OpenInterval]:
-        # TODO: docstring
+        r"""Backups a `flood()` operation.
+
+        Arguments:
+            start (int):
+                Inclusive start address for filling.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for filling.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            list of open intervals: Backup memory gaps.
+
+        See Also:
+            :meth:`flood`
+            :meth:`flood_restore`
+        """
 
         return list(self.gaps(start, endex))
 
@@ -3833,7 +4196,16 @@ class Memory:
         self: 'Memory',
         gaps: List[OpenInterval],
     ) -> None:
-        # TODO: docstring
+        r"""Restores a `flood()` operation.
+
+        Arguments:
+            gaps (list of open intervals):
+                Backup memory gaps to restore.
+
+        See Also:
+            :meth:`flood`
+            :meth:`flood_backup`
+        """
 
         for gap_start, gap_endex in gaps:
             self.clear(gap_start, gap_endex)
