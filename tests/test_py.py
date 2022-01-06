@@ -113,3 +113,4 @@ class TestMemory(BaseMemorySuite):
 
 class TestMemoryNonNegative(BaseMemorySuite):
     Memory: Type['_Memory'] = _Memory
+    ADDR_NEG: bool = False
