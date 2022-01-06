@@ -1562,44 +1562,6 @@ class Memory:
         else:
             self.insert(address, item)
 
-    def _bytearray(
-        self: 'Memory',
-    ) -> bytearray:
-        r"""Underlying bytearray.
-
-        Returns:
-            bytearray: The underlying bytearray.
-
-        Raises:
-            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
-        """
-
-        blocks = self._blocks
-
-        if not blocks:
-            start = self._trim_start
-            endex = self._trim_endex
-            if start is not None and endex is not None and start < endex - 1:
-                raise ValueError('non-contiguous data within range')
-            return bytearray()
-
-        elif len(blocks) == 1:
-            start = self._trim_start
-            if start is not None:
-                if start != blocks[0][0]:
-                    raise ValueError('non-contiguous data within range')
-
-            endex = self._trim_endex
-            if endex is not None:
-                block_start, block_data = blocks[-1]
-                if endex != block_start + len(block_data):
-                    raise ValueError('non-contiguous data within range')
-
-            return blocks[0][1]
-
-        else:
-            raise ValueError('non-contiguous data within range')
-
     def __bytes__(
         self: 'Memory',
     ) -> bytes:
@@ -1648,11 +1610,21 @@ class Memory:
         If trimming is defined, there must be no empty space also towards it.
         """
 
-        try:
-            self._bytearray()
-            return True
-        except ValueError:
+        start = self.start
+        endex = self.endex
+
+        if start < endex:
+            block_index = self._block_index_at(start)
+
+            if block_index is not None:
+                block_start, block_data = self._blocks[block_index]
+
+                if endex <= block_start + len(block_data):
+                    return True
+
             return False
+        else:
+            return True
 
     @property
     def trim_start(
@@ -2272,10 +2244,10 @@ class Memory:
             tuple of int: Bounded `start` and `endex`, closed interval.
 
         Examples:
-            >>> Memory().bound()
+            >>> Memory().bound(None, None)
             (0, 0)
-            >>> Memory().bound(endex=100)
-            (0, 0)
+            >>> Memory().bound(None, 100)
+            (0, 100)
 
             ~~~
 
@@ -2287,12 +2259,12 @@ class Memory:
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.bound(0, 30)
-            (1, 8)
+            (0, 30)
             >>> memory.bound(2, 6)
             (2, 6)
-            >>> memory.bound(endex=6)
+            >>> memory.bound(None, 6)
             (1, 6)
-            >>> memory.bound(start=2)
+            >>> memory.bound(2, None)
             (2, 8)
 
             ~~~
@@ -2304,15 +2276,15 @@ class Memory:
             +---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory.from_blocks([[3, b'ABC']], start=1, endex=8)
-            >>> memory.bound()
+            >>> memory.bound(None, None)
             (1, 8)
             >>> memory.bound(0, 30)
             (1, 8)
             >>> memory.bound(2, 6)
             (2, 6)
-            >>> memory.bound(start=2)
+            >>> memory.bound(2, None)
             (2, 8)
-            >>> memory.bound(endex=6)
+            >>> memory.bound(None, 6)
             (1, 6)
         """
 
@@ -2758,9 +2730,9 @@ class Memory:
             [[1, b'ABCD'], [6, b'$'], [8, b'x']]
             >>> memory.extract(5, 8).span
             (5, 8)
-            >>> memory.extract(pattern='.')._blocks
+            >>> memory.extract(pattern=b'.')._blocks
             [[1, b'ABCD.$.xyz']]
-            >>> memory.extract(pattern='.', step=3)._blocks
+            >>> memory.extract(pattern=b'.', step=3)._blocks
             [[1, b'AD.z']]
         """
 
@@ -2854,6 +2826,16 @@ class Memory:
             >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> bytes(memory.view(2, 5))
             b'BCD'
+            >>> bytes(memory.view(9, 10))
+            b'y'
+            >>> memory.view()
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+            >>> memory.view(0, 6)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
         """
 
         if start is None:
@@ -2908,8 +2890,8 @@ class Memory:
             |   |[y | z]|   |   |   |   |   |   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], start=2)
-            >>> memory.shift(-7)
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], start=3)
+            >>> memory.shift(-8)
             >>> memory._blocks
             [[2, b'yz']]
 
@@ -3001,7 +2983,7 @@ class Memory:
             >>> memory = Memory.from_blocks([[3, b'ABC'], [7, b'xyz']])
             >>> memory.reserve(4, 2)
             >>> memory._blocks
-            [[2, b'A'], [6, b'BC'], [9, b'xyz']]
+            [[3, b'A'], [6, b'BC'], [9, b'xyz']]
 
             ~~~
 
@@ -4241,7 +4223,7 @@ class Memory:
             >>> list(memory.keys())
             [1, 2, 3, 4, 5, 6, 7, 8]
             >>> list(memory.keys(endex=8))
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            [1, 2, 3, 4, 5, 6, 7]
             >>> list(memory.keys(3, 8))
             [3, 4, 5, 6, 7]
             >>> list(islice(memory.keys(3, ...), 7))
@@ -4289,7 +4271,7 @@ class Memory:
             >>> from itertools import islice
             >>> memory = Memory()
             >>> list(memory.values(endex=8))
-            [None, None, None, None, None, None, None]
+            [None, None, None, None, None, None, None, None]
             >>> list(memory.values(3, 8))
             [None, None, None, None, None]
             >>> list(islice(memory.values(3, ...), 7))
@@ -4384,7 +4366,7 @@ class Memory:
             >>> from itertools import islice
             >>> memory = Memory()
             >>> list(memory.values(endex=8))
-            [None, None, None, None, None, None, None]
+            [None, None, None, None, None, None, None, None]
             >>> list(memory.values(3, 8))
             [None, None, None, None, None]
             >>> list(islice(memory.values(3, ...), 7))
