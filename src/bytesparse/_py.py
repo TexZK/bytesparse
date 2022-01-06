@@ -453,7 +453,7 @@ class Memory:
             >>> memory1 = Memory.from_bytes(b'ABC', 5)
             >>> memory2 = Memory.from_memory(memory1)
             >>> memory2._blocks
-            [[5, b'ABC]]
+            [[5, b'ABC']]
             >>> memory1 == memory2
             True
             >>> memory1 is memory2
@@ -466,14 +466,14 @@ class Memory:
             >>> memory1 = Memory.from_bytes(b'ABC', 10)
             >>> memory2 = Memory.from_memory(memory1, -3)
             >>> memory2._blocks
-            [[7, b'ABC]]
+            [[7, b'ABC']]
             >>> memory1 == memory2
             False
 
             ~~~
 
             >>> memory1 = Memory.from_bytes(b'ABC', 10)
-            >>> memory2 = Memory.from_memory(memory2, copy=False)
+            >>> memory2 = Memory.from_memory(memory1, copy=False)
             >>> all((b1[1] is b2[1])  # compare block data
             ...     for b1, b2 in zip(memory1._blocks, memory2._blocks))
             True
@@ -530,13 +530,19 @@ class Memory:
             |   |[A | B | C]|   |   |   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [7, b'xyz']])
-            >>> memory._blocks
-            'ABCxyz'
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [7, b'xyz']])
+            >>> str(memory)
+            <[[1, b'ABC'], [7, b'xyz']]>
         """
 
         if self.content_size < STR_MAX_CONTENT_SIZE:
-            return repr(self._blocks)
+            trim_start = '' if self._trim_start is None else f'{self._trim_start}, '
+            trim_endex = '' if self._trim_endex is None else f', {self._trim_endex}'
+
+            inner = ', '.join(f'[{block_start}, b{block_data.decode()!r}]'
+                              for block_start, block_data in self._blocks)
+
+            return f'<{trim_start}[{inner}]{trim_endex}>'
         else:
             return repr(self)
 
@@ -553,7 +559,7 @@ class Memory:
             >>> bool(memory)
             False
 
-            >>> memory = Memory(data=b'Hello, World!', offset=5)
+            >>> memory = Memory.from_bytes(b'Hello, World!', 5)
             >>> bool(memory)
             True
         """
@@ -572,33 +578,32 @@ class Memory:
 
                 If it is a :obj:`Memory`, all of its blocks must match.
 
-                If it is a :obj:`list`, it is expected that it contains the
-                same blocks as `self`.
+                If it is a :obj:`bytes`, a :obj:`bytearray`, or a
+                :obj:`memoryview`, it is expected to match the first and only
+                stored block.
 
-                Otherwise, it must match the first stored block, considered
-                equal if also starts at 0.
+                Otherwise, it must match the first and only stored block,
+                via iteration over the stored values.
 
         Returns:
             bool: `self` is equal to `other`.
 
         Examples:
             >>> data = b'Hello, World!'
-            >>> memory = Memory(data=data)
+            >>> memory = Memory.from_bytes(data)
             >>> memory == data
             True
             >>> memory.shift(1)
             >>> memory == data
-            False
+            True
 
             >>> data = b'Hello, World!'
-            >>> memory = Memory(data=data)
-            >>> memory == [[0, data]]
-            True
+            >>> memory = Memory.from_bytes(data)
             >>> memory == list(data)
-            False
+            True
             >>> memory.shift(1)
-            >>> memory == [[0, data]]
-            False
+            >>> memory == list(data)
+            True
         """
 
         if isinstance(other, Memory):
@@ -606,13 +611,16 @@ class Memory:
 
         elif isinstance(other, (bytes, bytearray, memoryview)):
             blocks = self._blocks
-            if blocks or other:
-                return len(blocks) == 1 and blocks[0][1] == other
+            block_count = len(blocks)
+            if block_count > 1:
+                return False
+            elif block_count:
+                return blocks[0][1] == other
             else:
-                return True
+                return len(other) == 0
 
         else:
-            iter_self = _islice(self, len(self))  # avoid infinite loop
+            iter_self = self.values()
             iter_other = iter(other)
             return all(a == b for a, b in _zip_longest(iter_self, iter_other, fillvalue=None))
 
@@ -970,7 +978,7 @@ class Memory:
             |   |[A | B | C]|   |[1 | 2 | 3]|   |[x | y | z]|
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'123'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'123'], [9, b'xyz']])
             >>> b'23' in memory
             True
             >>> ord('y') in memory
@@ -1011,7 +1019,7 @@ class Memory:
             |   |[A | B | C]|   |[B | a | t]|   |[t | a | b]|
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'Bat'], [9, b'tab']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'Bat'], [9, b'tab']])
             >>> memory.count(b'a')
             2
         """
@@ -1067,7 +1075,7 @@ class Memory:
             |   | 65| 66| 67| 68|   | 36|   |120|121|122|
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory[9]  # -> ord('y') = 121
             121
             >>> memory[:3]._blocks
@@ -1141,7 +1149,7 @@ class Memory:
             |   |[A | 1 | C]|   |[2 | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory[7:10] = None
             >>> memory._blocks
             [[5, b'AB'], [10, b'yz']]
@@ -1170,7 +1178,7 @@ class Memory:
             |[$]|   |[A | B | 4 | 5 | < | > | 8 | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory[0:4] = b'$'
             >>> memory._blocks
             [[0, b'$'], [2, b'ABC'], [6, b'xyz']]
@@ -1269,7 +1277,7 @@ class Memory:
             |   |[A | B | C | y | z]|   |   |   |   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> del memory[4:9]
             >>> memory._blocks
             [[1, b'ABCyz']]
@@ -1288,7 +1296,7 @@ class Memory:
             |   |[A | D]|   |   |[x]|   |   |   |   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> del memory[9]
             >>> memory._blocks
             [[1, b'ABCD'], [6, b'$'], [8, b'xz']]
@@ -1481,7 +1489,7 @@ class Memory:
             |   |[A | B | D]|   |[$]|   |[x | y]|   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.pop()  # -> ord('z') = 122
             122
             >>> memory.pop(3)  # -> ord('C') = 67
@@ -1750,7 +1758,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.start
             1
 
@@ -1762,7 +1770,7 @@ class Memory:
             |   |[[[|   |   |   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'xyz']], start=1)
+            >>> memory = Memory.from_blocks([[5, b'xyz']], start=1)
             >>> memory.start
             1
         """
@@ -1804,7 +1812,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.endex
             8
 
@@ -1816,7 +1824,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.endex
             8
         """
@@ -1855,7 +1863,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.span
             (1, 8)
         """
@@ -1888,7 +1896,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.endin
             7
 
@@ -1900,7 +1908,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.endin
             7
         """
@@ -1947,7 +1955,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_start
             1
 
@@ -1959,7 +1967,7 @@ class Memory:
             |   |[[[|   |   |   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'xyz']], start=1)
+            >>> memory = Memory.from_blocks([[5, b'xyz']], start=1)
             >>> memory.content_start
             5
         """
@@ -2002,7 +2010,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_endex
             8
 
@@ -2014,7 +2022,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.content_endex
             4
         """
@@ -2055,7 +2063,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_span
             (1, 8)
         """
@@ -2093,7 +2101,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_endin
             7
 
@@ -2105,7 +2113,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.content_endin
             3
         """
@@ -2142,7 +2150,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_size
             6
 
@@ -2154,7 +2162,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.content_size
             3
         """
@@ -2182,7 +2190,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.content_parts
             2
 
@@ -2194,7 +2202,7 @@ class Memory:
             |   |[A | B | C]|   |   |   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC']], endex=8)
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
             >>> memory.content_parts
             1
         """
@@ -2277,7 +2285,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [5, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
             >>> memory.bound(0, 30)
             (1, 8)
             >>> memory.bound(2, 6)
@@ -2295,7 +2303,7 @@ class Memory:
             |   |[[[|   |[A | B | C]|   |   |)))|
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[3, b'ABC']], start=1, endex=8)
+            >>> memory = Memory.from_blocks([[3, b'ABC']], start=1, endex=8)
             >>> memory.bound()
             (1, 8)
             >>> memory.bound(0, 30)
@@ -2370,7 +2378,7 @@ class Memory:
             |   | 0 | 0 | 0 | 0 |   | 1 |   | 2 | 2 | 2 |   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> [memory._block_index_at(i) for i in range(12)]
             [None, 0, 0, 0, 0, None, 1, None, 2, 2, 2, None]
         """
@@ -2429,7 +2437,7 @@ class Memory:
             | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 3 |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> [memory._block_index_start(i) for i in range(12)]
             [0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 3]
         """
@@ -2488,7 +2496,7 @@ class Memory:
             | 0 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> [memory._block_index_endex(i) for i in range(12)]
             [0, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3]
         """
@@ -2536,7 +2544,7 @@ class Memory:
             |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.peek(3)  # -> ord('C') = 67
             67
             >>> memory.peek(6)  # -> ord('$') = 36
@@ -2579,11 +2587,11 @@ class Memory:
             |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.poke(3, b'@')
             >>> memory.peek(3)  # -> ord('@') = 64
             64
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.poke(5, b'@')
             >>> memory.peek(5)  # -> ord('@') = 64
             64
@@ -2739,7 +2747,7 @@ class Memory:
             |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.extract()._blocks
             [[1, b'ABCD'], [6, b'$'], [8, b'xyz']]
             >>> memory.extract(2, 9)._blocks
@@ -2804,7 +2812,7 @@ class Memory:
 
                 memory._blocks = blocks
                 if bound:
-                    endex_ = offset
+                    endex = offset
         if bound:
             memory._trim_start = start
             memory._trim_endex = endex
@@ -2843,7 +2851,7 @@ class Memory:
             |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> bytes(memory.view(2, 5))
             b'BCD'
         """
@@ -2885,7 +2893,7 @@ class Memory:
             |   |[A | B | C]|   |[x | y | z]|   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.shift(-2)
             >>> memory._blocks
             [[3, b'ABC'], [7, b'xyz']]
@@ -2900,7 +2908,7 @@ class Memory:
             |   |[y | z]|   |   |   |   |   |   |   |   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], start=2)
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], start=2)
             >>> memory.shift(-7)
             >>> memory._blocks
             [[2, b'yz']]
@@ -2990,7 +2998,7 @@ class Memory:
             |   |[A]|   |   | B | C]|   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[3, b'ABC'], [7, b'xyz']])
+            >>> memory = Memory.from_blocks([[3, b'ABC'], [7, b'xyz']])
             >>> memory.reserve(4, 2)
             >>> memory._blocks
             [[2, b'A'], [6, b'BC'], [9, b'xyz']]
@@ -3005,7 +3013,7 @@ class Memory:
             |   |   |   |   |   |   |   |   |[A | B]|)))|
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']], endex=12)
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], endex=12)
             >>> memory.reserve(5, 5)
             >>> memory._blocks
             [[10, b'AB']]
@@ -3269,7 +3277,7 @@ class Memory:
             |   |[A | B | C]|   |   |[x | y | 1 | z]|   |[$]|
             +---+---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.insert(10, b'$')
             >>> memory._blocks
             [[1, b'ABC'], [6, b'xyz'], [10, b'$']]
@@ -3359,7 +3367,7 @@ class Memory:
             |   |[A | y | z]|   |   |   |   |   |   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.delete(6, 10)
             >>> memory._blocks
             [[5, b'Ayz']]
@@ -3445,7 +3453,7 @@ class Memory:
             |   |[A]|   |   |   |   |[y | z]|   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.clear(6, 10)
             >>> memory._blocks
             [[5, b'A'], [10, b'yz']]
@@ -3653,7 +3661,7 @@ class Memory:
             |   |   |[B | C]|   |[x]|   |   |   |
             +---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[5, b'ABC'], [9, b'xyz']])
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.crop(6, 10)
             >>> memory._blocks
             [[6, b'BC'], [9, b'x']]
@@ -3663,7 +3671,7 @@ class Memory:
             :meth:`crop_restore`
         """
 
-        blocks = self._blocks  # may change
+        blocks = self._blocks  # may change during execution
 
         # Trim blocks exceeding before memory start
         if start is not None and blocks:
@@ -3706,18 +3714,19 @@ class Memory:
 
         backup_start = None
         backup_endex = None
+
         blocks = self._blocks  # may change
+        if blocks:
+            if start is not None:
+                block_start = blocks[0][0]
+                if block_start < start:
+                    backup_start = self.extract(block_start, start)
 
-        if start is not None and blocks:
-            block_start = blocks[0][0]
-            if block_start < start:
-                backup_start = self.extract(block_start, start)
-
-        if endex is not None and blocks:
-            block_start, block_data = blocks[-1]
-            block_endex = block_start + len(block_data)
-            if endex < block_endex:
-                backup_endex = self.extract(endex, block_endex)
+            if endex is not None:
+                block_start, block_data = blocks[-1]
+                block_endex = block_start + len(block_data)
+                if endex < block_endex:
+                    backup_endex = self.extract(endex, block_endex)
 
         return backup_start, backup_endex
 
@@ -3773,7 +3782,7 @@ class Memory:
             |   |[A | B | C]|   |[1 | 2 | 3 | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.write(5, b'123')
             >>> memory._blocks
             [[1, b'ABC'], [5, b'123z']]
@@ -3942,7 +3951,7 @@ class Memory:
             |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.fill(pattern=b'123')
             >>> memory._blocks
             [[1, b'12312312']]
@@ -3957,7 +3966,7 @@ class Memory:
             |   |[A | B | 1 | 2 | 3 | 1 | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.fill(3, 7, b'123')
             >>> memory._blocks
             [[1, b'AB1231yz']]
@@ -4064,7 +4073,7 @@ class Memory:
             |   |[A | B | C | 1 | 2 | x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.flood(pattern=b'123')
             >>> memory._blocks
             [[1, b'ABC12xyz']]
@@ -4079,7 +4088,7 @@ class Memory:
             |   |[A | B | C | 2 | 3 | x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.flood(3, 7, b'123')
             >>> memory._blocks
             [[1, b'ABC23xyz']]
@@ -4228,7 +4237,7 @@ class Memory:
             |   |[A | B | C]|   |   |[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> list(memory.keys())
             [1, 2, 3, 4, 5, 6, 7, 8]
             >>> list(memory.keys(endex=8))
@@ -4296,7 +4305,7 @@ class Memory:
             |   | 65| 66| 67|   |   |120|121|122|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> list(memory.values())
             [65, 66, 67, None, None, 120, 121, 122]
             >>> list(memory.values(3, 8))
@@ -4391,7 +4400,7 @@ class Memory:
             |   | 65| 66| 67|   |   |120|121|122|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> list(memory.values())
             [65, 66, 67, None, None, 120, 121, 122]
             >>> list(memory.values(3, 8))
@@ -4490,7 +4499,7 @@ class Memory:
             |   | 65| 66| 67|   |   |120|121|122|   |
             +---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'ABC'], [6, b'xyz']])
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> list(memory.items())
             [(1, 65), (2, 66), (3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122)]
             >>> list(memory.items(3, 8))
@@ -4534,7 +4543,7 @@ class Memory:
             |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
             >>> list(memory.intervals())
             [(1, 3), (5, 6), (7, 10)]
             >>> list(memory.intervals(2, 9))
@@ -4592,10 +4601,14 @@ class Memory:
             |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
             >>> list(memory.gaps())
             [(None, 1), (3, 5), (6, 7), (10, None)]
+            >>> list(memory.gaps(0, 11, bound=False))
+            [(0, 1), (3, 5), (6, 7), (10, 11)]
             >>> list(memory.gaps(bound=True))
+            [(3, 5), (6, 7)]
+            >>> list(memory.gaps(0, 11, bound=True))
             [(3, 5), (6, 7)]
             >>> list(memory.gaps(2, 6))
             [(3, 5)]
@@ -4670,7 +4683,7 @@ class Memory:
             | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
             >>> memory.equal_span(2)
             (1, 4, 66)
             >>> memory.equal_span(4)
@@ -4769,7 +4782,7 @@ class Memory:
             | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
             +---+---+---+---+---+---+---+---+---+---+---+
 
-            >>> memory = Memory(blocks=[[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
             >>> memory.block_span(2)
             (0, 5, 66)
             >>> memory.block_span(4)
