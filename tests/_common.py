@@ -30,10 +30,10 @@ from typing import Optional
 
 import pytest
 
+from bytesparse import STR_MAX_CONTENT_SIZE
 from bytesparse import Address
 from bytesparse import BlockList
 from bytesparse import OpenInterval
-from bytesparse import STR_MAX_CONTENT_SIZE
 from bytesparse import Value
 from bytesparse import collapse_blocks
 
