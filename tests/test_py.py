@@ -74,38 +74,6 @@ class TestMemory(BaseMemorySuite):
         assert memory._blocks == blocks
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory._blocks, blocks))
 
-    def test__bytearray(self):
-        Memory = self.Memory
-        memory = Memory()
-        assert memory._bytearray() == b''
-
-        memory = Memory.from_bytes(b'xyz', offset=5)
-        assert memory._bytearray() == b'xyz'
-
-        blocks = [[5, b'xyz']]
-        memory = Memory.from_blocks(blocks, copy=False)
-        assert memory._bytearray() is blocks[0][1]
-
-    def test__bytearray_invalid(self):
-        Memory = self.Memory
-        match = r'non-contiguous data within range'
-
-        memory = Memory(start=1, endex=9)
-        with pytest.raises(ValueError, match=match):
-            memory._bytearray()
-
-        memory = Memory.from_bytes(b'xyz', offset=5, start=1)
-        with pytest.raises(ValueError, match=match):
-            memory._bytearray()
-
-        memory = Memory.from_bytes(b'xyz', offset=5, endex=9)
-        with pytest.raises(ValueError, match=match):
-            memory._bytearray()
-
-        memory = Memory.from_blocks(create_template_blocks())
-        with pytest.raises(ValueError, match=match):
-            memory._bytearray()
-
     def test___copy___empty(self):
         Memory = self.Memory
         memory1 = Memory()
