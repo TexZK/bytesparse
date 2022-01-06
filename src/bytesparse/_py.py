@@ -4552,7 +4552,6 @@ class Memory:
         self: 'Memory',
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-        bound: bool = False,
     ) -> Iterator[OpenInterval]:
         r"""Iterates over block gaps.
 
@@ -4569,10 +4568,6 @@ class Memory:
                 Exclusive end address.
                 If ``None``, :attr:`endex` is considered.
 
-            bound (bool):
-                Only gaps within blocks are considered; emptiness before and
-                after global data bounds are ignored.
-
         Yields:
             couple of addresses: Block data interval boundaries.
 
@@ -4586,11 +4581,9 @@ class Memory:
             >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
             >>> list(memory.gaps())
             [(None, 1), (3, 5), (6, 7), (10, None)]
-            >>> list(memory.gaps(0, 11, bound=False))
+            >>> list(memory.gaps(0, 11))
             [(0, 1), (3, 5), (6, 7), (10, 11)]
-            >>> list(memory.gaps(bound=True))
-            [(3, 5), (6, 7)]
-            >>> list(memory.gaps(0, 11, bound=True))
+            >>> list(memory.gaps(*memory.span))
             [(3, 5), (6, 7)]
             >>> list(memory.gaps(2, 6))
             [(3, 5)]
@@ -4603,9 +4596,8 @@ class Memory:
             start, endex = self.bound(start, endex)
 
             if start_ is None:
-                if not bound:
-                    start = blocks[0][0]  # override trim start
-                    yield None, start
+                start = blocks[0][0]  # override trim start
+                yield None, start
                 block_index_start = 0
             else:
                 block_index_start = self._block_index_start(start)
@@ -4621,12 +4613,12 @@ class Memory:
                     yield start, block_start
                 start = block_start + len(block_data)
 
-            if endex_ is None and not bound:
+            if endex_ is None:
                 yield start, None
             elif start < endex:
                 yield start, endex
 
-        elif not bound:
+        else:
             yield None, None
 
     def equal_span(

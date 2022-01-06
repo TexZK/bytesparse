@@ -3532,6 +3532,32 @@ class BaseMemorySuite:
                     rvalues_ref = list(islice(values, start, endex))[::-1]
                 assert rvalues_out == rvalues_ref, (endex, size, rvalues_out, rvalues_ref)
 
+    def test_items_doctest(self):
+        Memory = self.Memory
+
+        from itertools import islice
+        memory = Memory()
+        values_out = list(memory.items(endex=8))
+        values_ref = [(0, None), (1, None), (2, None), (3, None), (4, None), (5, None), (6, None), (7, None)]
+        assert values_out == values_ref
+        values_out = list(memory.items(3, 8))
+        values_ref = [(3, None), (4, None), (5, None), (6, None), (7, None)]
+        assert values_out == values_ref
+        values_out = list(islice(memory.items(3, ...), 7))
+        values_ref = [(3, None), (4, None), (5, None), (6, None), (7, None), (8, None), (9, None)]
+        assert values_out == values_ref
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        values_out = list(memory.items())
+        values_ref = [(1, 65), (2, 66), (3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122)]
+        assert values_out == values_ref
+        values_out = list(memory.items(3, 8))
+        values_ref = [(3, 67), (4, None), (5, None), (6, 120), (7, 121)]
+        assert values_out == values_ref
+        values_out = list(islice(memory.items(3, ...), 7))
+        values_ref = [(3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122), (9, None)]
+        assert values_out == values_ref
+
     def test_items_template(self):
         Memory = self.Memory
         for start in range(MAX_START):
@@ -3546,6 +3572,13 @@ class BaseMemorySuite:
                 keys_ref = list(range(start, start + size))
                 items_ref = list(zip(keys_ref, values_ref))
                 assert items_out == items_ref, (start, size, items_out, items_ref)
+
+    def test_intervals_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+        assert list(memory.intervals()) == [(1, 3), (5, 6), (7, 10)]
+        assert list(memory.intervals(2, 9)) == [(2, 3), (5, 6), (7, 9)]
+        assert list(memory.intervals(3, 5)) == []
 
     def test_intervals(self):
         Memory = self.Memory
@@ -3576,6 +3609,14 @@ class BaseMemorySuite:
         intervals_out = list(memory.intervals())
         assert intervals_out == intervals_ref, (intervals_out, intervals_ref)
 
+    def test_gaps_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+        assert list(memory.gaps()) == [(None, 1), (3, 5), (6, 7), (10, None)]
+        assert list(memory.gaps(0, 11)) == [(0, 1), (3, 5), (6, 7), (10, 11)]
+        assert list(memory.gaps(*memory.span)) == [(3, 5), (6, 7)]
+        assert list(memory.gaps(2, 6)) == [(3, 5)]
+
     def test_gaps(self):
         Memory = self.Memory
         for start in range(MAX_START):
@@ -3584,10 +3625,9 @@ class BaseMemorySuite:
                 values = blocks_to_values(blocks, MAX_SIZE)
                 memory = Memory.from_blocks(blocks)
 
-                for bound in (False, True):
-                    gaps_ref = values_to_gaps(values, start, endex, bound)
-                    gaps_out = list(memory.gaps(start, endex, bound))
-                    assert gaps_out == gaps_ref, (gaps_out, gaps_ref)
+                gaps_ref = values_to_gaps(values, start, endex)
+                gaps_out = list(memory.gaps(start, endex))
+                assert gaps_out == gaps_ref, (start, endex, gaps_out, gaps_ref)
 
     def test_gaps_unbounded(self):
         Memory = self.Memory
@@ -3595,10 +3635,9 @@ class BaseMemorySuite:
         values = blocks_to_values(blocks, MAX_SIZE)
         memory = Memory.from_blocks(blocks)
 
-        for bound in (False, True):
-            gaps_ref = values_to_gaps(values, bound=bound)
-            gaps_out = list(memory.gaps(bound=bound))
-            assert gaps_out == gaps_ref, (gaps_out, gaps_ref)
+        gaps_ref = values_to_gaps(values)
+        gaps_out = list(memory.gaps())
+        assert gaps_out == gaps_ref, (gaps_out, gaps_ref)
 
     def test_gaps_empty(self):
         Memory = self.Memory
@@ -3606,10 +3645,21 @@ class BaseMemorySuite:
         values = blocks_to_values(blocks, MAX_SIZE)
         memory = Memory.from_blocks(blocks)
 
-        for bound in (False, True):
-            gaps_ref = values_to_gaps(values, bound=bound)
-            gaps_out = list(memory.gaps(bound=bound))
-            assert gaps_out == gaps_ref, (gaps_out, gaps_ref)
+        gaps_ref = values_to_gaps(values)
+        gaps_out = list(memory.gaps())
+        assert gaps_out == gaps_ref, (gaps_out, gaps_ref)
+
+    def test_equal_span_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        assert memory.equal_span(0) == (None, None, None)
+
+        memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
+        assert memory.equal_span(2) == (1, 4, 66)
+        assert memory.equal_span(4) == (4, 5, 67)
+        assert memory.equal_span(5) == (5, 7, None)
+        assert memory.equal_span(10) == (10, None, None)
 
     def test_equal_span_template(self):
         Memory = self.Memory
@@ -3640,6 +3690,18 @@ class BaseMemorySuite:
 
             assert value is None, (value,)
             assert (start, endex) == span, (start, endex, span)
+
+    def test_block_span_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        assert memory.block_span(0) == (None, None, None)
+
+        memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
+        assert memory.block_span(2) == (0, 5, 66)
+        assert memory.block_span(4) == (0, 5, 67)
+        assert memory.block_span(5) == (5, 7, None)
+        assert memory.block_span(10) == (10, None, None)
 
     def test_block_span(self):
         Memory = self.Memory
