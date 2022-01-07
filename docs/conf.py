@@ -24,7 +24,7 @@ project = 'bytesparse'
 year = '2020-2022'
 author = 'Andrea Zoppi'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '0.0.3'
+version = release = '0.0.4'
 
 pygments_style = 'trac'
 templates_path = ['_templates']

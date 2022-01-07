@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.0.4 (TODO)
+------------
+
+* Removed experimental backup feature.
+* Added dedicated methods to backup/restore mutated state.
+* Fixed some write/insert bugs.
+* Fixed some trim/bound bugs.
+* Removed useless functions.
+
+
 0.0.3 (2022-01-03)
 ------------------
 
