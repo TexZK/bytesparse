@@ -227,9 +227,6 @@ class Memory:
             Optional memory exclusive end address.
             Anything at or after it will be trimmed away.
 
-    Raises:
-        :obj:`ValueError`: More than one of `memory`, `data`, and `blocks`.
-
     Examples:
         >>> memory = Memory()
         >>> memory._blocks
@@ -503,11 +500,7 @@ class Memory:
         self,
     ) -> str:
 
-        start = self.start
-        endex = self.endex
-        start = '' if start is None else f'0x{start:X}'
-        endex = '' if endex is None else f'0x{endex:X}'
-        return f'<{type(self).__name__}[{start}:{endex}]@0x{id(self):X}>'
+        return f'<{type(self).__name__}[0x{self.start:X}:0x{self.endex:X}]@0x{id(self):X}>'
 
     def __str__(
         self,
@@ -3777,6 +3770,7 @@ class Memory:
         if isinstance(data, Value):
             self.poke(address, data)  # faster
             return
+
         is_memory = isinstance(data, Memory)
         if is_memory:
             start = data.start + address
@@ -3793,9 +3787,11 @@ class Memory:
 
         if not size:
             return
+
         trim_start = self._trim_start
         if trim_start is not None and endex <= trim_start:
             return
+
         trim_endex = self._trim_endex
         if trim_endex is not None and trim_endex <= start:
             return
@@ -3812,28 +3808,29 @@ class Memory:
                     self._erase(block_start, block_endex, False)  # clear
 
             for block_start, block_data in data._blocks:
+                block_start = block_start + address
                 block_endex = block_start + len(block_data)
 
-                if (((trim_start is None or trim_start <= block_start) and
-                     (trim_endex is None or block_endex <= trim_endex))):
+                if trim_start is not None and block_endex <= trim_start:
+                    continue
+                if trim_endex is not None and trim_endex <= block_start:
+                    break
 
-                    block_data = bytearray(block_data)  # clone
-                    block_start = block_start + address
-                    block_endex = block_start + len(block_data)
+                block_data = bytearray(block_data)  # clone
 
-                    # Trim before memory
-                    if trim_start is not None and block_start < trim_start:
-                        offset = trim_start - block_start
-                        block_start += offset
-                        del block_data[:offset]
+                # Trim before memory
+                if trim_start is not None and block_start < trim_start:
+                    offset = trim_start - block_start
+                    block_start += offset
+                    del block_data[:offset]
 
-                    # Trim after memory
-                    if trim_endex is not None and trim_endex < block_endex:
-                        offset = block_endex - trim_endex
-                        block_endex -= offset
-                        del block_data[(block_endex - block_start):]
+                # Trim after memory
+                if trim_endex is not None and trim_endex < block_endex:
+                    offset = block_endex - trim_endex
+                    block_endex -= offset
+                    del block_data[(block_endex - block_start):]
 
-                    self._place(block_start, block_data, False)  # write
+                self._place(block_start, block_data, False)  # write
         else:
             # Trim before memory
             if trim_start is not None and start < trim_start:
