@@ -1,7 +1,7 @@
-bytesparse.mutable
+bytesparse.inplace
 ==================
 
-.. automodule:: bytesparse.mutable
+.. automodule:: bytesparse.inplace
 
    
    

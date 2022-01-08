@@ -8,4 +8,4 @@ Reference
 
     bytesparse
     bytesparse.base
-    bytesparse.mutable
+    bytesparse.inplace

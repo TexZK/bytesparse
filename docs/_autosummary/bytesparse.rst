@@ -27,5 +27,5 @@
    :recursive:
 
    bytesparse.base
-   bytesparse.mutable
+   bytesparse.inplace
 

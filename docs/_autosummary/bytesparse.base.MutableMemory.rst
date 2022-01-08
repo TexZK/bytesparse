@@ -48,6 +48,7 @@ bytesparse.base.MutableMemory
       ~MutableMemory.from_bytes
       ~MutableMemory.from_memory
       ~MutableMemory.gaps
+      ~MutableMemory.get
       ~MutableMemory.index
       ~MutableMemory.insert
       ~MutableMemory.insert_backup
@@ -63,9 +64,11 @@ bytesparse.base.MutableMemory
       ~MutableMemory.pop
       ~MutableMemory.pop_backup
       ~MutableMemory.pop_restore
+      ~MutableMemory.remove
       ~MutableMemory.reserve
       ~MutableMemory.reserve_backup
       ~MutableMemory.reserve_restore
+      ~MutableMemory.reverse
       ~MutableMemory.rfind
       ~MutableMemory.rindex
       ~MutableMemory.rofind

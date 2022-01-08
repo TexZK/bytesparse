@@ -27,6 +27,7 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.from_bytes
       ~ImmutableMemory.from_memory
       ~ImmutableMemory.gaps
+      ~ImmutableMemory.get
       ~ImmutableMemory.index
       ~ImmutableMemory.intervals
       ~ImmutableMemory.items

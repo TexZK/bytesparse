@@ -1,7 +1,7 @@
-bytesparse.mutable.Memory
+bytesparse.inplace.Memory
 =========================
 
-.. currentmodule:: bytesparse.mutable
+.. currentmodule:: bytesparse.inplace
 
 .. autoclass:: Memory
    :members:
@@ -48,6 +48,7 @@ bytesparse.mutable.Memory
       ~Memory.from_bytes
       ~Memory.from_memory
       ~Memory.gaps
+      ~Memory.get
       ~Memory.index
       ~Memory.insert
       ~Memory.insert_backup
@@ -63,9 +64,11 @@ bytesparse.mutable.Memory
       ~Memory.pop
       ~Memory.pop_backup
       ~Memory.pop_restore
+      ~Memory.remove
       ~Memory.reserve
       ~Memory.reserve_backup
       ~Memory.reserve_restore
+      ~Memory.reverse
       ~Memory.rfind
       ~Memory.rindex
       ~Memory.rofind
