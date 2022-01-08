@@ -31,33 +31,24 @@ from itertools import repeat as _repeat
 from itertools import zip_longest as _zip_longest
 from typing import Any
 from typing import ByteString
-from typing import Iterable
 from typing import Iterator
 from typing import List
 from typing import Optional
-from typing import Sequence
 from typing import Tuple
-from typing import Type
 from typing import Union
 
-Address = int
-Value = int
-AnyBytes = Union[ByteString, bytes, bytearray, memoryview, Sequence[Value]]
-Data = bytearray
-
-Block = List[Union[Address, Data]]  # typed as Tuple[Address, Data]
-BlockIndex = int
-BlockIterable = Iterable[Block]
-BlockSequence = Sequence[Block]
-BlockList = List[Block]
-MemoryList = List['Memory']
-
-OpenInterval = Tuple[Optional[Address], Optional[Address]]
-ClosedInterval = Tuple[Address, Address]
-
-EllipsisType = Type['Ellipsis']
-
-STR_MAX_CONTENT_SIZE = 1000
+from .base import Address
+from .base import AnyBytes
+from .base import BlockIndex
+from .base import BlockIterable
+from .base import BlockList
+from .base import ClosedInterval
+from .base import EllipsisType
+from .base import ImmutableMemory
+from .base import MutableMemory
+from .base import OpenInterval
+from .base import STR_MAX_CONTENT_SIZE
+from .base import Value
 
 
 def _repeat2(
@@ -197,7 +188,7 @@ def collapse_blocks(
     return memory._blocks
 
 
-class Memory:
+class Memory(MutableMemory):
     r"""Virtual memory.
 
     This class is a handy wrapper around `blocks`, so that it can behave mostly
@@ -646,7 +637,7 @@ class Memory:
 
     def __add__(
         self,
-        value: Union[AnyBytes, 'Memory'],
+        value: Union[AnyBytes, ImmutableMemory],
     ) -> 'Memory':
 
         memory = type(self).from_memory(self, validate=False)
@@ -655,7 +646,7 @@ class Memory:
 
     def __iadd__(
         self,
-        value: Union[AnyBytes, 'Memory'],
+        value: Union[AnyBytes, ImmutableMemory],
     ) -> 'Memory':
 
         self.extend(value)
@@ -1392,7 +1383,7 @@ class Memory:
 
     def extend(
         self,
-        items: Union[AnyBytes, 'Memory'],
+        items: Union[AnyBytes, ImmutableMemory],
         offset: Address = 0,
     ) -> None:
         r"""Concatenates items.
@@ -1591,7 +1582,7 @@ class Memory:
 
         return type(self).from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=True)
 
-    @property
+    @ImmutableMemory.contiguous.getter
     def contiguous(
         self,
     ) -> bool:
@@ -1619,7 +1610,7 @@ class Memory:
         else:
             return True
 
-    @property
+    @ImmutableMemory.trim_start.getter
     def trim_start(
         self,
     ) -> Optional[Address]:
@@ -1645,7 +1636,7 @@ class Memory:
         if trim_start is not None:
             self.crop(trim_start, trim_endex)
 
-    @property
+    @ImmutableMemory.trim_endex.getter
     def trim_endex(
         self,
     ) -> Optional[Address]:
@@ -1671,7 +1662,7 @@ class Memory:
         if trim_endex is not None:
             self.crop(trim_start, trim_endex)
 
-    @property
+    @ImmutableMemory.trim_span.getter
     def trim_span(
         self,
     ) -> OpenInterval:
@@ -1697,7 +1688,7 @@ class Memory:
         if trim_start is not None or trim_endex is not None:
             self.crop(trim_start, trim_endex)
 
-    @property
+    @ImmutableMemory.start.getter
     def start(
         self,
     ) -> Address:
@@ -1751,7 +1742,7 @@ class Memory:
         else:
             return trim_start
 
-    @property
+    @ImmutableMemory.endex.getter
     def endex(
         self,
     ) -> Address:
@@ -1806,7 +1797,7 @@ class Memory:
         else:
             return trim_endex
 
-    @property
+    @ImmutableMemory.span.getter
     def span(
         self,
     ) -> ClosedInterval:
@@ -1835,7 +1826,7 @@ class Memory:
 
         return self.start, self.endex
 
-    @property
+    @ImmutableMemory.endin.getter
     def endin(
         self,
     ) -> Address:
@@ -1890,7 +1881,7 @@ class Memory:
         else:
             return trim_endex - 1
 
-    @property
+    @ImmutableMemory.content_start.getter
     def content_start(
         self,
     ) -> Address:
@@ -1945,7 +1936,7 @@ class Memory:
         else:
             return self._trim_start
 
-    @property
+    @ImmutableMemory.content_endex.getter
     def content_endex(
         self,
     ) -> Address:
@@ -2001,7 +1992,7 @@ class Memory:
         else:
             return self._trim_start  # default to start
 
-    @property
+    @ImmutableMemory.content_span.getter
     def content_span(
         self,
     ) -> ClosedInterval:
@@ -2035,7 +2026,7 @@ class Memory:
 
         return self.content_start, self.content_endex
 
-    @property
+    @ImmutableMemory.content_endin.getter
     def content_endin(
         self,
     ) -> Address:
@@ -2092,7 +2083,7 @@ class Memory:
         else:
             return self._trim_start - 1  # default to start-1
 
-    @property
+    @ImmutableMemory.content_size.getter
     def content_size(
         self,
     ) -> Address:
@@ -2134,7 +2125,7 @@ class Memory:
 
         return sum(len(block_data) for _, block_data in self._blocks)
 
-    @property
+    @ImmutableMemory.content_parts.getter
     def content_parts(
         self,
     ) -> int:
@@ -3227,7 +3218,7 @@ class Memory:
     def insert(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, 'Memory'],
+        data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> None:
         r"""Inserts data.
 
@@ -3272,7 +3263,7 @@ class Memory:
     def insert_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, 'Memory'],
+        data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> Tuple[Address, 'Memory']:
         r"""Backups an `insert()` operation.
 
@@ -3732,7 +3723,7 @@ class Memory:
     def write(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, 'Memory'],
+        data: Union[AnyBytes, Value, ImmutableMemory],
         clear: bool = False,
     ) -> None:
         r"""Writes data.
@@ -3771,7 +3762,7 @@ class Memory:
             self.poke(address, data)  # faster
             return
 
-        is_memory = isinstance(data, Memory)
+        is_memory = isinstance(data, ImmutableMemory)
         if is_memory:
             start = data.start + address
             endex = data.endex + address
@@ -3862,7 +3853,7 @@ class Memory:
     def write_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, 'Memory'],
+        data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> 'Memory':
         r"""Backups a `write()` operation.
 
