@@ -41,6 +41,7 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
 from .base import AnyBytes
 from .base import BlockIndex
@@ -51,7 +52,6 @@ from .base import EllipsisType
 from .base import ImmutableMemory
 from .base import MutableMemory
 from .base import OpenInterval
-from .base import STR_MAX_CONTENT_SIZE
 from .base import Value
 
 

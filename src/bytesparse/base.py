@@ -2021,6 +2021,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         ...
 
     @ImmutableMemory.trim_endex.setter
+    @abc.abstractmethod
     def trim_endex(
         self,
         trim_endex: Address,
@@ -2028,6 +2029,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         ...
 
     @ImmutableMemory.trim_span.setter
+    @abc.abstractmethod
     def trim_span(
         self,
         trim_span: OpenInterval,
@@ -2035,6 +2037,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         ...
 
     @ImmutableMemory.trim_start.setter
+    @abc.abstractmethod
     def trim_start(
         self,
         trim_start: Address,

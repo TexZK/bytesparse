@@ -114,4 +114,5 @@ True
 
 __version__ = '0.0.4'
 
-from .inplace import Memory
+from .inplace import Memory  # noqa F401
+from .inplace import collapse_blocks  # noqa F401
