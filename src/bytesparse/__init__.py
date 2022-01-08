@@ -114,4 +114,4 @@ True
 
 __version__ = '0.0.4'
 
-from .mutable import Memory
+from .inplace import Memory

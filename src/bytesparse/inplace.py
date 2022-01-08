@@ -23,7 +23,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-r"""Python implementation."""
+r"""In-place implementation.
+
+This implementation in pure Python uses the basic :obj:``bytearray`` data type
+to hold block data, which allows mutable in-place operations.
+"""
 
 from itertools import count as _count
 from itertools import islice as _islice
