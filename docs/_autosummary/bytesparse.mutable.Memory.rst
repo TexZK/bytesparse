@@ -1,7 +1,7 @@
-bytesparse.\_py.Memory
-======================
+bytesparse.mutable.Memory
+=========================
 
-.. currentmodule:: bytesparse._py
+.. currentmodule:: bytesparse.mutable
 
 .. autoclass:: Memory
    :members:

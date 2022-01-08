@@ -1,7 +1,7 @@
-﻿bytesparse.\_py
-===============
+bytesparse.mutable
+==================
 
-.. automodule:: bytesparse._py
+.. automodule:: bytesparse.mutable
 
    
    

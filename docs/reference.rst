@@ -7,4 +7,5 @@ Reference
     :recursive:
 
     bytesparse
-    bytesparse._py
+    bytesparse.base
+    bytesparse.mutable

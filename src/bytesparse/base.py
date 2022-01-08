@@ -491,10 +491,6 @@ class ImmutableMemory(abc.ABC):
 
         Returns:
             items: Items from the requested range.
-
-        Note:
-            This method is not optimized for a :class:`slice` where its `step`
-            is an integer greater than 1.
         """
         ...
 
