@@ -26,6 +26,7 @@
 r"""Common stuff, shared across modules."""
 
 import abc
+import collections.abc
 from typing import Any
 from typing import ByteString
 from typing import Iterable
@@ -56,7 +57,8 @@ STR_MAX_CONTENT_SIZE: Address = 1000
 r"""Maximum memory content size for string representation."""
 
 
-class ImmutableMemory(abc.ABC):
+class ImmutableMemory(collections.abc.Sequence,
+                      collections.abc.Mapping):
 
     @classmethod
     @abc.abstractmethod
@@ -1124,7 +1126,7 @@ class ImmutableMemory(abc.ABC):
         ...
 
 
-class MutableMemory(ImmutableMemory, abc.ABC):
+class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
 
     @abc.abstractmethod
     def __iadd__(
