@@ -1,13 +1,16 @@
 Changelog
 =========
 
-0.0.4 (TODO)
-------------
+0.0.4 (2022-01-09)
+------------------
 
+* Refactored current implementation as the ``inplace`` sub-module.
+* Added abstract base classes and base types into the ``base`` sub-module.
 * Removed experimental backup feature.
 * Added dedicated methods to backup/restore mutated state.
 * Fixed some write/insert bugs.
 * Fixed some trim/bound bugs.
+* Methods sorted by name.
 * Removed useless functions.
 
 

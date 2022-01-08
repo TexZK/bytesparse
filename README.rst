@@ -94,7 +94,7 @@ even with negative addresses!
 Data chunks are stored as common mutable ``bytearray`` objects, whose size is
 limited by the Python engine (e.g. that of ``size_t``).
 
-More details can be found within ``bytesparse._py``.
+More details can be found within ``bytesparse.inplace``.
 
 
 Cython implementation
@@ -141,13 +141,13 @@ https://bytesparse.readthedocs.io/
 Installation
 ============
 
-From PIP (might not be the latest version found on *github*):
+From PyPI (might not be the latest version found on *github*):
 
 .. code-block:: sh
 
     $ pip install bytesparse
 
-From source root directory:
+From the source code root directory:
 
 .. code-block:: sh
 
@@ -162,4 +162,4 @@ To run the all the tests:
 .. code-block:: sh
 
     $ pip install tox
-    $ tox --skip-missing-interpreters
+    $ tox
