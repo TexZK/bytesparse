@@ -2030,7 +2030,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
     @ImmutableMemory.trim_span.setter
     def trim_span(
         self,
-        span: OpenInterval,
+        trim_span: OpenInterval,
     ) -> None:
         ...
 

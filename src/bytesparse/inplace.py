@@ -4379,10 +4379,10 @@ class Memory(MutableMemory):
     @trim_span.setter
     def trim_span(
         self,
-        span: OpenInterval,
+        trim_span: OpenInterval,
     ) -> None:
 
-        trim_start, trim_endex = span
+        trim_start, trim_endex = trim_span
         if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
             trim_endex = trim_start
 
