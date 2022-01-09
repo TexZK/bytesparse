@@ -103,6 +103,7 @@ class TestMemory(BaseMemorySuite):
         Memory = self.Memory
         memory1 = Memory()
         memory2 = memory1.__copy__()
+        memory2.validate()
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
@@ -113,6 +114,7 @@ class TestMemory(BaseMemorySuite):
         blocks = create_template_blocks()
         memory1 = Memory.from_blocks(blocks, copy=False)
         memory2 = memory1.__copy__()
+        memory2.validate()
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
@@ -135,10 +137,39 @@ class TestMemory(BaseMemorySuite):
         with pytest.raises(ValueError, match='invalid block data size'):
             memory.validate()
 
+    def test__place_nothing(self):
+        Memory = self.Memory
+        blocks = [[1, b'ABC'], [6, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        memory._place(0, bytearray(), True)
+        memory.validate()
+        assert memory._blocks == blocks
 
-class TestMemoryNonNegative(BaseMemorySuite):
-    Memory: Type['_Memory'] = _Memory
-    ADDR_NEG: bool = False
+    def test__place_after_extend(self):
+        Memory = self.Memory
+        blocks = [[1, b'ABC'], [6, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        memory._place(9, bytearray(b'123'), True)
+        memory.validate()
+        assert memory._blocks == [[1, b'ABC'], [6, b'xyz123']]
+
+    def test__place_alone(self):
+        Memory = self.Memory
+        blocks = [[1, b'ABC'], [9, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        memory._place(5, bytearray(b'123'), True)
+        memory.validate()
+        assert memory._blocks == [[1, b'ABC'], [5, b'123'], [12, b'xyz']]
+
+    def test__place_inside(self):
+        Memory = self.Memory
+        blocks = [[1, b'ABC'], [6, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        memory._place(3, bytearray(b'123'), True)
+        memory.validate()
+        assert memory._blocks == [[1, b'AB123C'], [9, b'xyz']]
+
+
 
 
 class TestBytesparse(BaseBytearraySuite):

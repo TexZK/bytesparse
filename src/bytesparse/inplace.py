@@ -2200,7 +2200,8 @@ class Memory(MutableMemory):
             :meth:`delete_backup`
         """
 
-        self.insert(0, backup)
+        self.reserve(backup.start, len(backup))
+        self.write(0, backup)
 
     @ImmutableMemory.endex.getter
     def endex(
@@ -3925,7 +3926,10 @@ class Memory(MutableMemory):
         if item is None:
             self.reserve(address, 1)
         else:
-            self.insert(address, item)
+            if address == self.content_endex:
+                self.append(item)
+            else:
+                self.insert(address, item)
 
     def reserve(
         self,
