@@ -22,7 +22,7 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
+import sys
 from itertools import islice
 from typing import Any
 from typing import List
@@ -400,8 +400,10 @@ class BaseMemorySuite:
 
         memory = Memory.from_bytes(b'Hello, World!')
         assert memory.hex() == '48656c6c6f2c20576f726c6421'
-        assert memory.hex('.') == '48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21'
-        assert memory.hex('.', 4) == '48.656c6c6f.2c20576f.726c6421'
+
+        if sys.version_info >= (3, 8):
+            assert memory.hex('.') == '48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21'
+            assert memory.hex('.', 4) == '48.656c6c6f.2c20576f.726c6421'
 
     def test___repr__(self):
         Memory = self.Memory
