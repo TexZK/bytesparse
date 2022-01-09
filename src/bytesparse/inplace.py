@@ -3291,7 +3291,7 @@ class Memory(MutableMemory):
         """
 
         block_count = len(self._blocks)
-        if block_count == 0:
+        if not block_count:
             return ''
         if block_count > 1:
             raise ValueError('non-contiguous data within range')
