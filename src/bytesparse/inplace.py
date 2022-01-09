@@ -1985,6 +1985,17 @@ class Memory(MutableMemory):
             count += block_data.count(item, slice_start, slice_endex)
         return count
 
+    def copy(
+        self,
+    ) -> 'ImmutableMemory':
+        r"""Creates a shallow copy.
+
+        Returns:
+            :obj:`Memory`: Shallow copy.
+        """
+
+        return self.__copy__()
+
     def crop(
         self,
         start: Optional[Address] = None,
@@ -2913,6 +2924,9 @@ class Memory(MutableMemory):
             validate (bool):
                 Validates the resulting :obj:`Memory` object.
 
+        Returns:
+            :obj:`Memory`: The resulting memory object.
+
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
@@ -2999,6 +3013,9 @@ class Memory(MutableMemory):
             validate (bool):
                 Validates the resulting :obj:`Memory` object.
 
+        Returns:
+            :obj:`Memory`: The resulting memory object.
+
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
@@ -3069,6 +3086,9 @@ class Memory(MutableMemory):
             validate (bool):
                 Validates the resulting :obj:`Memory` object.
 
+        Returns:
+            :obj:`Memory`: The resulting memory object.
+
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
@@ -3121,6 +3141,37 @@ class Memory(MutableMemory):
             copy=False,
             validate=validate,
         )
+
+    @classmethod
+    def fromhex(
+        cls,
+        string: str,
+    ) -> 'Memory':
+        r"""Creates a virtual memory from an hexadecimal string.
+
+        Arguments:
+            string (str):
+                Hexadecimal string.
+
+        Returns:
+            :obj:`Memory`: The resulting memory object.
+
+        Examples:
+            >>> memory = Memory.fromhex('')
+            >>> bytes(memory)
+            b''
+
+            ~~~
+
+            >>> memory = Memory.fromhex('48656C6C6F2C20576F726C6421')
+            >>> bytes(memory)
+            b'Hello, World!'
+        """
+
+        data = bytearray.fromhex(string)
+        obj = cls()
+        obj._blocks.append([0, data])
+        return obj
 
     def gaps(
         self,
@@ -3194,6 +3245,55 @@ class Memory(MutableMemory):
 
         else:
             yield None, None
+
+    def hex(
+        self,
+        *args: Any,  # see docstring
+    ) -> str:
+        r"""Converts into an hexadecimal string.
+
+        The memory is required to be :attr:`contiguous`.
+
+        Arguments:
+            sep (str):
+                Separator string between bytes.
+                Defaults to an emoty string if not provided.
+                Available since Python 3.8.
+
+            bytes_per_sep (int):
+                Number of bytes grouped between separators.
+                Grouping is performed from the right.
+                Defaults to one byte per group.
+
+        Returns:
+            str: Hexadecimal string representation.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> Memory().hex() == ''
+            True
+
+            ~~~
+
+            >>> memory = Memory.from_bytes(b'Hello, World!')
+            >>> memory.hex()
+            48656c6c6f2c20576f726c6421
+            >>> memory.hex('.')
+            48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21
+            >>> memory.hex('.', 4)
+            48.656c6c6f.2c20576f.726c6421
+        """
+
+        block_count = len(self._blocks)
+        if block_count == 0:
+            return ''
+        if block_count > 1:
+            raise ValueError('non-contiguous data within range')
+
+        data = self._blocks[0][1]
+        return data.hex(*args)
 
     def index(
         self,

@@ -115,7 +115,7 @@ class ImmutableMemory(collections.abc.Sequence,
         r"""Creates a shallow copy.
 
         Returns:
-            :obj:`Memory`: Shallow copy.
+            :obj:`ImmutableMemory`: Shallow copy.
         """
         ...
 
@@ -126,7 +126,7 @@ class ImmutableMemory(collections.abc.Sequence,
         r"""Creates a deep copy.
 
         Returns:
-            :obj:`Memory`: Deep copy.
+            :obj:`ImmutableMemory`: Deep copy.
         """
         ...
 
@@ -141,7 +141,7 @@ class ImmutableMemory(collections.abc.Sequence,
             other (Memory):
                 Data to compare with `self`.
 
-                If it is a :obj:`Memory`, all of its blocks must match.
+                If it is a :obj:`ImmutableMemory`, all of its blocks must match.
 
                 If it is a :obj:`bytes`, a :obj:`bytearray`, or a
                 :obj:`memoryview`, it is expected to match the first and only
@@ -457,6 +457,17 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def copy(
+        self,
+    ) -> 'ImmutableMemory':
+        r"""Creates a shallow copy.
+
+        Returns:
+            :obj:`ImmutableMemory`: Shallow copy.
+        """
+        ...
+
+    @abc.abstractmethod
     def count(
         self,
         item: Union[AnyBytes, Value],
@@ -577,7 +588,7 @@ class ImmutableMemory(collections.abc.Sequence,
                 otherwise.
 
         Returns:
-            :obj:`Memory`: A copy of the memory from the selected range.
+            :obj:`ImmutableMemory`: A copy of the memory from the selected range.
         """
         ...
 
@@ -639,7 +650,10 @@ class ImmutableMemory(collections.abc.Sequence,
                 Forces copy of provided input data.
 
             validate (bool):
-                Validates the resulting :obj:`Memory` object.
+                Validates the resulting :obj:`ImmutableMemory` object.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
@@ -680,7 +694,10 @@ class ImmutableMemory(collections.abc.Sequence,
                 structure.
 
             validate (bool):
-                Validates the resulting :obj:`Memory` object.
+                Validates the resulting :obj:`ImmutableMemory` object.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
@@ -702,7 +719,7 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Arguments:
             memory (Memory):
-                A :obj:`Memory` to copy data from.
+                A :obj:`ImmutableMemory` to copy data from.
 
             offset (int):
                 Some address offset applied to all the blocks.
@@ -720,10 +737,30 @@ class ImmutableMemory(collections.abc.Sequence,
                 structure.
 
             validate (bool):
-                Validates the resulting :obj:`Memory` object.
+                Validates the resulting :obj:`MemorImmutableMemory` object.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
+        """
+        ...
+
+    @classmethod
+    @abc.abstractmethod
+    def fromhex(
+        cls,
+        string: str,
+    ) -> 'ImmutableMemory':
+        r"""Creates a virtual memory from an hexadecimal string.
+
+        Arguments:
+            string (str):
+                Hexadecimal string.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
         """
         ...
 
@@ -750,6 +787,31 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             couple of addresses: Block data interval boundaries.
+        """
+        ...
+
+    @abc.abstractmethod
+    def hex(
+        self,
+        *args: Any,  # see docstring
+    ) -> str:
+        r"""Converts into an hexadecimal string.
+
+        Arguments:
+            sep (str):
+                Separator string between bytes.
+                Defaults to an emoty string if not provided.
+                Available since Python 3.8.
+
+            bytes_per_sep (int):
+                Number of bytes grouped between separators.
+                Defaults to one byte per group.
+
+        Returns:
+            str: Hexadecimal string representation.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
         """
         ...
 
@@ -1213,7 +1275,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Size of the erasure range.
 
         Returns:
-            :obj:`Memory`: Backup memory region.
+            :obj:`MutableMemory`: Backup memory region.
 
         See Also:
             :meth:`_pretrim_endex`
@@ -1260,7 +1322,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Size of the erasure range.
 
         Returns:
-            :obj:`Memory`: Backup memory region.
+            :obj:`MutableMemory`: Backup memory region.
 
         See Also:
             :meth:`_pretrim_start`
@@ -1352,7 +1414,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`Memory`: Backup memory region.
+            :obj:`MutableMemory`: Backup memory region.
 
         See Also:
             :meth:`clear`
@@ -1368,7 +1430,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         r"""Restores a `clear()` operation.
 
         Arguments:
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -1418,7 +1480,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`Memory` couple: Backup memory regions.
+            :obj:`MutableMemory` couple: Backup memory regions.
 
         See Also:
             :meth:`crop`
@@ -1435,10 +1497,10 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         r"""Restores a `crop()` operation.
 
         Arguments:
-            backup_start (:obj:`Memory`):
+            backup_start (:obj:`MutableMemory`):
                 Backup memory region to restore at the beginning.
 
-            backup_endex (:obj:`Memory`):
+            backup_endex (:obj:`MutableMemory`):
                 Backup memory region to restore at the end.
 
         See Also:
@@ -1488,7 +1550,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`Memory`: Backup memory region.
+            :obj:`MutableMemory`: Backup memory region.
 
         See Also:
             :meth:`delete`
@@ -1504,7 +1566,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         r"""Restores a `delete()` operation.
 
         Arguments:
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region
 
         See Also:
@@ -1618,7 +1680,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`Memory`: Backup memory region.
+            :obj:`MutableMemory`: Backup memory region.
 
         See Also:
             :meth:`fill`
@@ -1634,7 +1696,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         r"""Restores a `fill()` operation.
 
         Arguments:
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -1753,7 +1815,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Data to insert.
 
         Returns:
-            (int, :obj:`Memory`): Insertion address, backup memory region.
+            (int, :obj:`MutableMemory`): Insertion address, backup memory region.
 
         See Also:
             :meth:`insert`
@@ -1933,7 +1995,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Size of the emptiness to insert.
 
         Returns:
-            (int, :obj:`Memory`): Reservation address, backup memory region.
+            (int, :obj:`MutableMemory`): Reservation address, backup memory region.
 
         See Also:
             :meth:`reserve`
@@ -1953,7 +2015,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
             address (int):
                 Address of the reservation point.
 
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -1991,7 +2053,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Signed amount of address shifting.
 
         Returns:
-            (int, :obj:`Memory`): Shifting, backup memory region.
+            (int, :obj:`MutableMemory`): Shifting, backup memory region.
 
         See Also:
             :meth:`shift`
@@ -2011,7 +2073,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
             offset (int):
                 Signed amount of address shifting.
 
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -2062,7 +2124,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
 
             clear (bool):
                 Clears the target range before writing data.
-                Useful only if `data` is a :obj:`Memory` with empty spaces.
+                Useful only if `data` is a :obj:`MutableMemory` with empty spaces.
 
         See Also:
             :meth:`write_backup`
@@ -2086,7 +2148,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
                 Data to write.
 
         Returns:
-            :obj:`Memory` list: Backup memory regions.
+            :obj:`MutableMemory` list: Backup memory regions.
 
         See Also:
             :meth:`write`
@@ -2102,7 +2164,7 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         r"""Restores a `write()` operation.
 
         Arguments:
-            backup (:obj:`Memory`):
+            backup (:obj:`MutableMemory`):
                 Backup memory region to restore.
 
         See Also:
