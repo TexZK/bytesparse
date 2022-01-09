@@ -170,6 +170,9 @@ class TestMemory(BaseMemorySuite):
         assert memory._blocks == [[1, b'AB123C'], [9, b'xyz']]
 
 
+class TestMemoryNonNegative(BaseMemorySuite):
+    Memory: Type['_Memory'] = _Memory
+    ADDR_NEG: bool = False
 
 
 class TestBytesparse(BaseBytearraySuite):
