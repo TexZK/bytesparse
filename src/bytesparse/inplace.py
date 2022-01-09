@@ -447,6 +447,8 @@ class Memory(MutableMemory):
         if isinstance(other, Memory):
             return self._blocks == other._blocks
 
+        # TODO: Support ImmutableMemory
+
         elif isinstance(other, (bytes, bytearray, memoryview)):
             blocks = self._blocks
             block_count = len(blocks)
@@ -3124,6 +3126,8 @@ class Memory(MutableMemory):
 
         offset = Address(offset)
 
+        # TODO: support ImmutableMemory
+
         if copy:
             blocks = [[block_start + offset, bytearray(block_data)]
                       for block_start, block_data in memory._blocks]
@@ -4759,7 +4763,9 @@ class Memory(MutableMemory):
             self.poke(address, data)  # faster
             return
 
-        is_memory = isinstance(data, ImmutableMemory)
+        # TODO: support ImmutableMemory
+
+        is_memory = isinstance(data, Memory)
         if is_memory:
             start = data.start + address
             endex = data.endex + address
@@ -4888,3 +4894,48 @@ class Memory(MutableMemory):
         """
 
         self.write(0, backup, clear=True)
+
+
+class bytesparse(Memory):
+    r"""Wrapper for more `bytearray` compatibility.
+
+    This wrapper class can make :class:`Memory` closer to the actual
+    :class:`bytearray` API.
+
+    For instantiation, please refer to :meth:`bytearray.__init__`.
+
+    Arguments:
+        source:
+            The optional `source` parameter can be used to initialize the
+            array in a few different ways:
+
+            * If it is a string, you must also give the `encoding` (and
+              optionally, `errors`) parameters; it then converts the string to
+              bytes using :meth:`str.encode`.
+
+            * If it is an integer, the array will have that size and will be
+              initialized with null bytes.
+
+            * If it is an object conforming to the buffer interface, a
+              read-only buffer of the object will be used to initialize the byte
+              array.
+
+            * If it is an iterable, it must be an iterable of integers in the
+              range 0 <= x < 256, which are used as the initial contents of the
+              array.
+
+        encoding (str):
+            Optional string encoding.
+
+        errors (str):
+            Optional string error management.
+    """
+
+    def __init__(
+        self,
+        *args: Any,  # see bytearray.__init__()
+    ):
+        super().__init__()
+        data = bytearray(*args)
+        if data:
+            self._blocks.append([0, data])

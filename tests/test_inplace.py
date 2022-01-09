@@ -28,6 +28,7 @@ from typing import Type
 from _common import *
 
 from bytesparse.inplace import Memory as _Memory
+from bytesparse.inplace import bytesparse as _bytesparse
 from bytesparse.inplace import collapse_blocks
 
 
@@ -138,3 +139,7 @@ class TestMemory(BaseMemorySuite):
 class TestMemoryNonNegative(BaseMemorySuite):
     Memory: Type['_Memory'] = _Memory
     ADDR_NEG: bool = False
+
+
+class TestBytesparse(BaseBytearraySuite):
+    bytesparse: Type['_bytesparse'] = _bytesparse

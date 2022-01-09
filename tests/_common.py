@@ -3729,3 +3729,83 @@ class BaseMemorySuite:
 
             assert value is None, (value,)
             assert (start, endex) in gaps, (start, endex, gaps)
+
+
+class BaseBytearraySuite:
+
+    bytesparse: Any = None  # replace by subclassing 'bytesparse'
+
+    def test___init___empty(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse()
+        assert memory.span == (0, 0)
+        assert memory.content_parts == 0
+        assert memory == b''
+
+    def test___init___source_buffer(self):
+        bytesparse = self.bytesparse
+        for size in range(MAX_SIZE):
+            buffer = bytes(range(size))
+            memory = bytesparse(buffer)
+            assert memory.span == (0, size)
+            assert memory.content_parts == (1 if size else 0)
+            assert memory == buffer
+
+            view = memoryview(buffer)
+            memory = bytesparse(view)
+            assert memory.span == (0, size)
+            assert memory.content_parts == (1 if size else 0)
+            assert memory == view
+
+    def test___init___source_int(self):
+        bytesparse = self.bytesparse
+        for size in range(MAX_SIZE):
+            memory = bytesparse(size)
+            assert memory.span == (0, size)
+            assert memory.content_parts == (1 if size else 0)
+            assert memory == b'\0' * size
+
+    def test___init___source_iterable(self):
+        bytesparse = self.bytesparse
+        for size in range(MAX_SIZE):
+            values = list(range(size))
+            memory = bytesparse(values)
+            assert memory.span == (0, size)
+            assert memory.content_parts == (1 if size else 0)
+            assert memory == values
+
+    def test___init___source_str(self):
+        bytesparse = self.bytesparse
+
+        text = 'Hello, World!'
+        with pytest.raises(TypeError, match='string argument without an encoding'):
+            bytesparse(text)
+
+        encoding = 'ascii'
+        memory = bytesparse(text, encoding)
+        data = text.encode(encoding)
+        assert memory.span == (0, len(data))
+        assert memory.content_parts == 1
+        assert memory == data
+
+        text = 'a\xF0b\xF1cd\xF2efg\xF3hijk\xF4lmn\xF5op\xF6q\xF7r'
+        with pytest.raises(UnicodeError, match='ordinal not in range'):
+            bytesparse(text, encoding)
+
+        errors = 'strict'
+        with pytest.raises(UnicodeError, match='ordinal not in range'):
+            bytesparse(text, encoding, errors)
+
+        errors = 'ignore'
+        memory = bytesparse(text, encoding, errors)
+        data = text.encode(encoding, errors)
+        assert memory.span == (0, len(data))
+        assert memory.content_parts == 1
+        assert memory == data
+
+        errors = 'replace'
+        memory = bytesparse(text, encoding, errors)
+        data = text.encode(encoding, errors)
+        assert memory.span == (0, len(data))
+        assert memory.content_parts == 1
+        assert memory == data
