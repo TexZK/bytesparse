@@ -384,6 +384,25 @@ class BaseMemorySuite:
         memory2 = Memory.from_memory(memory1, copy=False)
         assert all((b1[1] is b2[1]) for b1, b2 in zip(memory1._blocks, memory2._blocks)) is True
 
+    def test_fromhex_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory.fromhex('')
+        assert bytes(memory) == b''
+
+        memory = Memory.fromhex('48656C6C6F2C20576F726C6421')
+        assert bytes(memory) == b'Hello, World!'
+
+    def test_hex_doctest(self):
+        Memory = self.Memory
+
+        assert Memory().hex() == ''
+
+        memory = Memory.from_bytes(b'Hello, World!')
+        assert memory.hex() == '48656c6c6f2c20576f726c6421'
+        assert memory.hex('.') == '48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21'
+        assert memory.hex('.', 4) == '48.656c6c6f.2c20576f.726c6421'
+
     def test___repr__(self):
         Memory = self.Memory
         start, endex = 0, 0
