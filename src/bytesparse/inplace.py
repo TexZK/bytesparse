@@ -259,7 +259,7 @@ class Memory(MutableMemory):
             True
         """
 
-        return any(block_data for _, block_data in self._blocks)
+        return bool(self._blocks)
 
     def __bytes__(
         self,
@@ -3869,7 +3869,7 @@ class Memory(MutableMemory):
         if address is None:
             blocks = self._blocks
             if blocks:
-                _, block_data = blocks[-1]
+                block_data = blocks[-1][1]
                 backup = block_data.pop()
                 if not block_data:
                     blocks.pop()

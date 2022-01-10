@@ -530,8 +530,7 @@ class BaseMemorySuite:
     def test___eq___multi_bytes(self):
         Memory = self.Memory
         memory1 = Memory.from_blocks(create_template_blocks())
-        memory2 = Memory.from_bytes(b'abc')
-        assert memory1 != memory2
+        assert memory1 != b'abc'
 
     def test___eq___bytelike(self):
         Memory = self.Memory
@@ -1633,21 +1632,21 @@ class BaseMemorySuite:
         value_out = memory.pop()
         assert value_out is None, (value_out,)
 
-    def test_pop(self):
+    def test_pop_simple(self):
         Memory = self.Memory
-        blocks = create_template_blocks()
+        blocks = [[0, b'\x00\x01\x02']]
         values = blocks_to_values(blocks)
         memory = Memory.from_blocks(blocks)
 
         memory_backup = memory.__deepcopy__()
         backup_address, backup_value = memory.pop_backup()
-        assert backup_address == memory_backup.endin
-        assert backup_value == values[backup_address]
+        assert backup_address == 2
+        assert backup_value == 2
 
         value_out = memory.pop()
         memory.validate()
-        value_ref = values.pop()
-        assert value_out == value_ref, (value_out, value_ref)
+        values.pop()
+        assert value_out == 2, value_out
 
         blocks_out = memory._blocks
         blocks_ref = values_to_blocks(values)
@@ -1658,6 +1657,30 @@ class BaseMemorySuite:
         assert memory == memory_backup
 
     def test_pop_template(self):
+        Memory = self.Memory
+        blocks = create_template_blocks()
+        values = blocks_to_values(blocks)
+        memory = Memory.from_blocks(blocks)
+
+        memory_backup = memory.__deepcopy__()
+        backup_address, backup_value = memory.pop_backup()
+        assert backup_address == memory_backup.content_endin
+        assert backup_value == values[backup_address]
+
+        value_out = memory.pop()
+        memory.validate()
+        value_ref = values.pop()
+        assert value_out == value_ref, value_out
+
+        blocks_out = memory._blocks
+        blocks_ref = values_to_blocks(values)
+        assert blocks_out == blocks_ref, (blocks_out, blocks_ref)
+
+        memory.pop_restore(backup_address, backup_value)
+        memory.validate()
+        assert memory == memory_backup
+
+    def test_pop_template_bruteforce(self):
         Memory = self.Memory
         for start in range(MAX_START):
             blocks = create_template_blocks()
@@ -3269,6 +3292,43 @@ class BaseMemorySuite:
             memory.validate()
             assert memory == memory_backup
 
+    def test_write_bounded_empty(self):
+        Memory = self.Memory
+        memory = Memory(3, 6)
+
+        memory.write(0, b'xyz')
+        memory.validate()
+        assert not memory
+
+        memory.write(6, b'xyz')
+        memory.validate()
+        assert not memory
+
+    def test_write_memory_bounded_outside(self):
+        Memory = self.Memory
+        blocks1 = [[5, b'abc'], [10, b'xyz']]
+        memory1 = Memory.from_blocks(blocks1, start=4, endex=14)
+
+        blocks2 = [[1, b'123'], [14, b'ABC']]
+        memory2 = Memory.from_blocks(blocks2)
+
+        memory1.write(0, memory2)
+        memory1.validate()
+        assert memory1._blocks == blocks1
+
+    def test_write_memory_bounded_across(self):
+        Memory = self.Memory
+        blocks1 = [[5, b'abc'], [10, b'xyz']]
+        memory1 = Memory.from_blocks(blocks1, start=4, endex=14)
+
+        blocks2 = [[2, b'123'], [13, b'ABC']]
+        memory2 = Memory.from_blocks(blocks2)
+
+        memory1.write(0, memory2)
+        memory1.validate()
+        blocks_ref = [[4, b'3abc'], [10, b'xyzA']]
+        assert memory1._blocks == blocks_ref
+
     def test_write_memory_empty(self):
         Memory = self.Memory
         memory1 = Memory()
@@ -3542,6 +3602,15 @@ class BaseMemorySuite:
             values_ref = list(islice(values, size))
             assert values_out == values_ref, (size, values_out, values_ref)
 
+    def test_values_halfbounded_template(self):
+        Memory = self.Memory
+        blocks = create_template_blocks()
+        values = blocks_to_values(blocks, MAX_SIZE)
+        memory = Memory.from_blocks(blocks)
+        values_out = list(islice(memory.values(None, memory.endex), len(memory)))
+        values_ref = list(islice(values, memory.start, memory.endex))
+        assert values_out == values_ref, (start, size, values_out, values_ref)
+
     def test_values_template(self):
         Memory = self.Memory
         for start in range(MAX_START):
@@ -3625,6 +3694,15 @@ class BaseMemorySuite:
             rvalues_ref = list(islice(values, size))[::-1]
             assert rvalues_out == rvalues_ref, (size, rvalues_out, rvalues_ref)
 
+    def test_rvalues_halfunbounded_template(self):
+        Memory = self.Memory
+        blocks = create_template_blocks()
+        values = blocks_to_values(blocks, MAX_SIZE)
+        memory = Memory.from_blocks(blocks)
+        rvalues_out = list(islice(memory.rvalues(memory.start, None), len(memory)))
+        rvalues_ref = list(islice(values, memory.start, memory.endex))[::-1]
+        assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+
     def test_rvalues_template(self):
         Memory = self.Memory
         for endex in range(MAX_START):
@@ -3645,6 +3723,48 @@ class BaseMemorySuite:
                 else:
                     rvalues_ref = list(islice(values, start, endex))[::-1]
                 assert rvalues_out == rvalues_ref, (endex, size, rvalues_out, rvalues_ref)
+
+    def test_rvalues_pattern_template(self):
+        Memory = self.Memory
+        for start in range(MAX_START):
+            for size in range(MAX_SIZE):
+                blocks = create_template_blocks()
+                values = blocks_to_values(blocks, MAX_SIZE)
+                memory = Memory.from_blocks(blocks)
+                endex = start + size
+
+                rvalues_ref = list(islice(values, start, endex))[::-1]
+                for index, value in enumerate(rvalues_ref):
+                    if value is None:
+                        rvalues_ref[index] = start
+
+                rvalues_out = memory.rvalues(start, endex, pattern=start)
+                rvalues_out = list(islice(rvalues_out, size))
+                assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+
+                rvalues_out = memory.rvalues(start, endex, pattern=start)
+                rvalues_out = list(islice(rvalues_out, size))
+                assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+
+                if start == blocks[0][0]:
+                    if endex == blocks[-1][0] + len(blocks[-1][1]):
+                        rvalues_out = list(islice(memory.rvalues(pattern=start), size))
+                        assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+
+                    rvalues_out = list(memory.rvalues(endex=endex, pattern=start))
+                    assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+
+    def test_rvalues_pattern_invalid_template(self):
+        Memory = self.Memory
+        match = r'non-empty pattern required'
+        memory = Memory.from_blocks(create_template_blocks())
+        with pytest.raises(ValueError, match=match):
+            list(islice(memory.rvalues(pattern=b''), MAX_SIZE))
+        with pytest.raises(ValueError, match=match):
+            list(islice(memory.rvalues(pattern=[]), MAX_SIZE))
+        with pytest.raises(ValueError, match=match):
+            list(islice(memory.rvalues(pattern=Memory()), MAX_SIZE))
+        list(islice(memory.rvalues(pattern=0), MAX_SIZE))
 
     def test_items_doctest(self):
         Memory = self.Memory
