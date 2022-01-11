@@ -47,6 +47,7 @@ from .base import AnyBytes
 from .base import BlockIndex
 from .base import BlockIterable
 from .base import BlockList
+from .base import BlockSequence
 from .base import ClosedInterval
 from .base import EllipsisType
 from .base import ImmutableMemory
@@ -237,7 +238,7 @@ class Memory(MutableMemory):
         value: Union[AnyBytes, ImmutableMemory],
     ) -> 'Memory':
 
-        memory = type(self).from_memory(self, validate=False)
+        memory = self.from_memory(self, validate=False)
         memory.extend(value)
         return memory
 
@@ -315,7 +316,7 @@ class Memory(MutableMemory):
             :obj:`Memory`: Shallow copy.
         """
 
-        return type(self).from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=False)
+        return self.from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=False)
 
     def __deepcopy__(
         self,
@@ -326,7 +327,7 @@ class Memory(MutableMemory):
             :obj:`Memory`: Deep copy.
         """
 
-        return type(self).from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=True)
+        return self.from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=True)
 
     def __delitem__(
         self,
@@ -553,7 +554,7 @@ class Memory(MutableMemory):
             start = self.start
             size = self.endex - start
             offset = size
-            memory = type(self).from_memory(self, validate=False)
+            memory = self.from_memory(self, validate=False)
 
             for time in range(times - 1):
                 self.write(offset, memory)
@@ -620,7 +621,7 @@ class Memory(MutableMemory):
             start = self.start
             size = self.endex - start
             offset = size  # adjust first write
-            memory = type(self).from_memory(self, validate=False)
+            memory = self.from_memory(self, validate=False)
 
             for time in range(times - 1):
                 memory.write(offset, self)
@@ -628,7 +629,7 @@ class Memory(MutableMemory):
 
             return memory
         else:
-            return type(self)()
+            return self.__class__()
 
     def __repr__(
         self,
@@ -1215,7 +1216,7 @@ class Memory(MutableMemory):
                 start = start_min
             return self.extract(start, None)
         else:
-            return type(self)()
+            return self.__class__()
 
     def _pretrim_start(
         self,
@@ -1276,7 +1277,7 @@ class Memory(MutableMemory):
                 endex = endex_max
             return self.extract(None, endex)
         else:
-            return type(self)()
+            return self.__class__()
 
     def append(
         self,
@@ -2546,7 +2547,7 @@ class Memory(MutableMemory):
             endex = self.endex
         if endex < start:
             endex = start
-        memory = type(self)()
+        memory = self.__class__()
 
         if step is None or step == 1:
             blocks = self._blocks
@@ -2554,9 +2555,10 @@ class Memory(MutableMemory):
             if start < endex and blocks:
                 block_index_start = None if start_ is None else self._block_index_start(start)
                 block_index_endex = None if endex_ is None else self._block_index_endex(endex)
-                blocks = [[block_start, bytearray(block_data)]
-                          for block_start, block_data in blocks[block_index_start:block_index_endex]]
-                memory._blocks = blocks
+                memory_blocks = blocks[block_index_start:block_index_endex]
+                memory_blocks = [[block_start, bytearray(block_data)]
+                                 for block_start, block_data in memory_blocks]
+                memory._blocks = memory_blocks
                 memory.crop(start, endex)
 
                 if pattern is not None:
@@ -2564,7 +2566,7 @@ class Memory(MutableMemory):
         else:
             step = int(step)
             if step > 1:
-                blocks = []
+                memory_blocks = []
                 block_start = None
                 block_data = None
                 offset = start
@@ -2572,7 +2574,7 @@ class Memory(MutableMemory):
                 for value in _islice(self.values(start, endex, pattern), 0, endex - start, step):
                     if value is None:
                         if block_start is not None:
-                            blocks.append([block_start, block_data])
+                            memory_blocks.append([block_start, block_data])
                             block_start = None
                     else:
                         if block_start is None:
@@ -2582,9 +2584,9 @@ class Memory(MutableMemory):
                     offset += 1
 
                 if block_start is not None:
-                    blocks.append([block_start, block_data])
+                    memory_blocks.append([block_start, block_data])
 
-                memory._blocks = blocks
+                memory._blocks = memory_blocks
                 if bound:
                     endex = offset
         if bound:
@@ -2897,7 +2899,7 @@ class Memory(MutableMemory):
     @classmethod
     def from_blocks(
         cls,
-        blocks: BlockList,
+        blocks: BlockSequence,
         offset: Address = 0,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,

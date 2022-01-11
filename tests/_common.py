@@ -2786,7 +2786,9 @@ class BaseMemorySuite:
     def test_extract_negative(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
-        assert memory.extract(2, 0)._blocks == []
+        extracted = memory.extract(2, 0)
+        assert extracted.span == (2, 2)
+        assert extracted._blocks == []
 
     def test_extract_template(self):
         Memory = self.Memory
@@ -2798,6 +2800,8 @@ class BaseMemorySuite:
 
                 for bound in (False, True):
                     extracted = memory.extract(start, start + size, bound=bound)
+                    extracted.validate()
+                    assert not bound or extracted.span == (start, start + size)
                     blocks_out = extracted._blocks
                     blocks_ref = values_to_blocks(values[start:(start + size)], start)
                     assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
@@ -2811,6 +2815,7 @@ class BaseMemorySuite:
 
                 for step in range(-1, 1):
                     extracted = memory.extract(start, start + size, step=step)
+                    extracted.validate()
                     blocks_out = extracted._blocks
                     blocks_ref = []
                     assert blocks_out == blocks_ref, (start, size, step, blocks_out, blocks_ref)
@@ -2827,6 +2832,7 @@ class BaseMemorySuite:
                 for step in range(1, MAX_TIMES):
                     for bound in (False, True):
                         extracted = memory.extract(start, endex, step=step, bound=bound)
+                        extracted.validate()
                         blocks_out = extracted._blocks
                         blocks_ref = values_to_blocks(values[start:endex:step], start)
                         assert blocks_out == blocks_ref, (start, size, step, blocks_out, blocks_ref)
@@ -3609,7 +3615,7 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(blocks)
         values_out = list(islice(memory.values(None, memory.endex), len(memory)))
         values_ref = list(islice(values, memory.start, memory.endex))
-        assert values_out == values_ref, (start, size, values_out, values_ref)
+        assert values_out == values_ref, (values_out, values_ref)
 
     def test_values_template(self):
         Memory = self.Memory
@@ -3701,7 +3707,7 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(blocks)
         rvalues_out = list(islice(memory.rvalues(memory.start, None), len(memory)))
         rvalues_ref = list(islice(values, memory.start, memory.endex))[::-1]
-        assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
+        assert rvalues_out == rvalues_ref, (rvalues_out, rvalues_ref)
 
     def test_rvalues_template(self):
         Memory = self.Memory
@@ -3960,7 +3966,6 @@ class BaseMemorySuite:
         blocks = []
         values = blocks_to_values(blocks, MAX_SIZE)
         memory = Memory.from_blocks(blocks)
-        intervals = set(values_to_intervals(values))
         gaps = set(values_to_gaps(values, bound=False))
 
         for address in range(MAX_START):
