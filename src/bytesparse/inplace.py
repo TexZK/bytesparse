@@ -2117,6 +2117,74 @@ class Memory(MutableMemory):
         if backup_endex is not None:
             self.write(0, backup_endex, clear=True)
 
+    def cut(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        bound: bool = True,
+    ) -> 'Memory':
+        r"""Cuts a slice of memory.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cutting.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cutting.
+                If ``None``, :attr:`endex` is considered.
+
+            bound (bool):
+                The selected address range is applied to the resulting memory
+                as its trimming range. This retains information about any
+                initial and final emptiness of that range, which would be lost
+                otherwise.
+
+        Returns:
+            :obj:`Memory`: A copy of the memory from the selected range.
+        """
+
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
+        if endex < start:
+            endex = start
+
+        memory = self.__class__()
+        blocks = self._blocks
+
+        if start < endex and blocks:
+            # Copy all the blocks except those completely outside selection
+            block_index_start = self._block_index_start(start)
+            block_index_endex = self._block_index_endex(endex)
+
+            if block_index_start < block_index_endex:
+                memory_blocks = blocks[block_index_start:block_index_endex]
+
+                # Trim cloned data before the selection start address
+                block_start, block_data = memory_blocks[0]
+                if block_start < start:
+                    memory_blocks[0] = [start, block_data[(start - block_start):]]
+
+                # Trim cloned data after the selection end address
+                block_start, block_data = memory_blocks[-1]
+                block_endex = block_start + len(block_data)
+                if endex < block_endex:
+                    if block_start < endex:
+                        memory_blocks[-1] = [block_start, block_data[:(endex - block_start)]]
+                    else:
+                        memory_blocks.pop()
+
+                memory._blocks = memory_blocks
+                self._erase(start, endex, False)  # clear
+
+        if bound:
+            memory._trim_start = start
+            memory._trim_endex = endex
+
+        return memory
+
     def delete(
         self,
         start: Optional[Address] = None,

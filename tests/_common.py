@@ -2858,6 +2858,37 @@ class BaseMemorySuite:
                 blocks_ref = values_to_blocks(values[start:(start + size)], start)
                 assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
 
+    def test_cut_negative(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+        cut = memory.cut(2, 0)
+        assert cut.span == (2, 2)
+        assert cut._blocks == []
+
+    def test_cut_template(self):
+        Memory = self.Memory
+        for start in range(MAX_START):
+            for size in range(MAX_SIZE):
+                endex = start + size
+                for bound in (False, True):
+                    blocks = create_template_blocks()
+                    values = blocks_to_values(blocks, MAX_SIZE)
+                    memory = Memory.from_blocks(blocks)
+                    memory_backup = memory.__deepcopy__()
+
+                    cut = memory.cut(start, endex, bound=bound)
+                    cut.validate()
+                    assert not bound or cut.span == (start, endex)
+                    extracted = memory_backup.extract(start, endex)
+                    assert cut == extracted, (start, size, cut._blocks, extracted._blocks)
+                    blocks_out = cut._blocks
+                    blocks_ref = values_to_blocks(values[start:endex], start)
+                    assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
+
+                    memory.write(0, cut)
+                    memory.validate()
+                    assert memory == memory_backup, (start, endex, memory._blocks, memory_backup._blocks, cut._blocks)
+
     def test_view_doctest(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
