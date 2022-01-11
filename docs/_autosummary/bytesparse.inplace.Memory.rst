@@ -25,10 +25,12 @@ bytesparse.inplace.Memory
       ~Memory.clear
       ~Memory.clear_backup
       ~Memory.clear_restore
+      ~Memory.copy
       ~Memory.count
       ~Memory.crop
       ~Memory.crop_backup
       ~Memory.crop_restore
+      ~Memory.cut
       ~Memory.delete
       ~Memory.delete_backup
       ~Memory.delete_restore
@@ -47,8 +49,10 @@ bytesparse.inplace.Memory
       ~Memory.from_blocks
       ~Memory.from_bytes
       ~Memory.from_memory
+      ~Memory.fromhex
       ~Memory.gaps
       ~Memory.get
+      ~Memory.hex
       ~Memory.index
       ~Memory.insert
       ~Memory.insert_backup

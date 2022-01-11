@@ -19,6 +19,7 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.__init__
       ~ImmutableMemory.block_span
       ~ImmutableMemory.bound
+      ~ImmutableMemory.copy
       ~ImmutableMemory.count
       ~ImmutableMemory.equal_span
       ~ImmutableMemory.extract
@@ -26,8 +27,10 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.from_blocks
       ~ImmutableMemory.from_bytes
       ~ImmutableMemory.from_memory
+      ~ImmutableMemory.fromhex
       ~ImmutableMemory.gaps
       ~ImmutableMemory.get
+      ~ImmutableMemory.hex
       ~ImmutableMemory.index
       ~ImmutableMemory.intervals
       ~ImmutableMemory.items

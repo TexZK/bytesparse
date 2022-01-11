@@ -25,6 +25,7 @@ bytesparse.base.MutableMemory
       ~MutableMemory.clear
       ~MutableMemory.clear_backup
       ~MutableMemory.clear_restore
+      ~MutableMemory.copy
       ~MutableMemory.count
       ~MutableMemory.crop
       ~MutableMemory.crop_backup
@@ -47,8 +48,10 @@ bytesparse.base.MutableMemory
       ~MutableMemory.from_blocks
       ~MutableMemory.from_bytes
       ~MutableMemory.from_memory
+      ~MutableMemory.fromhex
       ~MutableMemory.gaps
       ~MutableMemory.get
+      ~MutableMemory.hex
       ~MutableMemory.index
       ~MutableMemory.insert
       ~MutableMemory.insert_backup

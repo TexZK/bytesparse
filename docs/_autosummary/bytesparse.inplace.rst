@@ -29,6 +29,7 @@ bytesparse.inplace
       :nosignatures:
    
       Memory
+      bytesparse
    
    
 

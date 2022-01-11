@@ -2858,6 +2858,19 @@ class BaseMemorySuite:
                 blocks_ref = values_to_blocks(values[start:(start + size)], start)
                 assert blocks_out == blocks_ref, (start, size, blocks_out, blocks_ref)
 
+    def test_cut_all(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory.cut()
+        assert backup.span == memory_backup.span
+        assert backup == memory_backup.extract()
+
+        memory.write(0, backup)
+        memory.validate()
+        assert memory == memory_backup
+
     def test_cut_negative(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
