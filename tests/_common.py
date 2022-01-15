@@ -2667,6 +2667,70 @@ class BaseMemorySuite:
         blocks_index_out = [memory._block_index_endex(address) for address in range(MAX_SIZE)]
         assert blocks_index_out == blocks_index_ref, (blocks_index_out, blocks_index_ref)
 
+    def test__pretrim_start_unbounded(self):
+        Memory = self.Memory
+        data = b'34567'
+        memory = Memory.from_bytes(data, 3)
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory._pretrim_start_backup(None, 5)
+        assert not backup._blocks
+
+        memory._pretrim_start(None, 5)
+        memory.validate()
+
+        memory.write(0, backup)
+        memory.validate()
+        assert memory == memory_backup
+
+    def test__pretrim_start_bounded(self):
+        Memory = self.Memory
+        data = b'34567'
+        memory = Memory.from_bytes(data, 3, start=1)
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory._pretrim_start_backup(5, 5)
+        assert backup._blocks == [[3, b'34']]
+
+        memory._pretrim_start(5, 5)
+        memory.validate()
+
+        memory.write(0, backup)
+        memory.validate()
+        assert memory == memory_backup
+
+    def test__pretrim_endex_unbounded(self):
+        Memory = self.Memory
+        data = b'34567'
+        memory = Memory.from_bytes(data, 3)
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory._pretrim_endex_backup(None, 5)
+        assert not backup._blocks
+
+        memory._pretrim_endex(None, 5)
+        memory.validate()
+
+        memory.write(0, backup)
+        memory.validate()
+        assert memory == memory_backup
+
+    def test__pretrim_endex_bounded(self):
+        Memory = self.Memory
+        data = b'34567'
+        memory = Memory.from_bytes(data, 3, start=1, endex=9)
+
+        memory_backup = memory.__deepcopy__()
+        backup = memory._pretrim_endex_backup(5, 5)
+        assert backup._blocks == [[5, b'567']]
+
+        memory._pretrim_endex(5, 5)
+        memory.validate()
+
+        memory.write(0, backup)
+        memory.validate()
+        assert memory == memory_backup
+
     def test_peek_doctest(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
@@ -3240,6 +3304,22 @@ class BaseMemorySuite:
 
     def test_crop_empty(self):
         Memory = self.Memory
+        memory = Memory()
+
+        memory_backup = memory.__deepcopy__()
+        backup_start, backup_endex = memory.crop_backup()
+        assert backup_start is None
+        assert backup_endex is None
+
+        memory.crop()
+        memory.validate()
+        assert memory == memory_backup
+
+        memory.crop_restore(backup_start, backup_endex)
+        assert memory == memory_backup
+
+    def test_crop_all(self):
+        Memory = self.Memory
         memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
 
         memory_backup = memory.__deepcopy__()
@@ -3249,6 +3329,7 @@ class BaseMemorySuite:
 
         memory.crop()
         memory.validate()
+        assert memory == memory_backup
 
         memory.crop_restore(backup_start, backup_endex)
         assert memory == memory_backup

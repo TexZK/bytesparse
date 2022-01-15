@@ -149,9 +149,9 @@ class TestMemory(BaseMemorySuite):
         Memory = self.Memory
         blocks = [[1, b'ABC'], [6, b'xyz']]
         memory = Memory.from_blocks(blocks)
-        memory._place(9, bytearray(b'123'), True)
+        memory._place(4, bytearray(b'123'), True)
         memory.validate()
-        assert memory._blocks == [[1, b'ABC'], [6, b'xyz123']]
+        assert memory._blocks == [[1, b'ABC123'], [9, b'xyz']]
 
     def test__place_alone(self):
         Memory = self.Memory
