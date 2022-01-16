@@ -2262,7 +2262,7 @@ class Memory(MutableMemory):
 
         Arguments:
             backup (:obj:`Memory`):
-                Backup memory region
+                Backup memory region.
 
         See Also:
             :meth:`delete`
@@ -2627,7 +2627,7 @@ class Memory(MutableMemory):
                 memory_blocks = [[block_start, bytearray(block_data)]
                                  for block_start, block_data in memory_blocks]
                 memory._blocks = memory_blocks
-                memory.crop(start, endex)
+                memory.crop(start, endex)  # TODO: avoid cropping; see what done for cut()
 
                 if pattern is not None:
                     memory.flood(start, endex, pattern)
@@ -3321,6 +3321,51 @@ class Memory(MutableMemory):
         else:
             yield None, None
 
+    def get(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+        r"""Gets the item at an address.
+
+        Returns:
+            int: The item at `address`, `default` if empty.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.get(3)  # -> ord('C') = 67
+            67
+            >>> memory.get(6)  # -> ord('$') = 36
+            36
+            >>> memory.get(10)  # -> ord('z') = 122
+            122
+            >>> memory.get(0)  # -> empty -> default = None
+            None
+            >>> memory.get(7)  # -> empty -> default = None
+            None
+            >>> memory.get(11)  # -> empty -> default = None
+            None
+            >>> memory.get(0, 123)  # -> empty -> default = 123
+            123
+            >>> memory.get(7, 123)  # -> empty -> default = 123
+            123
+            >>> memory.get(11, 123)  # -> empty -> default = 123
+            123
+        """
+
+        block_index = self._block_index_at(address)
+        if block_index is None:
+            return default
+        else:
+            block_start, block_data = self._blocks[block_index]
+            return block_data[address - block_start]
+
     def hex(
         self,
         *args: Any,  # see docstring
@@ -4001,6 +4046,117 @@ class Memory(MutableMemory):
             else:
                 self.insert(address, item)
 
+    def remove(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+        r"""Removes an item.
+
+        Searches and deletes the first occurrence of an item.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Raises:
+            :obj:`ValueError`: Item not found.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |[$]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |   |[x | y | z]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.remove(b'BC')
+            >>> memory._blocks
+            [[1, b'AD'], [4, b'$'], [6, b'xyz']]
+            >>> memory.remove(ord('$'))
+            >>> memory._blocks
+            [[1, b'AD'], [5, b'xyz']]
+            >>> memory.remove(b'?')
+            Traceback (most recent call last):
+                ...
+            ValueError: subsection not found
+
+        See Also:
+            :meth:`remove_backup`
+            :meth:`remove_restore`
+        """
+
+        address = self.index(item, start, endex)
+        size = 1 if isinstance(item, Value) else len(item)
+        self._erase(address, address + size, True)  # delete
+
+    def remove_backup(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+        r"""Backups a `remove()` operation.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`remove`
+            :meth:`remove_restore`
+        """
+
+        try:
+            address = self.index(item, start, endex)
+        except ValueError:
+            return Memory()
+        else:
+            size = 1 if isinstance(item, Value) else len(item)
+            return self.extract(address, address + size)
+
+    def remove_restore(
+        self,
+        backup: 'Memory',
+    ) -> None:
+        r"""Restores a `remove()` operation.
+
+        Arguments:
+            backup (:obj:`Memory`):
+                Backup memory region.
+
+        See Also:
+            :meth:`remove`
+            :meth:`remove_backup`
+        """
+
+        self.reserve(backup.start, len(backup))
+        self.write(0, backup)
+
     def reserve(
         self,
         address: Address,
@@ -4120,6 +4276,54 @@ class Memory(MutableMemory):
 
         self.delete(address, address + len(backup))
         self.write(0, backup, clear=True)
+
+    def reverse(
+        self,
+    ) -> None:
+        r"""Reverses the memory in-place.
+
+        Data is reversed within the memory :attr:`span`.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[z | y | x]|   |[$]|   |[D | C | B | A]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.reverse()
+            >>> memory._blocks
+            [[1, b'zyx'], [5, b'$'], [7, b'DCBA']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |[[[|   |[A | B | C]|   |   |   |)))|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |   |[[[|   |   |[C | B | A]|   |   |)))|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCD', 3, start=2, endex=10)
+            >>> memory.reverse()
+            >>> memory._blocks
+            [[5, b'CBA']]
+        """
+
+        blocks = self._blocks
+        if blocks:
+            start, endex = self.span
+
+            for block in blocks:
+                block_start, block_data = block
+                block_data.reverse()
+                block[0] = endex - block_start - len(block_data) + start
+
+            blocks.reverse()
 
     def rfind(
         self,

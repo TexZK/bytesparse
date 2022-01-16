@@ -601,6 +601,28 @@ class BaseMemorySuite:
         memory = Memory.from_blocks(blocks)
         assert all(x == y for x, y in zip(reversed(memory), reversed(values))), (values[::-1],)
 
+    def test_reverse_empty(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        memory.reverse()
+        assert not memory
+
+        memory = Memory(start=2, endex=10)
+        memory.reverse()
+        assert not memory
+
+    def test_reverse_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+        memory.reverse()
+        assert memory._blocks == [[1, b'zyx'], [5, b'$'], [7, b'DCBA']]
+
+        memory = Memory.from_bytes(b'ABC', 4, start=2, endex=10)
+        memory.reverse()
+        assert memory._blocks == [[5, b'CBA']]
+
     def test___add___doctest(self):
         pass  # no doctest
 
@@ -904,6 +926,45 @@ class BaseMemorySuite:
 
                 index = memory.rindex(bytes([c]))
                 assert index == expected, (index, expected)
+
+    def test_remove_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+        memory.remove(b'BC')
+        assert memory._blocks == [[1, b'AD'], [4, b'$'], [6, b'xyz']]
+        memory.remove(ord('$'))
+        assert memory._blocks == [[1, b'AD'], [5, b'xyz']]
+
+        with pytest.raises(ValueError, match='subsection not found'):
+            memory.remove(b'?')
+
+    def test_remove(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+
+        memory_backup1 = memory.__deepcopy__()
+        backup1 = memory.remove_backup(b'BC')
+        memory.remove(b'BC')
+        memory.validate()
+        assert memory._blocks == [[1, b'AD'], [4, b'$'], [6, b'xyz']]
+
+        memory_backup2 = memory.__deepcopy__()
+        backup2 = memory.remove_backup(ord('$'))
+        memory.remove(ord('$'))
+        memory.validate()
+        assert memory._blocks == [[1, b'AD'], [5, b'xyz']]
+
+        memory.remove_restore(backup2)
+        assert memory == memory_backup2
+
+        memory.remove_restore(backup1)
+        assert memory == memory_backup1
+
+    def test_remove_backup_doctest(self):
+        pass  # no doctest
+
+    def test_remove_restore_doctest(self):
+        pass  # no doctest
 
     def test___contains___doctest(self):
         Memory = self.Memory
@@ -2730,6 +2791,33 @@ class BaseMemorySuite:
         memory.write(0, backup)
         memory.validate()
         assert memory == memory_backup
+
+    def test_get_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+        assert memory.get(3) == 67
+        assert memory.get(6) == 36
+        assert memory.get(10) == 122
+        assert memory.get(0) is None
+        assert memory.get(7) is None
+        assert memory.get(11) is None
+        assert memory.get(0, 123) is 123
+        assert memory.get(7, 123) is 123
+        assert memory.get(11, 123) is 123
+
+    def test_get_template(self):
+        Memory = self.Memory
+        blocks = create_template_blocks()
+        values = blocks_to_values(blocks, MAX_SIZE)
+        memory = Memory.from_blocks(blocks)
+
+        for address in range(MAX_START):
+            value = memory.get(address)
+            assert value == values[address], (address, value, values[address])
+
+            if values[address] is None:
+                value = memory.get(address, 123)
+                assert value == 123, (address, value, values[address])
 
     def test_peek_doctest(self):
         Memory = self.Memory

@@ -791,6 +791,19 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def get(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+        r"""Gets the item at an address.
+
+        Returns:
+            int: The item at `address`, `default` if empty.
+        """
+        ...
+
+    @abc.abstractmethod
     def hex(
         self,
         *args: Any,  # see docstring
@@ -1188,7 +1201,9 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
 
-class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
+class MutableMemory(ImmutableMemory,
+                    collections.abc.MutableSequence,
+                    collections.abc.MutableMapping):
 
     @abc.abstractmethod
     def __delitem__(
@@ -1957,6 +1972,85 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
         ...
 
     @abc.abstractmethod
+    def remove(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+        r"""Removes an item.
+
+        Searches and deletes the first occurrence of an item.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Raises:
+            :obj:`ValueError`: Item not found.
+
+        See Also:
+            :meth:`remove_backup`
+            :meth:`remove_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def remove_backup(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'MutableMemory':
+        r"""Backups a `remove()` operation.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            :obj:`Memory`: Backup memory region.
+
+        See Also:
+            :meth:`remove`
+            :meth:`remove_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def remove_restore(
+        self,
+        backup: 'MutableMemory',
+    ) -> None:
+        r"""Restores a `remove()` operation.
+
+        Arguments:
+            backup (:obj:`Memory`):
+                Backup memory region.
+
+        See Also:
+            :meth:`remove`
+            :meth:`remove_backup`
+        """
+        ...
+
+    @abc.abstractmethod
     def reserve(
         self,
         address: Address,
@@ -2023,6 +2117,15 @@ class MutableMemory(ImmutableMemory, collections.abc.MutableSequence):
             :meth:`reserve_backup`
         """
         ...
+
+    @abc.abstractmethod
+    def reverse(
+        self,
+    ) -> None:
+        r"""Reverses the memory in-place.
+
+        Data is reversed within the memory :attr:`span`.
+        """
 
     @abc.abstractmethod
     def shift(
