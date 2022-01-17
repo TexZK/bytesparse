@@ -4126,18 +4126,17 @@ class Memory(MutableMemory):
         Returns:
             :obj:`Memory`: Backup memory region.
 
+        Raises:
+            :obj:`ValueError`: Item not found.
+
         See Also:
             :meth:`remove`
             :meth:`remove_restore`
         """
 
-        try:
-            address = self.index(item, start, endex)
-        except ValueError:
-            return Memory()
-        else:
-            size = 1 if isinstance(item, Value) else len(item)
-            return self.extract(address, address + size)
+        address = self.index(item, start, endex)
+        size = 1 if isinstance(item, Value) else len(item)
+        return self.extract(address, address + size)
 
     def remove_restore(
         self,
