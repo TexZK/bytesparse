@@ -94,7 +94,7 @@ def _repeat2(
                     yield from _islice(pattern, offset, pattern_size)
                     yield from _islice(pattern, offset)
 
-            elif 0 < size:
+            else:
                 for _ in range(size // pattern_size):
                     yield from _islice(pattern, offset, pattern_size)
                     yield from _islice(pattern, offset)
@@ -110,7 +110,7 @@ def _repeat2(
                 while 1:
                     yield from pattern
 
-            elif 0 < size:
+            else:
                 for _ in range(size // pattern_size):
                     yield from pattern
 
@@ -4467,76 +4467,94 @@ class Memory(MutableMemory):
             int: Range values.
 
         Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |   |   | A | B | C | D | A |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |   |   | 65| 66| 67| 68| 65|   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
             >>> from itertools import islice
             >>> memory = Memory()
-            >>> list(memory.values(endex=8))
+            >>> list(memory.rvalues(endex=8))
             [None, None, None, None, None, None, None, None]
-            >>> list(memory.values(3, 8))
+            >>> list(memory.rvalues(3, 8))
             [None, None, None, None, None]
-            >>> list(islice(memory.values(3, ...), 7))
+            >>> list(islice(memory.rvalues(..., 8), 7))
             [None, None, None, None, None, None, None]
+            >>> list(memory.rvalues(3, 8, b'ABCD'))
+            [65, 68, 67, 66, 65]
 
             ~~~
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
             +===+===+===+===+===+===+===+===+===+===+
-            |   |[A | B | C]|   |   |[x | y | z]|   |
+            |   |[A | B | C]|<1 | 2>|[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
             |   | 65| 66| 67|   |   |120|121|122|   |
             +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 49| 50|120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
-            >>> list(memory.values())
-            [65, 66, 67, None, None, 120, 121, 122]
-            >>> list(memory.values(3, 8))
-            [67, None, None, 120, 121]
-            >>> list(islice(memory.values(3, ...), 7))
-            [67, None, None, 120, 121, 122, None]
+            >>> list(memory.rvalues())
+            [122, 121, 120, None, None, 67, 66, 65]
+            >>> list(memory.rvalues(3, 8))
+            [121, 120, None, None, 67]
+            >>> list(islice(memory.rvalues(..., 8), 7))
+            [121, 120, None, None, 67, 66, 65]
+            >>> list(memory.rvalues(3, 8, b'0123'))
+            [121, 120, 50, 49, 67]
         """
 
+        if pattern is None:
+            pattern_size = 0
+        else:
+            if isinstance(pattern, Value):
+                pattern = (pattern,)
+            pattern = bytearray(pattern)
+            if not pattern:
+                raise ValueError('non-empty pattern required')
+            pattern.reverse()
+            pattern_size = len(pattern)
+
+        start_ = start
         if start is None or start is Ellipsis:
-            if pattern is not None:
-                if isinstance(pattern, Value):
-                    pattern = (pattern,)
-                    pattern = bytearray(pattern)
-                if not pattern:
-                    raise ValueError('non-empty pattern required')
+            start = self.start
 
-            blocks = self._blocks
-            if endex is None:
-                endex = self.endex
-                block_index = len(blocks)
+        blocks = self._blocks
+        if endex is None:
+            endex = self.endex
+            block_index = len(blocks)
+        else:
+            block_index = self._block_index_endex(endex)
+
+        if 0 < block_index:
+            block_start, block_data = blocks[block_index - 1]
+            block_endex = block_start + len(block_data)
+
+            if block_endex < endex:
+                yield from _repeat2(pattern, pattern_size - (endex - start), endex - block_endex)
+                yield from reversed(block_data)
             else:
-                block_index = self._block_index_endex(endex)
-            endex_ = endex
+                yield from reversed(memoryview(block_data)[:(endex - block_start)])
+            endex = block_start
 
-            if 0 < block_index:
-                block_start, block_data = blocks[block_index - 1]
+            for block_index in range(block_index - 2, -1, -1):
+                block_start, block_data = blocks[block_index]
                 block_endex = block_start + len(block_data)
-
-                if block_endex < endex:
-                    yield from _repeat2(pattern, endex - endex_, endex - block_endex)
-                    yield from reversed(block_data)
-                else:
-                    yield from reversed(memoryview(block_data)[:(endex - block_start)])
-                endex = block_start
-
-                for block_index in range(block_index - 2, -1, -1):
-                    block_start, block_data = blocks[block_index]
-                    block_endex = block_start + len(block_data)
-                    yield from _repeat2(pattern, endex - endex_, endex - block_endex)
+                yield from _repeat2(pattern, pattern_size - (endex - start), endex - block_endex)
+                if start <= block_start:
                     yield from reversed(block_data)
                     endex = block_start
+                else:
+                    yield from reversed(memoryview(block_data)[(start - block_start):])
+                    endex = start
 
-            if start is Ellipsis:
-                yield from _repeat2(pattern, endex - endex_, None)
-
-        else:
-            if endex is None:
-                endex = self.endex
-            if start < endex:
-                yield from _islice(self.rvalues(Ellipsis, endex, pattern), (endex - start))
+        size = None if start_ is Ellipsis else endex - start
+        yield from _repeat2(pattern, pattern_size - (endex - start), size)
 
     def shift(
         self,
@@ -4865,6 +4883,14 @@ class Memory(MutableMemory):
             int: Range values.
 
         Examples:
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |   |   | A | B | C | D | A |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |   |   | 65| 66| 67| 68| 65|   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
             >>> from itertools import islice
             >>> memory = Memory()
             >>> list(memory.values(endex=8))
@@ -4873,15 +4899,19 @@ class Memory(MutableMemory):
             [None, None, None, None, None]
             >>> list(islice(memory.values(3, ...), 7))
             [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8, b'ABCD'))
+            [65, 66, 67, 68, 65]
 
             ~~~
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
             +===+===+===+===+===+===+===+===+===+===+
-            |   |[A | B | C]|   |   |[x | y | z]|   |
+            |   |[A | B | C]|<1 | 2>|[x | y | z]|   |
             +---+---+---+---+---+---+---+---+---+---+
             |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 49| 50|120|121|122|   |
             +---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
@@ -4891,6 +4921,8 @@ class Memory(MutableMemory):
             [67, None, None, 120, 121]
             >>> list(islice(memory.values(3, ...), 7))
             [67, None, None, 120, 121, 122, None]
+            >>> list(memory.values(3, 8, b'0123'))
+            [67, 49, 50, 120, 121]
         """
 
         if endex is None or endex is Ellipsis:

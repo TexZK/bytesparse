@@ -3849,6 +3849,7 @@ class BaseMemorySuite:
 
     def test_values_pattern_template(self):
         Memory = self.Memory
+        pattern = b'0123456789ABCDEF'
         for start in range(MAX_START):
             for size in range(MAX_SIZE):
                 blocks = create_template_blocks()
@@ -3859,22 +3860,18 @@ class BaseMemorySuite:
                 values_ref = list(islice(values, start, endex))
                 for index, value in enumerate(values_ref):
                     if value is None:
-                        values_ref[index] = start
+                        values_ref[index] = pattern[index & 15]
 
-                values_out = memory.values(start, endex, pattern=start)
-                values_out = list(islice(values_out, size))
-                assert values_out == values_ref, (start, size, values_out, values_ref)
-
-                values_out = memory.values(start, endex, pattern=start)
+                values_out = memory.values(start, endex, pattern=pattern)
                 values_out = list(islice(values_out, size))
                 assert values_out == values_ref, (start, size, values_out, values_ref)
 
                 if start == blocks[0][0]:
                     if endex == blocks[-1][0] + len(blocks[-1][1]):
-                        values_out = list(islice(memory.values(pattern=start), size))
+                        values_out = list(islice(memory.values(pattern=pattern), size))
                         assert values_out == values_ref, (start, size, values_out, values_ref)
 
-                    values_out = list(memory.values(endex=endex, pattern=start))
+                    values_out = list(memory.values(endex=endex, pattern=pattern))
                     assert values_out == values_ref, (start, size, values_out, values_ref)
 
     def test_values_pattern_invalid_template(self):
@@ -3893,14 +3890,16 @@ class BaseMemorySuite:
         Memory = self.Memory
 
         memory = Memory()
-        assert list(memory.values(endex=8)) == [None, None, None, None, None, None, None, None]
-        assert list(memory.values(3, 8)) == [None, None, None, None, None]
-        assert list(islice(memory.values(3, ...), 7)) == [None, None, None, None, None, None, None]
+        assert list(memory.rvalues(endex=8)) == [None, None, None, None, None, None, None, None]
+        assert list(memory.rvalues(3, 8)) == [None, None, None, None, None]
+        assert list(islice(memory.rvalues(..., 8), 7)) == [None, None, None, None, None, None, None]
+        assert list(memory.rvalues(3, 8, b'ABCD')) == [65, 68, 67, 66, 65]
 
         memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
-        assert list(memory.values()) == [65, 66, 67, None, None, 120, 121, 122]
-        assert list(memory.values(3, 8)) == [67, None, None, 120, 121]
-        assert list(islice(memory.values(3, ...), 7)) == [67, None, None, 120, 121, 122, None]
+        assert list(memory.rvalues()) == [122, 121, 120, None, None, 67, 66, 65]
+        assert list(memory.rvalues(3, 8)) == [121, 120, None, None, 67]
+        assert list(islice(memory.rvalues(..., 8), 7)) == [121, 120, None, None, 67, 66, 65]
+        assert list(memory.rvalues(3, 8, b'0123')) == [121, 120, 50, 49, 67]
 
     def test_rvalues_empty_bruteforce(self):
         Memory = self.Memory
@@ -3945,6 +3944,7 @@ class BaseMemorySuite:
 
     def test_rvalues_pattern_template(self):
         Memory = self.Memory
+        pattern = b'0123456789ABCDEF'
         for start in range(MAX_START):
             for size in range(MAX_SIZE):
                 blocks = create_template_blocks()
@@ -3952,25 +3952,22 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
                 endex = start + size
 
-                rvalues_ref = list(islice(values, start, endex))[::-1]
+                rvalues_ref = list(islice(values, start, endex))
                 for index, value in enumerate(rvalues_ref):
                     if value is None:
-                        rvalues_ref[index] = start
+                        rvalues_ref[index] = pattern[index & 15]
+                rvalues_ref.reverse()
 
-                rvalues_out = memory.rvalues(start, endex, pattern=start)
-                rvalues_out = list(islice(rvalues_out, size))
-                assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
-
-                rvalues_out = memory.rvalues(start, endex, pattern=start)
+                rvalues_out = memory.rvalues(start, endex, pattern=pattern)
                 rvalues_out = list(islice(rvalues_out, size))
                 assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
 
                 if start == blocks[0][0]:
                     if endex == blocks[-1][0] + len(blocks[-1][1]):
-                        rvalues_out = list(islice(memory.rvalues(pattern=start), size))
+                        rvalues_out = list(islice(memory.rvalues(pattern=pattern), size))
                         assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
 
-                    rvalues_out = list(memory.rvalues(endex=endex, pattern=start))
+                    rvalues_out = list(memory.rvalues(endex=endex, pattern=pattern))
                     assert rvalues_out == rvalues_ref, (start, size, rvalues_out, rvalues_ref)
 
     def test_rvalues_pattern_invalid_template(self):
