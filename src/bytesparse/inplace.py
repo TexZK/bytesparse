@@ -3245,7 +3245,8 @@ class Memory(MutableMemory):
 
         data = bytearray.fromhex(string)
         obj = cls()
-        obj._blocks.append([0, data])
+        if data:
+            obj._blocks.append([0, data])
         return obj
 
     def gaps(

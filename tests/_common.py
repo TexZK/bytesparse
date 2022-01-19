@@ -393,6 +393,17 @@ class BaseMemorySuite:
         memory = Memory.fromhex('48656C6C6F2C20576F726C6421')
         assert bytes(memory) == b'Hello, World!'
 
+    def test_fromhex_validate(self):
+        Memory = self.Memory
+
+        memory = Memory.fromhex('')
+        memory.validate()
+        assert bytes(memory) == b''
+
+        memory = Memory.fromhex('48656C6C6F2C20576F726C6421')
+        memory.validate()
+        assert bytes(memory) == b'Hello, World!'
+
     def test_hex_doctest(self):
         Memory = self.Memory
 
