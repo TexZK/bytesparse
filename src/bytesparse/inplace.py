@@ -2144,6 +2144,8 @@ class Memory(MutableMemory):
             :obj:`Memory`: A copy of the memory from the selected range.
         """
 
+        start_ = start
+        endex_ = endex
         if start is None:
             start = self.start
         if endex is None:
@@ -2156,11 +2158,13 @@ class Memory(MutableMemory):
 
         if start < endex and blocks:
             # Copy all the blocks except those completely outside selection
-            block_index_start = self._block_index_start(start)
-            block_index_endex = self._block_index_endex(endex)
+            block_index_start = 0 if start_ is None else self._block_index_start(start)
+            block_index_endex = len(blocks) if endex_ is None else self._block_index_endex(endex)
 
             if block_index_start < block_index_endex:
-                memory_blocks = blocks[block_index_start:block_index_endex]
+                memory_blocks = _islice(blocks, block_index_start, block_index_endex)
+                memory_blocks = [[block_start, block_data]
+                                 for block_start, block_data in memory_blocks]
 
                 # Trim cloned data before the selection start address
                 block_start, block_data = memory_blocks[0]
@@ -2621,13 +2625,32 @@ class Memory(MutableMemory):
             blocks = self._blocks
 
             if start < endex and blocks:
-                block_index_start = None if start_ is None else self._block_index_start(start)
-                block_index_endex = None if endex_ is None else self._block_index_endex(endex)
-                memory_blocks = blocks[block_index_start:block_index_endex]
-                memory_blocks = [[block_start, bytearray(block_data)]
-                                 for block_start, block_data in memory_blocks]
-                memory._blocks = memory_blocks
-                memory.crop(start, endex)  # TODO: avoid cropping; see what done for cut()
+                # Copy all the blocks except those completely outside selection
+                block_index_start = 0 if start_ is None else self._block_index_start(start)
+                block_index_endex = len(blocks) if endex_ is None else self._block_index_endex(endex)
+
+                if block_index_start < block_index_endex:
+                    memory_blocks = _islice(blocks, block_index_start, block_index_endex)
+                    memory_blocks = [[block_start, bytearray(block_data)]
+                                     for block_start, block_data in memory_blocks]
+
+                    # Trim cloned data before the selection start address
+                    block_start, block_data = memory_blocks[0]
+                    if block_start < start:
+                        del block_data[:(start - block_start)]
+                        memory_blocks[0] = [start, block_data]
+
+                    # Trim cloned data after the selection end address
+                    block_start, block_data = memory_blocks[-1]
+                    block_endex = block_start + len(block_data)
+                    if endex < block_endex:
+                        if block_start < endex:
+                            del block_data[(endex - block_start):]
+                            memory_blocks[-1] = [block_start, block_data]
+                        else:
+                            memory_blocks.pop()
+
+                    memory._blocks = memory_blocks
 
                 if pattern is not None:
                     memory.flood(start, endex, pattern)
@@ -2657,6 +2680,7 @@ class Memory(MutableMemory):
                 memory._blocks = memory_blocks
                 if bound:
                     endex = offset
+
         if bound:
             memory._trim_start = start
             memory._trim_endex = endex
