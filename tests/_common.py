@@ -2812,9 +2812,9 @@ class BaseMemorySuite:
         assert memory.get(0) is None
         assert memory.get(7) is None
         assert memory.get(11) is None
-        assert memory.get(0, 123) is 123
-        assert memory.get(7, 123) is 123
-        assert memory.get(11, 123) is 123
+        assert memory.get(0, 123) == 123
+        assert memory.get(7, 123) == 123
+        assert memory.get(11, 123) == 123
 
     def test_get_template(self):
         Memory = self.Memory
