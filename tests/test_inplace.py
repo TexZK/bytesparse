@@ -177,3 +177,7 @@ class TestMemoryNonNegative(BaseMemorySuite):
 
 class TestBytesparse(BaseBytearraySuite):
     bytesparse: Type['_bytesparse'] = _bytesparse
+
+    # Reuse some of BaseMemorySuite methods
+    Memory: Type['_Memory'] = _bytesparse
+    ADDR_NEG: bool = False

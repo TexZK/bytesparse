@@ -428,19 +428,19 @@ class BaseMemorySuite:
         start, endex = 0, 0
         memory = Memory()
         repr_out = repr(memory)
-        repr_ref = f'<Memory[0x{start}:0x{endex}]@0x{id(memory):X}>'
+        repr_ref = f'<{memory.__class__.__name__}[0x{start}:0x{endex}]@0x{id(memory):X}>'
         assert repr_out == repr_ref, (repr_out, repr_ref)
 
         start, endex = 1, 9
         memory = Memory(start=start, endex=endex)
         repr_out = repr(memory)
-        repr_ref = f'<Memory[0x{start}:0x{endex}]@0x{id(memory):X}>'
+        repr_ref = f'<{memory.__class__.__name__}[0x{start}:0x{endex}]@0x{id(memory):X}>'
         assert repr_out == repr_ref, (repr_out, repr_ref)
 
         start, endex = 3, 6
         memory = Memory.from_bytes(b'abc', offset=3)
         repr_out = repr(memory)
-        repr_ref = f'<Memory[0x{start}:0x{endex}]@0x{id(memory):X}>'
+        repr_ref = f'<{memory.__class__.__name__}[0x{start}:0x{endex}]@0x{id(memory):X}>'
         assert repr_out == repr_ref, (repr_out, repr_ref)
 
     def test___str___doctest(self):

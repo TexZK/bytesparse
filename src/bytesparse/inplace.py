@@ -635,7 +635,7 @@ class Memory(MutableMemory):
         self,
     ) -> str:
 
-        return f'<{type(self).__name__}[0x{self.start:X}:0x{self.endex:X}]@0x{id(self):X}>'
+        return f'<{self.__class__.__name__}[0x{self.start:X}:0x{self.endex:X}]@0x{id(self):X}>'
 
     def __reversed__(
         self,
@@ -5269,7 +5269,504 @@ class bytesparse(Memory):
         self,
         *args: Any,  # see bytearray.__init__()
     ):
+
         super().__init__()
         data = bytearray(*args)
         if data:
             self._blocks.append([0, data])
+
+    def __delitem__(
+        self,
+        key: Union[Address, slice],
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().__delitem__(key)
+
+    def __getitem__(
+        self,
+        key: Union[Address, slice],
+    ) -> Any:
+
+        # FIXME TODO: manage negative addresses
+        return super().__getitem__(key)
+
+    def __setitem__(
+        self,
+        key: Union[Address, slice],
+        value: Optional[Union[AnyBytes, Value]],
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().__setitem__(key, value)
+
+    def block_span(
+        self,
+        address: Address,
+    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        return super().block_span(address)
+
+    def bound(
+        self,
+        start: Optional[Address],
+        endex: Optional[Address],
+    ) -> ClosedInterval:
+
+        # FIXME TODO: manage negative addresses
+        return super().bound(start, endex)
+
+    def clear(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().clear(start, endex)
+
+    def clear_backup(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().clear_backup(start, endex)
+
+    def count(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> int:
+
+        # FIXME TODO: manage negative addresses
+        return super().count(item, start, endex)
+
+    def crop(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().crop(start, endex)
+
+    def crop_backup(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Tuple[Optional['Memory'], Optional['Memory']]:
+
+        # FIXME TODO: manage negative addresses
+        return super().crop_backup(start, endex)
+
+    def cut(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        bound: bool = True,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().cut(start, endex)
+
+    def delete(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().delete(start, endex)
+
+    def delete_backup(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().delete_backup(start, endex)
+
+    def equal_span(
+        self,
+        address: Address,
+    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        return super().equal_span(address)
+
+    def extract(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        pattern: Optional[Union[AnyBytes, Value]] = None,
+        step: Optional[Address] = None,
+        bound: bool = True,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().extract(start, endex, pattern, step, bound)
+
+    def fill(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        pattern: Union[AnyBytes, Value] = 0,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().fill(start, endex, pattern)
+
+    def fill_backup(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().fill_backup(start, endex)
+
+    def find(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Address:
+
+        # FIXME TODO: manage negative addresses
+        return super().find(item, start, endex)
+
+    def flood(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        pattern: Union[AnyBytes, Value] = 0,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().flood(start, endex, pattern)
+
+    def flood_backup(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> List[OpenInterval]:
+
+        # FIXME TODO: manage negative addresses
+        return super().flood_backup(start, endex)
+
+    @classmethod
+    def from_blocks(
+        cls,
+        blocks: BlockSequence,
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().from_blocks(blocks, offset, start, endex, copy, validate)
+
+    @classmethod
+    def from_bytes(
+        cls,
+        data: AnyBytes,
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().from_bytes(data, offset, start, endex, copy)
+
+    @classmethod
+    def from_memory(
+        cls,
+        memory: Memory,
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        copy: bool = True,
+        validate: bool = True,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().from_memory(memory, offset, start, endex, copy)
+
+    def gaps(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[OpenInterval]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().gaps(start, endex)
+
+    def get(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+
+        # FIXME TODO: manage negative addresses
+        return super().get(address, default)
+
+    def index(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Address:
+
+        # FIXME TODO: manage negative addresses
+        return super().index(item, start, endex)
+
+    def insert(
+        self,
+        address: Address,
+        data: Union[AnyBytes, Value, ImmutableMemory],
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().insert(address, data)
+
+    def insert_backup(
+        self,
+        address: Address,
+        data: Union[AnyBytes, Value, ImmutableMemory],
+    ) -> Tuple[Address, 'Memory']:
+
+        # FIXME TODO: manage negative addresses
+        return super().insert_backup(address, data)
+
+    def intervals(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[ClosedInterval]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().intervals(start, endex)
+
+    def items(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
+        pattern: Optional[Union[AnyBytes, Value]] = None,
+    ) -> Iterator[Tuple[Address, Value]]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().items(start, endex)
+
+    def keys(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
+    ) -> Iterator[Address]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().keys(start, endex)
+
+    def ofind(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Optional[Address]:
+
+        # FIXME TODO: manage negative addresses
+        return super().ofind(item, start, endex)
+
+    def peek(
+        self,
+        address: Address,
+    ) -> Optional[Value]:
+
+        # FIXME TODO: manage negative addresses
+        return super().peek(address)
+
+    def poke(
+        self,
+        address: Address,
+        item: Optional[Union[AnyBytes, Value]],
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().poke(address, item)
+
+    def poke_backup(
+        self,
+        address: Address,
+    ) -> Tuple[Address, Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        return super().poke_backup(address)
+
+    def pop(
+        self,
+        address: Optional[Address] = None,
+    ) -> Optional[Value]:
+
+        # FIXME TODO: manage negative addresses
+        return super().pop(address)
+
+    def pop_backup(
+        self,
+        address: Optional[Address] = None,
+    ) -> Tuple[Address, Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        return super().pop_backup(address)
+
+    def remove(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().remove(item, start, endex)
+
+    def remove_backup(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().remove_backup(item, start, endex)
+
+    def reserve(
+        self,
+        address: Address,
+        size: Address,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().reserve(address, size)
+
+    def reserve_backup(
+        self,
+        address: Address,
+        size: Address,
+    ) -> Tuple[Address, 'Memory']:
+
+        # FIXME TODO: manage negative addresses
+        return super().reserve_backup(address, size)
+
+    def rfind(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Address:
+
+        # FIXME TODO: manage negative addresses
+        return super().rfind(item, start, endex)
+
+    def rindex(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Address:
+
+        # FIXME TODO: manage negative addresses
+        return super().rindex(item, start, endex)
+
+    def rofind(
+        self,
+        item: Union[AnyBytes, Value],
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Optional[Address]:
+
+        # FIXME TODO: manage negative addresses
+        return super().rofind(item, start, endex)
+
+    def rvalues(
+        self,
+        start: Optional[Union[Address, EllipsisType]] = None,
+        endex: Optional[Address] = None,
+        pattern: Optional[Union[AnyBytes, Value]] = None,
+    ) -> Iterator[Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().rvalues(start, endex, pattern)
+
+    def shift(
+        self,
+        offset: Address,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().shift(offset)
+
+    def shift_backup(
+        self,
+        offset: Address,
+    ) -> Tuple[Address, 'Memory']:
+
+        # FIXME TODO: manage negative addresses
+        return super().shift_backup(offset)
+
+    # TODO: property trim_endex
+
+    # TODO: property trim_span
+
+    # TODO: property trim_start
+
+    def validate(
+        self,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().validate()
+
+    def values(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Union[Address, EllipsisType]] = None,
+        pattern: Optional[Union[AnyBytes, Value]] = None,
+    ) -> Iterator[Optional[Value]]:
+
+        # FIXME TODO: manage negative addresses
+        yield from super().values(start, endex)
+
+    def view(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> memoryview:
+
+        # FIXME TODO: manage negative addresses
+        return super().view(start, endex)
+
+    def write(
+        self,
+        address: Address,
+        data: Union[AnyBytes, Value, ImmutableMemory],
+        clear: bool = False,
+    ) -> None:
+
+        # FIXME TODO: manage negative addresses
+        super().write(address, data, clear)
+
+    def write_backup(
+        self,
+        address: Address,
+        data: Union[AnyBytes, Value, ImmutableMemory],
+    ) -> 'Memory':
+
+        # FIXME TODO: manage negative addresses
+        return super().write_backup(address, data)
