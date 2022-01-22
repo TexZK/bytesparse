@@ -5280,7 +5280,12 @@ class bytesparse(Memory):
         key: Union[Address, slice],
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        if isinstance(key, slice):
+            start, endex = self._rectify_span(key.start, key.stop)
+            key = slice(start, endex, key.step)
+        else:
+            key = self._rectify_address(key)
+
         super().__delitem__(key)
 
     def __getitem__(
@@ -5288,7 +5293,12 @@ class bytesparse(Memory):
         key: Union[Address, slice],
     ) -> Any:
 
-        # FIXME TODO: manage negative addresses
+        if isinstance(key, slice):
+            start, endex = self._rectify_span(key.start, key.stop)
+            key = slice(start, endex, key.step)
+        else:
+            key = self._rectify_address(key)
+
         return super().__getitem__(key)
 
     def __setitem__(
@@ -5297,15 +5307,59 @@ class bytesparse(Memory):
         value: Optional[Union[AnyBytes, Value]],
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        if isinstance(key, slice):
+            start, endex = self._rectify_span(key.start, key.stop)
+            key = slice(start, endex, key.step)
+        else:
+            key = self._rectify_address(key)
+
         super().__setitem__(key, value)
+
+    def _rectify_address(
+        self,
+        key: Address,
+    ) -> Address:
+        # TODO: docstring
+
+        key = key.__index__()
+        if key < 0:
+            span_start, span_endex = self.span
+            key = span_endex + key + span_start
+            if key < 0:
+                raise IndexError('index out of range')
+        return key
+
+    def _rectify_span(
+        self,
+        start: Optional[Address],
+        endex: Optional[Address],
+    ) -> OpenInterval:
+        # TODO: docstring
+
+        span_start = None
+        span_endex = None
+
+        if start is not None and start < 0:
+            span_start, span_endex = self.span
+            start = span_endex + start + span_start
+            if start < 0:
+                start = 0
+
+        if endex is not None and endex < 0:
+            if span_start is None:
+                span_start, span_endex = self.span
+            endex = span_endex + endex + span_start
+            if endex < 0:
+                endex = 0
+
+        return start, endex
 
     def block_span(
         self,
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().block_span(address)
 
     def bound(
@@ -5314,7 +5368,7 @@ class bytesparse(Memory):
         endex: Optional[Address],
     ) -> ClosedInterval:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().bound(start, endex)
 
     def clear(
@@ -5323,7 +5377,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().clear(start, endex)
 
     def clear_backup(
@@ -5332,7 +5386,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().clear_backup(start, endex)
 
     def count(
@@ -5342,7 +5396,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> int:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().count(item, start, endex)
 
     def crop(
@@ -5351,7 +5405,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().crop(start, endex)
 
     def crop_backup(
@@ -5360,7 +5414,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Tuple[Optional['Memory'], Optional['Memory']]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().crop_backup(start, endex)
 
     def cut(
@@ -5370,7 +5424,7 @@ class bytesparse(Memory):
         bound: bool = True,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().cut(start, endex)
 
     def delete(
@@ -5379,7 +5433,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().delete(start, endex)
 
     def delete_backup(
@@ -5388,7 +5442,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().delete_backup(start, endex)
 
     def equal_span(
@@ -5396,7 +5450,7 @@ class bytesparse(Memory):
         address: Address,
     ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().equal_span(address)
 
     def extract(
@@ -5408,7 +5462,7 @@ class bytesparse(Memory):
         bound: bool = True,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().extract(start, endex, pattern, step, bound)
 
     def fill(
@@ -5418,7 +5472,7 @@ class bytesparse(Memory):
         pattern: Union[AnyBytes, Value] = 0,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().fill(start, endex, pattern)
 
     def fill_backup(
@@ -5427,7 +5481,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().fill_backup(start, endex)
 
     def find(
@@ -5437,7 +5491,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Address:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().find(item, start, endex)
 
     def flood(
@@ -5447,7 +5501,7 @@ class bytesparse(Memory):
         pattern: Union[AnyBytes, Value] = 0,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().flood(start, endex, pattern)
 
     def flood_backup(
@@ -5456,7 +5510,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> List[OpenInterval]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().flood_backup(start, endex)
 
     @classmethod
@@ -5507,7 +5561,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Iterator[OpenInterval]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().gaps(start, endex)
 
     def get(
@@ -5516,7 +5570,7 @@ class bytesparse(Memory):
         default: Optional[Value] = None,
     ) -> Optional[Value]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().get(address, default)
 
     def index(
@@ -5526,7 +5580,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Address:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().index(item, start, endex)
 
     def insert(
@@ -5535,7 +5589,7 @@ class bytesparse(Memory):
         data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         super().insert(address, data)
 
     def insert_backup(
@@ -5544,7 +5598,7 @@ class bytesparse(Memory):
         data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> Tuple[Address, 'Memory']:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().insert_backup(address, data)
 
     def intervals(
@@ -5553,7 +5607,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Iterator[ClosedInterval]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().intervals(start, endex)
 
     def items(
@@ -5563,7 +5617,7 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().items(start, endex)
 
     def keys(
@@ -5572,7 +5626,7 @@ class bytesparse(Memory):
         endex: Optional[Union[Address, EllipsisType]] = None,
     ) -> Iterator[Address]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().keys(start, endex)
 
     def ofind(
@@ -5582,7 +5636,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Optional[Address]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().ofind(item, start, endex)
 
     def peek(
@@ -5590,7 +5644,7 @@ class bytesparse(Memory):
         address: Address,
     ) -> Optional[Value]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().peek(address)
 
     def poke(
@@ -5599,7 +5653,7 @@ class bytesparse(Memory):
         item: Optional[Union[AnyBytes, Value]],
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         super().poke(address, item)
 
     def poke_backup(
@@ -5607,7 +5661,7 @@ class bytesparse(Memory):
         address: Address,
     ) -> Tuple[Address, Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().poke_backup(address)
 
     def pop(
@@ -5615,7 +5669,7 @@ class bytesparse(Memory):
         address: Optional[Address] = None,
     ) -> Optional[Value]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().pop(address)
 
     def pop_backup(
@@ -5623,7 +5677,7 @@ class bytesparse(Memory):
         address: Optional[Address] = None,
     ) -> Tuple[Address, Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().pop_backup(address)
 
     def remove(
@@ -5633,7 +5687,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         super().remove(item, start, endex)
 
     def remove_backup(
@@ -5643,7 +5697,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().remove_backup(item, start, endex)
 
     def reserve(
@@ -5652,7 +5706,7 @@ class bytesparse(Memory):
         size: Address,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         super().reserve(address, size)
 
     def reserve_backup(
@@ -5661,7 +5715,7 @@ class bytesparse(Memory):
         size: Address,
     ) -> Tuple[Address, 'Memory']:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().reserve_backup(address, size)
 
     def rfind(
@@ -5671,7 +5725,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Address:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().rfind(item, start, endex)
 
     def rindex(
@@ -5681,7 +5735,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Address:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().rindex(item, start, endex)
 
     def rofind(
@@ -5691,7 +5745,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> Optional[Address]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().rofind(item, start, endex)
 
     def rvalues(
@@ -5701,7 +5755,7 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().rvalues(start, endex, pattern)
 
     def shift(
@@ -5740,7 +5794,7 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         yield from super().values(start, endex)
 
     def view(
@@ -5749,7 +5803,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ) -> memoryview:
 
-        # FIXME TODO: manage negative addresses
+        start, endex = self._rectify_span(start, endex)
         return super().view(start, endex)
 
     def write(
@@ -5759,7 +5813,7 @@ class bytesparse(Memory):
         clear: bool = False,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         super().write(address, data, clear)
 
     def write_backup(
@@ -5768,5 +5822,5 @@ class bytesparse(Memory):
         data: Union[AnyBytes, Value, ImmutableMemory],
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        address = self._rectify_address(address)
         return super().write_backup(address, data)
