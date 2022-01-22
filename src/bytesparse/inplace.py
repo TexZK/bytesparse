@@ -5238,6 +5238,9 @@ class bytesparse(Memory):
 
     For instantiation, please refer to :meth:`bytearray.__init__`.
 
+    With respect to :class:`Memory`, negative addresses are not allowed.
+    Instead, negative addresses are to consider as referred to :attr:`endex`.
+
     Arguments:
         source:
             The optional `source` parameter can be used to initialize the
@@ -5526,7 +5529,16 @@ class bytesparse(Memory):
         validate: bool = True,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        if blocks:
+            block_start = blocks[0][0]
+            if block_start + offset < 0:
+                raise ValueError('negative offseted start')
+
+        if start is not None and start < 0:
+            raise ValueError('negative start')
+        if endex is not None and endex < 0:
+            raise ValueError('negative endex')
+
         return super().from_blocks(blocks, offset, start, endex, copy, validate)
 
     @classmethod
@@ -5540,7 +5552,13 @@ class bytesparse(Memory):
         validate: bool = True,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        if offset < 0:
+            raise ValueError('negative offset')
+        if start is not None and start < 0:
+            raise ValueError('negative start')
+        if endex is not None and endex < 0:
+            raise ValueError('negative endex')
+
         return super().from_bytes(data, offset, start, endex, copy)
 
     @classmethod
@@ -5554,7 +5572,17 @@ class bytesparse(Memory):
         validate: bool = True,
     ) -> 'Memory':
 
-        # FIXME TODO: manage negative addresses
+        blocks = memory._blocks
+        if blocks:
+            block_start = blocks[0][0]
+            if block_start + offset < 0:
+                raise ValueError('negative offseted start')
+
+        if start is not None and start < 0:
+            raise ValueError('negative start')
+        if endex is not None and endex < 0:
+            raise ValueError('negative endex')
+
         return super().from_memory(memory, offset, start, endex, copy)
 
     def gaps(
@@ -5765,7 +5793,13 @@ class bytesparse(Memory):
         offset: Address,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        if offset < 0:
+            blocks = self._blocks
+            if blocks:
+                block_start = blocks[0][0]
+                if block_start + offset < 0:
+                    raise ValueError('negative offseted start')
+
         super().shift(offset)
 
     def shift_backup(
@@ -5773,7 +5807,13 @@ class bytesparse(Memory):
         offset: Address,
     ) -> Tuple[Address, 'Memory']:
 
-        # FIXME TODO: manage negative addresses
+        if offset < 0:
+            blocks = self._blocks
+            if blocks:
+                block_start = blocks[0][0]
+                if block_start + offset < 0:
+                    raise ValueError('negative offseted start')
+
         return super().shift_backup(offset)
 
     # TODO: property trim_endex
@@ -5786,7 +5826,10 @@ class bytesparse(Memory):
         self,
     ) -> None:
 
-        # FIXME TODO: manage negative addresses
+        for block in self._blocks:
+            if block[0] < 0:
+                raise ValueError('negative block start')
+
         super().validate()
 
     def values(
