@@ -5317,17 +5317,19 @@ class bytesparse(Memory):
 
     def _rectify_address(
         self,
-        key: Address,
+        address: Address,
     ) -> Address:
         # TODO: docstring
 
-        key = key.__index__()
-        if key < 0:
+        address = address.__index__()
+
+        if address < 0:
             span_start, span_endex = self.span
-            key = span_endex + key + span_start
-            if key < 0:
+            address = span_endex + address
+            if address < 0:
                 raise IndexError('index out of range')
-        return key
+
+        return address
 
     def _rectify_span(
         self,
@@ -5341,14 +5343,14 @@ class bytesparse(Memory):
 
         if start is not None and start < 0:
             span_start, span_endex = self.span
-            start = span_endex + start + span_start
+            start = span_endex + start
             if start < 0:
                 start = 0
 
         if endex is not None and endex < 0:
             if span_start is None:
                 span_start, span_endex = self.span
-            endex = span_endex + endex + span_start
+            endex = span_endex + endex
             if endex < 0:
                 endex = 0
 
