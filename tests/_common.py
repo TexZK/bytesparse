@@ -3524,7 +3524,7 @@ class BaseMemorySuite:
 
     def test_write_bounded_empty(self):
         Memory = self.Memory
-        memory = Memory(3, 6)
+        memory = Memory(start=3, endex=6)
 
         memory.write(0, b'xyz')
         memory.validate()

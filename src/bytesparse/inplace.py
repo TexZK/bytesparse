@@ -5669,7 +5669,12 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
 
+        endex_ = endex  # backup
+        if endex is Ellipsis:
+            endex = None
         start, endex = self._rectify_span(start, endex)
+        if endex_ is Ellipsis:
+            endex = endex_  # restore
         yield from super().items(start, endex)
 
     def keys(
@@ -5678,8 +5683,13 @@ class bytesparse(Memory):
         endex: Optional[Union[Address, EllipsisType]] = None,
     ) -> Iterator[Address]:
 
+        endex_ = endex  # backup
+        if endex is Ellipsis:
+            endex = None
         start, endex = self._rectify_span(start, endex)
-        yield from super().keys(start, endex)
+        if endex_ is Ellipsis:
+            endex = endex_  # restore
+        yield from super().keys(start, endex_)
 
     def ofind(
         self,
@@ -5721,7 +5731,8 @@ class bytesparse(Memory):
         address: Optional[Address] = None,
     ) -> Optional[Value]:
 
-        address = self._rectify_address(address)
+        if address is not None:
+            address = self._rectify_address(address)
         return super().pop(address)
 
     def pop_backup(
@@ -5807,7 +5818,12 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
 
+        start_ = start  # backup
+        if start is Ellipsis:
+            start = None
         start, endex = self._rectify_span(start, endex)
+        if start_ is Ellipsis:
+            start = start_  # restore
         yield from super().rvalues(start, endex, pattern)
 
     def shift(
@@ -5937,7 +5953,12 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Optional[Value]]:
 
+        endex_ = endex  # backup
+        if endex is Ellipsis:
+            endex = None
         start, endex = self._rectify_span(start, endex)
+        if endex_ is Ellipsis:
+            endex = endex_  # restore
         yield from super().values(start, endex)
 
     def view(
