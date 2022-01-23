@@ -7,9 +7,7 @@ def read_version():
     with open(path, 'rt') as file:
         for line in file:
             if line.startswith('__version__'):
-                line_globals = {}
-                eval(line, line_globals)
-                return line_globals['__version__']
+                return eval(line.split('=')[1])
     raise ValueError(f'cannot find __version__ inside of {path}')
 
 
