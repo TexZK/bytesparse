@@ -69,6 +69,8 @@ bytesparse.inplace.Memory
       ~Memory.pop_backup
       ~Memory.pop_restore
       ~Memory.popitem
+      ~Memory.popitem_backup
+      ~Memory.popitem_restore
       ~Memory.remove
       ~Memory.remove_backup
       ~Memory.remove_restore
@@ -81,10 +83,14 @@ bytesparse.inplace.Memory
       ~Memory.rofind
       ~Memory.rvalues
       ~Memory.setdefault
+      ~Memory.setdefault_backup
+      ~Memory.setdefault_restore
       ~Memory.shift
       ~Memory.shift_backup
       ~Memory.shift_restore
       ~Memory.update
+      ~Memory.update_backup
+      ~Memory.update_restore
       ~Memory.validate
       ~Memory.values
       ~Memory.view

@@ -68,6 +68,8 @@ bytesparse.base.MutableMemory
       ~MutableMemory.pop_backup
       ~MutableMemory.pop_restore
       ~MutableMemory.popitem
+      ~MutableMemory.popitem_backup
+      ~MutableMemory.popitem_restore
       ~MutableMemory.remove
       ~MutableMemory.remove_backup
       ~MutableMemory.remove_restore
@@ -80,10 +82,14 @@ bytesparse.base.MutableMemory
       ~MutableMemory.rofind
       ~MutableMemory.rvalues
       ~MutableMemory.setdefault
+      ~MutableMemory.setdefault_backup
+      ~MutableMemory.setdefault_restore
       ~MutableMemory.shift
       ~MutableMemory.shift_backup
       ~MutableMemory.shift_restore
       ~MutableMemory.update
+      ~MutableMemory.update_backup
+      ~MutableMemory.update_restore
       ~MutableMemory.validate
       ~MutableMemory.values
       ~MutableMemory.view
