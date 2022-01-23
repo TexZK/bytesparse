@@ -4089,6 +4089,7 @@ class Memory(MutableMemory):
             :meth:`popitem_backup`
             :meth:`popitem_restore`
         """
+        # TODO: docstring example
 
         blocks = self._blocks
         if blocks:
@@ -4647,6 +4648,86 @@ class Memory(MutableMemory):
 
         size = None if start_ is Ellipsis else endex - start
         yield from _repeat2(pattern, pattern_size - (endex - start), size)
+
+    def setdefault(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+        r"""Defaults a value.
+
+        Arguments:
+            address (int):
+                Address of the byte to set.
+
+            default (int):
+                Value to set if `address` is within emptiness.
+
+        Return:
+            int: Value at `address`; `default` within emptiness.
+
+        See Also:
+            :meth:`setdefault_backup`
+            :meth:`setdefault_restore`
+        """
+        # TODO: docstring example
+
+        backup = self.peek(address)
+        if backup is None:
+            if default is not None:
+                self.poke(address, default)
+            return default
+        else:
+            return backup
+
+    def setdefault_backup(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Tuple[Address, Optional[Value]]:
+        r"""Backups a `setdefault()` operation.
+
+        Arguments:
+            address (int):
+                Address of the byte to set.
+
+            default (int):
+                Value to set if `address` is within emptiness.
+
+        Returns:
+            (int, int): `address`, item at `address` (``None`` if empty).
+
+        See Also:
+            :meth:`setdefault`
+            :meth:`setdefault_restore`
+        """
+
+        backup = self.peek(address)
+        if backup is None:
+            return address, default
+        else:
+            return address, backup
+
+    def setdefault_restore(
+        self,
+        address: Address,
+        item: Optional[Value],
+    ) -> None:
+        r"""Restores a `setdefault()` operation.
+
+        Arguments:
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to restore, ``None`` if empty.
+
+        See Also:
+            :meth:`setdefault`
+            :meth:`setdefault_backup`
+        """
+
+        self.poke(address, item)
 
     def shift(
         self,

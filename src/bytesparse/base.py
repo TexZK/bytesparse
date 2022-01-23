@@ -2179,6 +2179,71 @@ class MutableMemory(ImmutableMemory,
         """
 
     @abc.abstractmethod
+    def setdefault(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+        r"""Defaults a value.
+
+        Arguments:
+            address (int):
+                Address of the byte to set.
+
+            default (int):
+                Value to set if `address` is within emptiness.
+
+        Return:
+            int: Value at `address`; `default` within emptiness.
+
+        See Also:
+            :meth:`setdefault_backup`
+            :meth:`setdefault_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def setdefault_backup(
+        self,
+        address: Address,
+    ) -> Tuple[Address, Optional[Value]]:
+        r"""Backups a `setdefault()` operation.
+
+        Arguments:
+            address (int):
+                Address of the byte to set.
+
+        Returns:
+            (int, int): `address`, item at `address` (``None`` if empty).
+
+        See Also:
+            :meth:`setdefault`
+            :meth:`setdefault_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def setdefault_restore(
+        self,
+        address: Address,
+        item: Optional[Value],
+    ) -> None:
+        r"""Restores a `setdefault()` operation.
+
+        Arguments:
+            address (int):
+                Address of the target item.
+
+            item (int or byte):
+                Item to restore, ``None`` if empty.
+
+        See Also:
+            :meth:`setdefault`
+            :meth:`setdefault_backup`
+        """
+        ...
+
+    @abc.abstractmethod
     def shift(
         self,
         offset: Address,
