@@ -329,6 +329,33 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def blocks(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Tuple[Address, memoryview]]:
+        r"""Iterates over blocks.
+
+        Iterates over data blocks within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            (start, memoryview): Start and data view of each block/slice.
+
+        See Also:
+            :meth:`intervals`
+        """
+        ...
+
+    @abc.abstractmethod
     def bound(
         self,
         start: Optional[Address],
@@ -787,6 +814,9 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             couple of addresses: Block data interval boundaries.
+
+        See Also:
+            :meth:`intervals`
         """
         ...
 
@@ -878,6 +908,10 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             couple of addresses: Block data interval boundaries.
+
+        See Also:
+            :meth:`blocks`
+            :meth:`gaps`
         """
         ...
 

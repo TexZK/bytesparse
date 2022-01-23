@@ -1428,6 +1428,48 @@ class Memory(MutableMemory):
             else:
                 return None, None, None  # fully open
 
+    def blocks(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Tuple[Address, memoryview]]:
+        r"""Iterates over blocks.
+
+        Iterates over data blocks within an address range.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            (start, memoryview): Start and data view of each block/slice.
+
+        See Also:
+            :meth:`intervals`
+        """
+        # TODO: docstring example
+
+        blocks = self._blocks
+        if blocks:
+            block_index_start = 0 if start is None else self._block_index_start(start)
+            block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
+            start, endex = self.bound(start, endex)
+            block_iterator = _islice(blocks, block_index_start, block_index_endex)
+
+            for block_start, block_data in block_iterator:
+                block_endex = block_start + len(block_data)
+                slice_start = block_start if start < block_start else start
+                slice_endex = endex if endex < block_endex else block_endex
+                if slice_start < slice_endex:
+                    slice_view = memoryview(block_data)
+                    slice_view = slice_view[(slice_start - block_start):(slice_endex - block_start)]
+                    yield slice_start, slice_view
+
     def bound(
         self,
         start: Optional[Address],
@@ -3298,6 +3340,9 @@ class Memory(MutableMemory):
         Yields:
             couple of addresses: Block data interval boundaries.
 
+        See Also:
+            :meth:`intervals`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -3611,6 +3656,10 @@ class Memory(MutableMemory):
 
         Yields:
             couple of addresses: Block data interval boundaries.
+
+        See Also:
+            :meth:`blocks`
+            :meth:`gaps`
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+
