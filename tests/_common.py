@@ -412,7 +412,7 @@ class BaseMemorySuite:
         memory = Memory.from_bytes(b'Hello, World!')
         assert memory.hex() == '48656c6c6f2c20576f726c6421'
 
-        if sys.version_info >= (3, 8):
+        if sys.version_info >= (3, 8):  # pragma: no cover
             assert memory.hex('.') == '48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21'
             assert memory.hex('.', 4) == '48.656c6c6f.2c20576f.726c6421'
 
