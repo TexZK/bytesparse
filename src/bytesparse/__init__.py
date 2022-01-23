@@ -112,7 +112,7 @@ True
 
 """
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 from .inplace import Memory  # noqa F401
 from .inplace import bytesparse  # noqa F401

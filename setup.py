@@ -17,9 +17,20 @@ def read(*names, **kwargs):
     ).read()
 
 
+def read_version():
+    path = os.path.join('src', 'bytesparse', '__init__.py')
+    with open(path, 'rt') as file:
+        for line in file:
+            if line.startswith('__version__'):
+                line_globals = {}
+                eval(line, line_globals)
+                return line_globals['__version__']
+    raise ValueError(f'cannot find __version__ inside of {path}')
+
+
 setup(
     name='bytesparse',
-    version='0.0.4',
+    version=read_version(),
     license='BSD 2-Clause License',
     description='Library to handle sparse bytes within a virtual memory space',
     long_description='%s\n%s' % (

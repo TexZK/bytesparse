@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.0.5 (TBD)
+-----------
+
+* Added ``bytesparse`` class, closer to ``bytearray`` than ``Memory``.
+* Added missing abstract and ported methods.
+* Added cut feature.
+* Fixed values iteration.
+* Improved extraction performance.
+
+
 0.0.4 (2022-01-09)
 ------------------
 
