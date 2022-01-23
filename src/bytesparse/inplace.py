@@ -5344,7 +5344,24 @@ class bytesparse(Memory):
         self,
         address: Address,
     ) -> Address:
-        # TODO: docstring
+        r"""Rectifies an address.
+
+        In case the provided `address` is negative, it is recomputed as
+        referred to :attr:`endex`.
+
+        In case the rectified address would still be negative, an
+        exception is raised.
+
+        Arguments:
+            address:
+                Address to be rectified.
+
+        Returns:
+            int: Rectified address.
+
+        Raises:
+            IndexError: The rectified address would still be negative.
+        """
 
         address = address.__index__()
 
@@ -5361,7 +5378,26 @@ class bytesparse(Memory):
         start: Optional[Address],
         endex: Optional[Address],
     ) -> OpenInterval:
-        # TODO: docstring
+        r"""Rectifies an address span.
+
+        In case a provided address is negative, it is recomputed as
+        referred to :attr:`endex`.
+
+        In case the rectified address would still be negative, it is
+        clamped to address zero.
+
+        Arguments:
+            start (int):
+                Inclusive start address for rectification.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for rectification.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            couple of int: Rectified address span.
+        """
 
         span_start = None
         span_endex = None
