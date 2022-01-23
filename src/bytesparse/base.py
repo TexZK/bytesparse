@@ -32,6 +32,7 @@ from typing import ByteString
 from typing import Iterable
 from typing import Iterator
 from typing import List
+from typing import Mapping
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
@@ -2217,7 +2218,7 @@ class MutableMemory(ImmutableMemory,
     def setdefault(
         self,
         address: Address,
-        default: Optional[Value] = None,
+        default: Optional[Union[AnyBytes, Value]] = None,
     ) -> Optional[Value]:
         r"""Defaults a value.
 
@@ -2363,7 +2364,9 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update(
         self,
-        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[Iterable[Tuple[Address, Value]],
+                    Mapping[Address, Union[Value, AnyBytes]],
+                    ImmutableMemory],
         **kwargs: Any,  # string keys cannot become addresses
     ) -> None:
         r"""Updates data.

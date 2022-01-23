@@ -1454,8 +1454,22 @@ class Memory(MutableMemory):
 
         See Also:
             :meth:`intervals`
+
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> [[s, bytes(d)] for s, d in memory.blocks()]
+            [[1, b'AB'], [5, b'x'], [7, b'123']]
+            >>> [[s, bytes(d)] for s, d in memory.blocks(2, 9)]
+            [[2, b'B'], [5, b'x'], [7, b'12']]
+            >>> [[s, bytes(d)] for s, d in memory.blocks(3, 5)]
+            []
         """
-        # TODO: docstring example
 
         blocks = self._blocks
         if blocks:
@@ -4141,11 +4155,29 @@ class Memory(MutableMemory):
         Return:
             (int, int): Address and value of the last item.
 
+        Example:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A]|   |   |   |   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'A'], [9, b'yz']])
+            >>> memory.popitem()  # -> ord('z') = 122
+            (10, 122)
+            >>> memory.popitem()  # -> ord('y') = 121
+            (9, 121)
+            >>> memory.popitem()  # -> ord('A') = 65
+            (1, 65)
+            >>> memory.popitem()
+            Traceback (most recent call last):
+                ...
+            KeyError: empty
+
         See Also:
             :meth:`popitem_backup`
             :meth:`popitem_restore`
         """
-        # TODO: docstring example
 
         blocks = self._blocks
         if blocks:
@@ -4708,7 +4740,7 @@ class Memory(MutableMemory):
     def setdefault(
         self,
         address: Address,
-        default: Optional[Value] = None,
+        default: Optional[Union[AnyBytes, Value]] = None,
     ) -> Optional[Value]:
         r"""Defaults a value.
 
@@ -4722,15 +4754,43 @@ class Memory(MutableMemory):
         Return:
             int: Value at `address`; `default` within emptiness.
 
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.setdefault(3, b'@')  # -> ord('C') = 67
+            67
+            >>> memory.peek(3)  # -> ord('C') = 67
+            67
+            >>> memory.setdefault(5, 64)  # -> ord('@') = 64
+            64
+            >>> memory.peek(5)  # -> ord('@') = 64
+            64
+            >>> memory.setdefault(9) is None
+            False
+            >>> memory.peek(9) is None
+            False
+            >>> memory.setdefault(7) is None
+            True
+            >>> memory.peek(7) is None
+            True
+
         See Also:
             :meth:`setdefault_backup`
             :meth:`setdefault_restore`
         """
-        # TODO: docstring example
 
         backup = self.peek(address)
         if backup is None:
             if default is not None:
+                if not isinstance(default, Value):
+                    if len(default) != 1:
+                        raise ValueError('expecting single item')
+                    default = default[0]
                 self.poke(address, default)
             return default
         else:
@@ -5047,7 +5107,9 @@ class Memory(MutableMemory):
 
     def update(
         self,
-        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[Iterable[Tuple[Address, Value]],
+                    Mapping[Address, Union[Value, AnyBytes]],
+                    ImmutableMemory],
         **kwargs: Any,  # string keys cannot become addresses
     ) -> None:
         r"""Updates data.
@@ -5057,8 +5119,29 @@ class Memory(MutableMemory):
                 Data to update with.
                 Can be either another memory, an (address, value)
                 mapping, or an iterable of (address, value) pairs.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |   |   |[A | B | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[x | y]|   |   |[A | B | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[x | y | @]|   |[A | ? | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory()
+            >>> memory.update(Memory.from_bytes(b'ABC', 5))
+            >>> memory._blocks
+            [[5, b'ABC']]
+            >>> memory.update({1: b'x', 2: ord('y')})
+            >>> memory._blocks
+            [[1, b'xy'], [5, b'ABC']]
+            >>> memory.update([(6, b'?'), (3, ord('@'))])
+            >>> memory._blocks
+            [[1, b'xy@'], [5, b'A?C']]
         """
-        # TODO: docstring example
 
         if kwargs:
             raise KeyError('cannot convert kwargs.keys() into addresses')

@@ -1784,6 +1784,21 @@ class BaseMemorySuite:
     def test_pop_restore_doctest(self):
         pass  # no doctest
 
+    def test_popitem_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'A'], [9, b'yz']])
+        assert memory.popitem() == (10, 122)
+        assert memory.popitem() == (9, 121)
+        assert memory.popitem() == (1, 65)
+        with pytest.raises(KeyError, match='empty'):
+            memory.popitem()
+
+    def test_popitem_backup_doctest(self):
+        pass  # no doctest
+
+    def test_popitem_restore_doctest(self):
+        pass  # no doctest
+
     def test___bytes___doctest(self):
         pass  # no doctest
 
@@ -2936,6 +2951,54 @@ class BaseMemorySuite:
     def test_poke_restore_doctest(self):
         pass  # no doctest
 
+    def test_setdefault_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+
+        assert memory.setdefault(3, b'@') == 67
+        memory.validate()
+        assert memory.peek(3) == 67
+
+        assert memory.setdefault(5, 64) == 64
+        memory.validate()
+        assert memory.peek(5) == 64
+
+        assert memory.setdefault(9) is not None
+        memory.validate()
+        assert memory.peek(9) is not None
+
+        assert memory.setdefault(7) is None
+        memory.validate()
+        assert memory.peek(7) is None
+
+    def test_setdefault_backup_doctest(self):
+        pass  # no doctest
+
+    def test_setdefault_restore_doctest(self):
+        pass  # no doctest
+
+    def test_update_doctest(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        memory.update(Memory.from_bytes(b'ABC', 5))
+        memory.validate()
+        assert memory._blocks == [[5, b'ABC']]
+
+        memory.update({1: b'x', 2: ord('y')})
+        memory.validate()
+        assert memory._blocks == [[1, b'xy'], [5, b'ABC']]
+
+        memory.update([(6, b'?'), (3, ord('@'))])
+        memory.validate()
+        assert memory._blocks == [[1, b'xy@'], [5, b'A?C']]
+
+    def test_update_backup_doctest(self):
+        pass  # no doctest
+
+    def test_update_restore_doctest(self):
+        pass  # no doctest
+
     def test_extract_doctest(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
@@ -4034,6 +4097,22 @@ class BaseMemorySuite:
                 keys_ref = list(range(start, start + size))
                 items_ref = list(zip(keys_ref, values_ref))
                 assert items_out == items_ref, (start, size, items_out, items_ref)
+
+    def test_blocks_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+
+        ans_out = [[s, bytes(d)] for s, d in memory.blocks()]
+        ans_ref = [[1, b'AB'], [5, b'x'], [7, b'123']]
+        assert ans_out == ans_ref, (ans_out, ans_ref)
+
+        ans_out = [[s, bytes(d)] for s, d in memory.blocks(2, 9)]
+        ans_ref = [[2, b'B'], [5, b'x'], [7, b'12']]
+        assert ans_out == ans_ref, (ans_out, ans_ref)
+
+        ans_out = [[s, bytes(d)] for s, d in memory.blocks(3, 5)]
+        ans_ref = []
+        assert ans_out == ans_ref, (ans_out, ans_ref)
 
     def test_intervals_doctest(self):
         Memory = self.Memory
