@@ -5705,6 +5705,15 @@ class bytesparse(Memory):
         address = self._rectify_address(address)
         return super().block_span(address)
 
+    def blocks(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Tuple[Address, memoryview]]:
+
+        start, endex = self._rectify_span(start, endex)
+        yield from super().blocks(start, endex)
+
     def bound(
         self,
         start: Optional[Address],
@@ -6141,6 +6150,24 @@ class bytesparse(Memory):
         if start_ is Ellipsis:
             start = start_  # restore
         yield from super().rvalues(start, endex, pattern)
+
+    def setdefault(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Optional[Value]:
+
+        address = self._rectify_address(address)
+        return super().setdefault(address, default)
+
+    def setdefault_backup(
+        self,
+        address: Address,
+        default: Optional[Value] = None,
+    ) -> Tuple[Address, Optional[Value]]:
+
+        address = self._rectify_address(address)
+        return super().setdefault_backup(address, default)
 
     def shift(
         self,
