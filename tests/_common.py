@@ -1297,7 +1297,6 @@ class BaseMemorySuite:
                     blocks = create_template_blocks()
                     values = blocks_to_values(blocks, MAX_SIZE)
                     data = bytearray(range(source_size))
-                    endex = start + target_size
 
                     memory = Memory.from_blocks(blocks)
                     memory[start:] = data
@@ -1543,7 +1542,6 @@ class BaseMemorySuite:
                 blocks = create_template_blocks()
                 values = blocks_to_values(blocks, MAX_SIZE)
                 memory = Memory.from_blocks(blocks)
-                endex = start + size
 
                 del memory[start:]
                 memory.validate()
@@ -3685,7 +3683,6 @@ class BaseMemorySuite:
         memory1 = Memory.from_blocks(blocks1)
 
         blocks2 = create_hello_world_blocks()
-        values2 = blocks_to_values(blocks2)
         memory2 = Memory.from_blocks(blocks2)
 
         memory1.write(0, memory2, clear=False)

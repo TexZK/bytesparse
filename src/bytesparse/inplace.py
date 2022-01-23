@@ -3133,7 +3133,7 @@ class Memory(MutableMemory):
             blocks = [[block_start + offset, block_data]
                       for block_start, block_data in blocks]
 
-        memory = Memory(start, endex)
+        memory = cls(start=start, endex=endex)
         memory._blocks = blocks
 
         if (start is not None or endex is not None) and validate:  # fast check
@@ -6273,7 +6273,8 @@ class bytesparse(Memory):
         address: Optional[Address] = None,
     ) -> Tuple[Address, Optional[Value]]:
 
-        address = self._rectify_address(address)
+        if address is not None:
+            address = self._rectify_address(address)
         return super().pop_backup(address)
 
     def remove(
@@ -6382,7 +6383,7 @@ class bytesparse(Memory):
         offset: Address,
     ) -> None:
 
-        if offset < 0:
+        if self._trim_start is None and offset < 0:
             blocks = self._blocks
             if blocks:
                 block_start = blocks[0][0]
@@ -6510,7 +6511,7 @@ class bytesparse(Memory):
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
-        yield from super().values(start, endex)
+        yield from super().values(start, endex, pattern)
 
     def view(
         self,

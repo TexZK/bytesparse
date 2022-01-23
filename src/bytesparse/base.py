@@ -175,6 +175,14 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def __init__(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ):
+        ...
+
+    @abc.abstractmethod
     def __iter__(
         self,
     ) -> Iterator[Optional[Value]]:
