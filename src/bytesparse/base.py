@@ -685,6 +685,9 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
+
+        See Also:
+            :meth:`to_blocks`
         """
         ...
 
@@ -729,6 +732,9 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
+
+        See Also:
+            :meth:`to_bytes`
         """
         ...
 
@@ -1126,6 +1132,64 @@ class ImmutableMemory(collections.abc.Sequence,
         If :attr:`trim_start` not ``None``, that is returned.
 
         If the memory has no data and no trimming, 0 is returned.
+        """
+        ...
+
+    @abc.abstractmethod
+    def to_blocks(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> BlockList:
+        r"""Exports into blocks.
+
+        Exports data blocks within an address range, converting them into
+        standalone :obj:`bytes` objects.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            list of blocks: Exported data blocks.
+
+        See Also:
+            :meth:`blocks`
+            :meth:`from_blocks`
+        """
+        ...
+
+    @abc.abstractmethod
+    def to_bytes(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> bytes:
+        r"""Exports into bytes.
+
+        Exports data within an address range, converting into a standalone
+        :obj:`bytes` object.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            bytes: Exported data bytes.
+
+        See Also:
+            :meth:`from_bytes`
+            :meth:`view`
         """
         ...
 

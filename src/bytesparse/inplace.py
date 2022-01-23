@@ -228,11 +228,11 @@ class Memory(MutableMemory):
 
     Examples:
         >>> memory = Memory()
-        >>> memory._blocks
+        >>> memory.to_blocks()
         []
 
         >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
-        >>> memory._blocks
+        >>> memory.to_blocks()
         [[5, b'Hello, World!']]
     """
 
@@ -357,7 +357,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> del memory[4:9]
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABCyz']]
 
             ~~~
@@ -376,13 +376,13 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> del memory[9]
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABCD'], [6, b'$'], [8, b'xz']]
             >>> del memory[3]
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABD'], [5, b'$'], [7, b'xz']]
             >>> del memory[2:10:3]
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'AD'], [5, b'x']]
         """
 
@@ -692,17 +692,17 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory[7:10] = None
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'AB'], [10, b'yz']]
             >>> memory[7] = b'C'
             >>> memory[9] = b'x'
-            >>> memory._blocks == [[5, b'ABC'], [9, b'xyz']]
+            >>> memory.to_blocks() == [[5, b'ABC'], [9, b'xyz']]
             True
             >>> memory[6:12:3] = None
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'A'], [7, b'C'], [10, b'yz']]
             >>> memory[6:13:3] = b'123'
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'A1C'], [9, b'2yz3']]
 
             ~~~
@@ -721,13 +721,13 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory[0:4] = b'$'
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[0, b'$'], [2, b'ABC'], [6, b'xyz']]
             >>> memory[4:7] = b'45678'
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[0, b'$'], [2, b'AB45678yz']]
             >>> memory[6:8] = b'<>'
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[0, b'$'], [2, b'AB45<>8yz']]
         """
 
@@ -1297,14 +1297,14 @@ class Memory(MutableMemory):
         Examples:
             >>> memory = Memory()
             >>> memory.append(b'$')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[0, b'$']]
 
             ~~~
 
             >>> memory = Memory()
             >>> memory.append(3)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[0, b'\x03']]
 
         See Also:
@@ -1435,7 +1435,7 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Iterator[Tuple[Address, memoryview]]:
+    ) -> Iterator[Tuple[Address, Union[memoryview, bytearray]]]:
         r"""Iterates over blocks.
 
         Iterates over data blocks within an address range.
@@ -1452,10 +1452,7 @@ class Memory(MutableMemory):
         Yields:
             (start, memoryview): Start and data view of each block/slice.
 
-        See Also:
-            :meth:`intervals`
-
-        Example:
+        Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
             +===+===+===+===+===+===+===+===+===+===+===+
@@ -1469,23 +1466,31 @@ class Memory(MutableMemory):
             [[2, b'B'], [5, b'x'], [7, b'12']]
             >>> [[s, bytes(d)] for s, d in memory.blocks(3, 5)]
             []
+
+        See Also:
+            :meth:`intervals`
+            :meth:`to_blocks`
         """
 
         blocks = self._blocks
         if blocks:
-            block_index_start = 0 if start is None else self._block_index_start(start)
-            block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
-            start, endex = self.bound(start, endex)
-            block_iterator = _islice(blocks, block_index_start, block_index_endex)
+            if start is None and endex is None:  # faster
+                yield from blocks
 
-            for block_start, block_data in block_iterator:
-                block_endex = block_start + len(block_data)
-                slice_start = block_start if start < block_start else start
-                slice_endex = endex if endex < block_endex else block_endex
-                if slice_start < slice_endex:
-                    slice_view = memoryview(block_data)
-                    slice_view = slice_view[(slice_start - block_start):(slice_endex - block_start)]
-                    yield slice_start, slice_view
+            else:
+                block_index_start = 0 if start is None else self._block_index_start(start)
+                block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
+                start, endex = self.bound(start, endex)
+                block_iterator = _islice(blocks, block_index_start, block_index_endex)
+
+                for block_start, block_data in block_iterator:
+                    block_endex = block_start + len(block_data)
+                    slice_start = block_start if start < block_start else start
+                    slice_endex = endex if endex < block_endex else block_endex
+                    if slice_start < slice_endex:
+                        slice_view = memoryview(block_data)
+                        slice_view = slice_view[(slice_start - block_start):(slice_endex - block_start)]
+                        yield slice_start, slice_view
 
     def bound(
         self,
@@ -1620,7 +1625,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.clear(6, 10)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'A'], [10, b'yz']]
 
         See Also:
@@ -2087,7 +2092,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.crop(6, 10)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[6, b'BC'], [9, b'x']]
 
         See Also:
@@ -2277,7 +2282,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.delete(6, 10)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'Ayz']]
 
         See Also:
@@ -2779,7 +2784,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.fill(pattern=b'123')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'12312312']]
 
             ~~~
@@ -2794,7 +2799,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.fill(3, 7, b'123')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'AB1231yz']]
 
         See Also:
@@ -2930,7 +2935,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.flood(pattern=b'123')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC12xyz']]
 
             ~~~
@@ -2945,7 +2950,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.flood(3, 7, b'123')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC23xyz']]
 
         See Also:
@@ -3099,10 +3104,10 @@ class Memory(MutableMemory):
 
             >>> blocks = [[1, b'ABC'], [5, b'xyz']]
             >>> memory = Memory.from_blocks(blocks)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC'], [5, b'xyz']]
             >>> memory = Memory.from_blocks(blocks, offset=3)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[4, b'ABC'], [8, b'xyz']]
 
             ~~~
@@ -3114,6 +3119,9 @@ class Memory(MutableMemory):
             >>> memory = Memory.from_blocks(collapse_blocks(blocks))
             >>> memory
                 ...
+
+        See Also:
+            :meth:`to_blocks`
         """
 
         offset = Address(offset)
@@ -3179,7 +3187,7 @@ class Memory(MutableMemory):
 
         Examples:
             >>> memory = Memory.from_bytes(b'')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             []
 
             ~~~
@@ -3191,8 +3199,11 @@ class Memory(MutableMemory):
             +---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory.from_bytes(b'ABCxyz', 2)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[2, b'ABCxyz']]
+
+        See Also:
+            :meth:`to_bytes`
         """
 
         if data:
@@ -3592,10 +3603,10 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.insert(10, b'$')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC'], [6, b'xyz'], [10, b'$']]
             >>> memory.insert(8, b'1')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
 
         See Also:
@@ -4265,10 +4276,10 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.remove(b'BC')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'AD'], [4, b'$'], [6, b'xyz']]
             >>> memory.remove(ord('$'))
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'AD'], [5, b'xyz']]
             >>> memory.remove(b'?')
             Traceback (most recent call last):
@@ -4364,7 +4375,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[3, b'ABC'], [7, b'xyz']])
             >>> memory.reserve(4, 2)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[3, b'A'], [6, b'BC'], [9, b'xyz']]
 
             ~~~
@@ -4379,7 +4390,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], endex=12)
             >>> memory.reserve(5, 5)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[10, b'AB']]
 
         See Also:
@@ -4475,7 +4486,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
             >>> memory.reverse()
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'zyx'], [5, b'$'], [7, b'DCBA']]
 
             ~~~
@@ -4490,7 +4501,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_bytes(b'ABCD', 3, start=2, endex=10)
             >>> memory.reverse()
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'CBA']]
         """
 
@@ -4866,7 +4877,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
             >>> memory.shift(-2)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[3, b'ABC'], [7, b'xyz']]
 
             ~~~
@@ -4881,7 +4892,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], start=3)
             >>> memory.shift(-8)
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[2, b'yz']]
 
         See Also:
@@ -5027,6 +5038,107 @@ class Memory(MutableMemory):
         else:
             return trim_start
 
+    def to_blocks(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> BlockList:
+        r"""Exports into blocks.
+
+        Exports data blocks within an address range, converting them into
+        standalone :obj:`bytes` objects.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            list of blocks: Exported data blocks.
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> memory.to_blocks()
+            [[1, b'AB'], [5, b'x'], [7, b'123']]
+            >>> memory.to_blocks(2, 9)
+            [[2, b'B'], [5, b'x'], [7, b'12']]
+            >>> memory.to_blocks(3, 5)]
+            []
+
+        See Also:
+            :meth:`blocks`
+            :meth:`from_blocks`
+        """
+
+        blocks = [[block_start, bytes(block_data)]
+                  for block_start, block_data in self.blocks(start, endex)]
+        return blocks
+
+    def to_bytes(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> bytes:
+        r"""Exports into bytes.
+
+        Exports data within an address range, converting into a standalone
+        :obj:`bytes` object.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            bytes: Exported data bytes.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> memory = Memory.from_bytes(b'')
+            >>> memory.to_bytes()
+            b''
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | B | C | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCxyz', 2)
+            >>> memory.to_bytes()
+            b'ABCxyz'
+            >>> memory.to_bytes(start=4)
+            b'Cxyz'
+            >>> memory.to_bytes(endex=6)
+            b'ABCx'
+            >>> memory.to_bytes(4, 6)
+            b'Cx'
+
+        See Also:
+            :meth:`from_bytes`
+            :meth:`view`
+        """
+
+        return bytes(self.view(start, endex))
+
     @ImmutableMemory.trim_endex.getter
     def trim_endex(
         self,
@@ -5133,13 +5245,13 @@ class Memory(MutableMemory):
 
             >>> memory = Memory()
             >>> memory.update(Memory.from_bytes(b'ABC', 5))
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[5, b'ABC']]
             >>> memory.update({1: b'x', 2: ord('y')})
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'xy'], [5, b'ABC']]
             >>> memory.update([(6, b'?'), (3, ord('@'))])
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'xy@'], [5, b'A?C']]
         """
 
@@ -5453,7 +5565,7 @@ class Memory(MutableMemory):
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
             >>> memory.write(5, b'123')
-            >>> memory._blocks
+            >>> memory.to_blocks()
             [[1, b'ABC'], [5, b'123z']]
 
         See Also:
