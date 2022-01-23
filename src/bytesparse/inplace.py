@@ -35,8 +35,10 @@ from itertools import repeat as _repeat
 from itertools import zip_longest as _zip_longest
 from typing import Any
 from typing import ByteString
+from typing import Iterable
 from typing import Iterator
 from typing import List
+from typing import Mapping
 from typing import Optional
 from typing import Tuple
 from typing import Union
@@ -4988,6 +4990,87 @@ class Memory(MutableMemory):
         self._trim_start = trim_start
         if trim_start is not None:
             self.crop(trim_start, trim_endex)
+
+    def update(
+        self,
+        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        **kwargs: Any,  # string keys cannot become addresses
+    ) -> None:
+        r"""Updates data.
+
+        Arguments:
+            data (iterable):
+                Data to update with.
+                Can be either another memory, an (address, value)
+                mapping, or an iterable of (address, value) pairs.
+        """
+        # TODO: docstring example
+
+        if kwargs:
+            raise KeyError('cannot convert kwargs.keys() into addresses')
+
+        if isinstance(data, ImmutableMemory):
+            self.write(0, data)
+        else:
+            if isinstance(data, Mapping):
+                data = data.items()
+
+            for address, value in data:
+                self.poke(address, value)
+
+    def update_backup(
+        self,
+        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        **kwargs: Any,  # string keys cannot become addresses
+    ) -> 'ImmutableMemory':
+        r"""Backups an `update()` operation.
+
+        Arguments:
+            data (iterable):
+                Data to update with.
+                Can be either another memory, an (address, value)
+                mapping, or an iterable of (address, value) pairs.
+
+        Returns:
+            :obj:`MutableMemory` list: Backup memory regions.
+
+        See Also:
+            :meth:`update`
+            :meth:`update_restore`
+        """
+
+        if kwargs:
+            raise KeyError('cannot convert kwargs.keys() into addresses')
+
+        if isinstance(data, ImmutableMemory):
+            return self.write_backup(0, data)
+        else:
+            if isinstance(data, Mapping):
+                data = data.keys()
+            backup = self.__class__()
+            poke = backup.poke
+            peek = self.peek
+
+            for address, value in data:
+                poke(address, peek(address))
+            return backup
+
+    def update_restore(
+        self,
+        backup: 'ImmutableMemory',
+    ) -> None:
+        r"""Restores an `update()` operation.
+
+        Arguments:
+            backup (:obj:`ImmutableMemory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`update`
+            :meth:`update_backup`
+        """
+
+        self.write(0, backup)
 
     def validate(
         self,

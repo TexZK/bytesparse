@@ -2326,6 +2326,66 @@ class MutableMemory(ImmutableMemory,
         ...
 
     @abc.abstractmethod
+    def update(
+        self,
+        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        **kwargs: Any,  # string keys cannot become addresses
+    ) -> None:
+        r"""Updates data.
+
+        Arguments:
+            data (iterable):
+                Data to update with.
+                Can be either another memory, an (address, value)
+                mapping, or an iterable of (address, value) pairs.
+
+        See Also:
+            :meth:`update_backup`
+            :meth:`update_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def update_backup(
+        self,
+        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        **kwargs: Any,  # string keys cannot become addresses
+    ) -> 'MutableMemory':
+        r"""Backups an `update()` operation.
+
+        Arguments:
+            data (iterable):
+                Data to update with.
+                Can be either another memory, an (address, value)
+                mapping, or an iterable of (address, value) pairs.
+
+        Returns:
+            :obj:`MutableMemory` list: Backup memory regions.
+
+        See Also:
+            :meth:`update`
+            :meth:`update_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def update_restore(
+        self,
+        backup: 'MutableMemory',
+    ) -> None:
+        r"""Restores an `update()` operation.
+
+        Arguments:
+            backup (:obj:`MutableMemory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`update`
+            :meth:`update_backup`
+        """
+        ...
+
+    @abc.abstractmethod
     def write(
         self,
         address: Address,
