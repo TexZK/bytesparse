@@ -1697,6 +1697,7 @@ class BaseMemorySuite:
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
         assert memory.pop() == 122
         assert memory.pop(3) == 67
+        assert memory.pop(6, 63) == 63
 
     def test_pop_empty(self):
         Memory = self.Memory

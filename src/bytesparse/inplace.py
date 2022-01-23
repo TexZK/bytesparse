@@ -3973,6 +3973,7 @@ class Memory(MutableMemory):
     def pop(
         self,
         address: Optional[Address] = None,
+        default: Optional[Value] = None,
     ) -> Optional[Value]:
         r"""Takes a value away.
 
@@ -3981,8 +3982,11 @@ class Memory(MutableMemory):
                 Address of the byte to pop.
                 If ``None``, the very last byte is popped.
 
+            default (int):
+                Value to return if `address` is within emptiness.
+
         Return:
-            int: Value at `address`; ``None`` within emptiness.
+            int: Value at `address`; `default` within emptiness.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -4000,6 +4004,8 @@ class Memory(MutableMemory):
             122
             >>> memory.pop(3)  # -> ord('C') = 67
             67
+            >>> memory.pop(6, 63)  # -> ord('?') = 67
+            63
 
         See Also:
             :meth:`pop_backup`
@@ -4015,11 +4021,11 @@ class Memory(MutableMemory):
                     blocks.pop()
                 return backup
             else:
-                return None
+                return default
         else:
             backup = self.peek(address)
             self._erase(address, address + 1, True)  # delete
-            return backup
+            return default if backup is None else backup
 
     def pop_backup(
         self,

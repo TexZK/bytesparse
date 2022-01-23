@@ -1912,6 +1912,7 @@ class MutableMemory(ImmutableMemory,
     def pop(
         self,
         address: Optional[Address] = None,
+        default: Optional[Value] = None,
     ) -> Optional[Value]:
         r"""Takes a value away.
 
@@ -1920,8 +1921,11 @@ class MutableMemory(ImmutableMemory,
                 Address of the byte to pop.
                 If ``None``, the very last byte is popped.
 
+            default (int):
+                Value to return if `address` is within emptiness.
+
         Return:
-            int: Value at `address`; ``None`` within emptiness.
+            int: Value at `address`; `default` within emptiness.
 
         See Also:
             :meth:`pop_backup`
