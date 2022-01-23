@@ -1976,6 +1976,53 @@ class MutableMemory(ImmutableMemory,
         ...
 
     @abc.abstractmethod
+    def popitem(
+        self,
+    ) -> Tuple[Address, Value]:
+        r"""Pops the last item.
+
+        Return:
+            (int, int): Address and value of the last item.
+
+        See Also:
+            :meth:`popitem_backup`
+            :meth:`popitem_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def popitem_backup(
+        self,
+    ) -> Tuple[Address, Value]:
+        r"""Backups a `popitem()` operation.
+
+        Returns:
+            (int, int): Address and value of the last item.
+
+        See Also:
+            :meth:`popitem`
+            :meth:`popitem_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def popitem_restore(
+        self,
+        item: Value,
+    ) -> None:
+        r"""Restores a `popitem()` operation.
+
+        Arguments:
+            item (int or byte):
+                Item to restore.
+
+        See Also:
+            :meth:`popitem`
+            :meth:`popitem_backup`
+        """
+        ...
+
+    @abc.abstractmethod
     def remove(
         self,
         item: Union[AnyBytes, Value],

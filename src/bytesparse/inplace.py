@@ -4077,6 +4077,67 @@ class Memory(MutableMemory):
             else:
                 self.insert(address, item)
 
+    def popitem(
+        self,
+    ) -> Tuple[Address, Value]:
+        r"""Pops the last item.
+
+        Return:
+            (int, int): Address and value of the last item.
+
+        See Also:
+            :meth:`popitem_backup`
+            :meth:`popitem_restore`
+        """
+
+        blocks = self._blocks
+        if blocks:
+            block_start, block_data = blocks[-1]
+            value = block_data.pop()
+            address = block_start + len(block_data)
+            if not block_data:
+                blocks.pop()
+            return address, value
+        raise KeyError('empty')
+
+    def popitem_backup(
+        self,
+    ) -> Tuple[Address, Value]:
+        r"""Backups a `popitem()` operation.
+
+        Returns:
+            (int, int): Address and value of the last item.
+
+        See Also:
+            :meth:`popitem`
+            :meth:`popitem_restore`
+        """
+
+        blocks = self._blocks
+        if blocks:
+            block_start, block_data = blocks[-1]
+            value = block_data[-1]
+            address = block_start + len(block_data) - 1
+            return address, value
+        raise KeyError('empty')
+
+    def popitem_restore(
+        self,
+        item: Value,
+    ) -> None:
+        r"""Restores a `popitem()` operation.
+
+        Arguments:
+            item (int or byte):
+                Item to restore.
+
+        See Also:
+            :meth:`popitem`
+            :meth:`popitem_backup`
+        """
+
+        self.append(item)
+
     def remove(
         self,
         item: Union[AnyBytes, Value],
