@@ -5816,11 +5816,62 @@ class bytesparse(Memory):
 
         return super().shift_backup(offset)
 
-    # TODO: property trim_endex
+    @ImmutableMemory.trim_endex.getter
+    def trim_endex(
+        self,
+    ) -> Optional[Address]:
 
-    # TODO: property trim_span
+        return super().trim_endex
 
-    # TODO: property trim_start
+    @trim_endex.setter
+    def trim_endex(
+        self,
+        trim_endex: Address,
+    ) -> None:
+
+        if trim_endex is not None and trim_endex < 0:
+            raise ValueError('negative endex')
+
+        super().trim_endex = trim_endex
+
+    @ImmutableMemory.trim_span.getter
+    def trim_span(
+        self,
+    ) -> OpenInterval:
+
+        return super().trim_span
+
+    @trim_span.setter
+    def trim_span(
+        self,
+        trim_span: OpenInterval,
+    ) -> None:
+
+        trim_start, trim_endex = trim_span
+        if trim_start is not None and trim_start < 0:
+            raise ValueError('negative start')
+        if trim_endex is not None and trim_endex < 0:
+            raise ValueError('negative endex')
+
+        super().trim_span = trim_span
+
+    @ImmutableMemory.trim_start.getter
+    def trim_start(
+        self,
+    ) -> Optional[Address]:
+
+        return super().trim_start
+
+    @trim_start.setter
+    def trim_start(
+        self,
+        trim_start: Address,
+    ) -> None:
+
+        if trim_start is not None and trim_start < 0:
+            raise ValueError('negative start')
+
+        super().trim_start = trim_start
 
     def validate(
         self,
