@@ -5266,17 +5266,39 @@ class bytesparse(Memory):
 
         errors (str):
             Optional string error management.
+
+        start (int):
+            Optional memory start address.
+            Anything before will be trimmed away.
+            If `source` is provided, its data start at this address
+            (0 if `start` is ``None``).
+
+        endex (int):
+            Optional memory exclusive end address.
+            Anything at or after it will be trimmed away.
     """
 
     def __init__(
         self,
         *args: Any,  # see bytearray.__init__()
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
     ):
 
-        super().__init__()
+        super().__init__(start, endex)
+
         data = bytearray(*args)
         if data:
-            self._blocks.append([0, data])
+            if start is None:
+                start = 0
+
+            if endex is not None:
+                if endex < start:
+                    endex = start
+
+                del data[(endex - start):]
+
+            self._blocks.append([start, data])
 
     def __delitem__(
         self,
