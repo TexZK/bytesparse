@@ -89,6 +89,8 @@
       ~Memory.shift
       ~Memory.shift_backup
       ~Memory.shift_restore
+      ~Memory.to_blocks
+      ~Memory.to_bytes
       ~Memory.update
       ~Memory.update_backup
       ~Memory.update_restore

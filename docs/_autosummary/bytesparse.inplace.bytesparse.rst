@@ -89,6 +89,8 @@
       ~bytesparse.shift
       ~bytesparse.shift_backup
       ~bytesparse.shift_restore
+      ~bytesparse.to_blocks
+      ~bytesparse.to_bytes
       ~bytesparse.update
       ~bytesparse.update_backup
       ~bytesparse.update_restore

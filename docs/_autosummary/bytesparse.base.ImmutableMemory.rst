@@ -42,6 +42,8 @@
       ~ImmutableMemory.rindex
       ~ImmutableMemory.rofind
       ~ImmutableMemory.rvalues
+      ~ImmutableMemory.to_blocks
+      ~ImmutableMemory.to_bytes
       ~ImmutableMemory.validate
       ~ImmutableMemory.values
       ~ImmutableMemory.view

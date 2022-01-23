@@ -88,6 +88,8 @@
       ~MutableMemory.shift
       ~MutableMemory.shift_backup
       ~MutableMemory.shift_restore
+      ~MutableMemory.to_blocks
+      ~MutableMemory.to_bytes
       ~MutableMemory.update
       ~MutableMemory.update_backup
       ~MutableMemory.update_restore
