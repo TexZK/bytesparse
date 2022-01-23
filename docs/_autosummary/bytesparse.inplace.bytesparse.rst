@@ -68,7 +68,10 @@ bytesparse.inplace.bytesparse
       ~bytesparse.pop
       ~bytesparse.pop_backup
       ~bytesparse.pop_restore
+      ~bytesparse.popitem
       ~bytesparse.remove
+      ~bytesparse.remove_backup
+      ~bytesparse.remove_restore
       ~bytesparse.reserve
       ~bytesparse.reserve_backup
       ~bytesparse.reserve_restore
@@ -77,9 +80,11 @@ bytesparse.inplace.bytesparse
       ~bytesparse.rindex
       ~bytesparse.rofind
       ~bytesparse.rvalues
+      ~bytesparse.setdefault
       ~bytesparse.shift
       ~bytesparse.shift_backup
       ~bytesparse.shift_restore
+      ~bytesparse.update
       ~bytesparse.validate
       ~bytesparse.values
       ~bytesparse.view
