@@ -5821,7 +5821,8 @@ class bytesparse(Memory):
         self,
     ) -> Optional[Address]:
 
-        return super().trim_endex
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        return self._trim_endex
 
     @trim_endex.setter
     def trim_endex(
@@ -5832,14 +5833,22 @@ class bytesparse(Memory):
         if trim_endex is not None and trim_endex < 0:
             raise ValueError('negative endex')
 
-        super().trim_endex = trim_endex
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        trim_start = self._trim_start
+        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
+            self._trim_start = trim_start = trim_endex
+
+        self._trim_endex = trim_endex
+        if trim_endex is not None:
+            self.crop(trim_start, trim_endex)
 
     @ImmutableMemory.trim_span.getter
     def trim_span(
         self,
     ) -> OpenInterval:
 
-        return super().trim_span
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        return self._trim_start, self._trim_endex
 
     @trim_span.setter
     def trim_span(
@@ -5853,14 +5862,23 @@ class bytesparse(Memory):
         if trim_endex is not None and trim_endex < 0:
             raise ValueError('negative endex')
 
-        super().trim_span = trim_span
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        trim_start, trim_endex = trim_span
+        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
+            trim_endex = trim_start
+
+        self._trim_start = trim_start
+        self._trim_endex = trim_endex
+        if trim_start is not None or trim_endex is not None:
+            self.crop(trim_start, trim_endex)
 
     @ImmutableMemory.trim_start.getter
     def trim_start(
         self,
     ) -> Optional[Address]:
 
-        return super().trim_start
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        return self._trim_start
 
     @trim_start.setter
     def trim_start(
@@ -5871,7 +5889,14 @@ class bytesparse(Memory):
         if trim_start is not None and trim_start < 0:
             raise ValueError('negative start')
 
-        super().trim_start = trim_start
+        # Copy-pasted from Memory, because I cannot figure out how to override properties
+        trim_endex = self._trim_endex
+        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
+            self._trim_endex = trim_endex = trim_start
+
+        self._trim_start = trim_start
+        if trim_start is not None:
+            self.crop(trim_start, trim_endex)
 
     def validate(
         self,
