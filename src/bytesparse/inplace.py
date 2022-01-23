@@ -42,6 +42,7 @@ from typing import Mapping
 from typing import Optional
 from typing import Tuple
 from typing import Union
+from typing import cast as _cast
 
 from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
@@ -450,7 +451,9 @@ class Memory(MutableMemory):
         if isinstance(other, Memory):
             return self._blocks == other._blocks
 
-        # TODO: Support ImmutableMemory
+        elif isinstance(other, ImmutableMemory):
+            zipping = _zip_longest(self._blocks, other.blocks(), fillvalue=(0, b''))
+            return all(b1 == b2 for b1, b2 in zipping)
 
         elif isinstance(other, (bytes, bytearray, memoryview)):
             blocks = self._blocks
@@ -1193,7 +1196,7 @@ class Memory(MutableMemory):
         self,
         start_min: Optional[Address],
         size: Address,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `_pretrim_endex()` operation.
 
         Arguments:
@@ -1254,7 +1257,7 @@ class Memory(MutableMemory):
         self,
         endex_max: Optional[Address],
         size: Address,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `_pretrim_start()` operation.
 
         Arguments:
@@ -1623,7 +1626,7 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `clear()` operation.
 
         Arguments:
@@ -1647,7 +1650,7 @@ class Memory(MutableMemory):
 
     def clear_restore(
         self,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `clear()` operation.
 
@@ -2034,7 +2037,7 @@ class Memory(MutableMemory):
 
     def copy(
         self,
-    ) -> 'ImmutableMemory':
+    ) -> 'Memory':
         r"""Creates a shallow copy.
 
         Returns:
@@ -2099,7 +2102,7 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Tuple[Optional['Memory'], Optional['Memory']]:
+    ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
         r"""Backups a `crop()` operation.
 
         Arguments:
@@ -2139,8 +2142,8 @@ class Memory(MutableMemory):
 
     def crop_restore(
         self,
-        backup_start: Optional['Memory'],
-        backup_endex: Optional['Memory'],
+        backup_start: Optional[ImmutableMemory],
+        backup_endex: Optional[ImmutableMemory],
     ) -> None:
         r"""Restores a `crop()` operation.
 
@@ -2280,7 +2283,7 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `delete()` operation.
 
         Arguments:
@@ -2304,7 +2307,7 @@ class Memory(MutableMemory):
 
     def delete_restore(
         self,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `delete()` operation.
 
@@ -2814,7 +2817,7 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `fill()` operation.
 
         Arguments:
@@ -2838,7 +2841,7 @@ class Memory(MutableMemory):
 
     def fill_restore(
         self,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `fill()` operation.
 
@@ -3196,7 +3199,7 @@ class Memory(MutableMemory):
     @classmethod
     def from_memory(
         cls,
-        memory: 'Memory',
+        memory: Union[ImmutableMemory, 'Memory'],
         offset: Address = 0,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
@@ -3264,12 +3267,13 @@ class Memory(MutableMemory):
         """
 
         offset = Address(offset)
+        is_memory = isinstance(memory, Memory)
 
-        # TODO: support ImmutableMemory
+        if copy or not is_memory:
+            memory_blocks = memory._blocks if is_memory else memory.blocks()
 
-        if copy:
             blocks = [[block_start + offset, bytearray(block_data)]
-                      for block_start, block_data in memory._blocks]
+                      for block_start, block_data in memory_blocks]
         else:
             if offset:
                 blocks = [[block_start + offset, block_data]
@@ -3456,6 +3460,7 @@ class Memory(MutableMemory):
                 Number of bytes grouped between separators.
                 Grouping is performed from the right.
                 Defaults to one byte per group.
+                Available since Python 3.8.
 
         Returns:
             str: Hexadecimal string representation.
@@ -3592,7 +3597,7 @@ class Memory(MutableMemory):
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups an `insert()` operation.
 
         Arguments:
@@ -3617,7 +3622,7 @@ class Memory(MutableMemory):
     def insert_restore(
         self,
         address: Address,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores an `insert()` operation.
 
@@ -4252,7 +4257,7 @@ class Memory(MutableMemory):
         item: Union[AnyBytes, Value],
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `remove()` operation.
 
         Arguments:
@@ -4284,7 +4289,7 @@ class Memory(MutableMemory):
 
     def remove_restore(
         self,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `remove()` operation.
 
@@ -4377,7 +4382,7 @@ class Memory(MutableMemory):
         self,
         address: Address,
         size: Address,
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups a `reserve()` operation.
 
         Arguments:
@@ -4401,7 +4406,7 @@ class Memory(MutableMemory):
     def reserve_restore(
         self,
         address: Address,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `reserve()` operation.
 
@@ -4836,7 +4841,7 @@ class Memory(MutableMemory):
     def shift_backup(
         self,
         offset: Address,
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups a `shift()` operation.
 
         Arguments:
@@ -4860,7 +4865,7 @@ class Memory(MutableMemory):
     def shift_restore(
         self,
         offset: Address,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores an `shift()` operation.
 
@@ -5071,7 +5076,7 @@ class Memory(MutableMemory):
         self,
         data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
         **kwargs: Any,  # string keys cannot become addresses
-    ) -> 'ImmutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups an `update()` operation.
 
         Arguments:
@@ -5106,7 +5111,7 @@ class Memory(MutableMemory):
 
     def update_restore(
         self,
-        backup: 'ImmutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores an `update()` operation.
 
@@ -5338,7 +5343,7 @@ class Memory(MutableMemory):
     def write(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyBytes, Value, ImmutableMemory, 'Memory'],
         clear: bool = False,
     ) -> None:
         r"""Writes data.
@@ -5377,10 +5382,8 @@ class Memory(MutableMemory):
             self.poke(address, data)  # faster
             return
 
-        # TODO: support ImmutableMemory
-
-        is_memory = isinstance(data, Memory)
-        if is_memory:
+        data_is_immutable_memory = isinstance(data, ImmutableMemory)
+        if data_is_immutable_memory:
             start = data.start + address
             endex = data.endex + address
             size = endex - start
@@ -5404,18 +5407,21 @@ class Memory(MutableMemory):
         if trim_endex is not None and trim_endex <= start:
             return
 
-        if is_memory:
+        if data_is_immutable_memory:
+            data_is_memory = isinstance(data, Memory)
             if clear:
                 # Clear anything between source data boundaries
                 self._erase(start, endex, False)  # clear
             else:
                 # Clear only overwritten ranges
-                for block_start, block_data in data._blocks:
+                data_blocks = data._blocks if data_is_memory else data.blocks()
+                for block_start, block_data in data_blocks:
                     block_start = block_start + address
                     block_endex = block_start + len(block_data)
                     self._erase(block_start, block_endex, False)  # clear
 
-            for block_start, block_data in data._blocks:
+            data_blocks = data._blocks if data_is_memory else data.blocks()
+            for block_start, block_data in data_blocks:
                 block_start = block_start + address
                 block_endex = block_start + len(block_data)
 
@@ -5471,7 +5477,7 @@ class Memory(MutableMemory):
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
         r"""Backups a `write()` operation.
 
         Arguments:
@@ -5494,7 +5500,7 @@ class Memory(MutableMemory):
 
     def write_restore(
         self,
-        backup: 'Memory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `write()` operation.
 
@@ -5736,7 +5742,7 @@ class bytesparse(Memory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().clear_backup(start, endex)
@@ -5764,7 +5770,7 @@ class bytesparse(Memory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Tuple[Optional['Memory'], Optional['Memory']]:
+    ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
 
         start, endex = self._rectify_span(start, endex)
         return super().crop_backup(start, endex)
@@ -5774,7 +5780,7 @@ class bytesparse(Memory):
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
         bound: bool = True,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().cut(start, endex)
@@ -5792,7 +5798,7 @@ class bytesparse(Memory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().delete_backup(start, endex)
@@ -5812,7 +5818,7 @@ class bytesparse(Memory):
         pattern: Optional[Union[AnyBytes, Value]] = None,
         step: Optional[Address] = None,
         bound: bool = True,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().extract(start, endex, pattern, step, bound)
@@ -5831,7 +5837,7 @@ class bytesparse(Memory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().fill_backup(start, endex)
@@ -5874,7 +5880,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
         copy: bool = True,
         validate: bool = True,
-    ) -> 'Memory':
+    ) -> 'bytesparse':
 
         if blocks:
             block_start = blocks[0][0]
@@ -5886,7 +5892,9 @@ class bytesparse(Memory):
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        return super().from_blocks(blocks, offset, start, endex, copy, validate)
+        memory = super().from_blocks(blocks, offset, start, endex, copy, validate)
+        memory = _cast(bytesparse, memory)
+        return memory
 
     @classmethod
     def from_bytes(
@@ -5897,7 +5905,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
         copy: bool = True,
         validate: bool = True,
-    ) -> 'Memory':
+    ) -> 'bytesparse':
 
         if offset < 0:
             raise ValueError('negative offset')
@@ -5906,7 +5914,9 @@ class bytesparse(Memory):
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        return super().from_bytes(data, offset, start, endex, copy)
+        memory = super().from_bytes(data, offset, start, endex, copy)
+        memory = _cast(bytesparse, memory)
+        return memory
 
     @classmethod
     def from_memory(
@@ -5917,7 +5927,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
         copy: bool = True,
         validate: bool = True,
-    ) -> 'Memory':
+    ) -> 'bytesparse':
 
         blocks = memory._blocks
         if blocks:
@@ -5930,7 +5940,9 @@ class bytesparse(Memory):
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        return super().from_memory(memory, offset, start, endex, copy)
+        memory = super().from_memory(memory, offset, start, endex, copy)
+        memory = _cast(bytesparse, memory)
+        return memory
 
     def gaps(
         self,
@@ -5973,7 +5985,7 @@ class bytesparse(Memory):
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
 
         address = self._rectify_address(address)
         return super().insert_backup(address, data)
@@ -6054,11 +6066,12 @@ class bytesparse(Memory):
     def pop(
         self,
         address: Optional[Address] = None,
+        default: Optional[Value] = None,
     ) -> Optional[Value]:
 
         if address is not None:
             address = self._rectify_address(address)
-        return super().pop(address)
+        return super().pop(address, default)
 
     def pop_backup(
         self,
@@ -6083,7 +6096,7 @@ class bytesparse(Memory):
         item: Union[AnyBytes, Value],
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().remove_backup(item, start, endex)
@@ -6101,7 +6114,7 @@ class bytesparse(Memory):
         self,
         address: Address,
         size: Address,
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
 
         address = self._rectify_address(address)
         return super().reserve_backup(address, size)
@@ -6186,7 +6199,7 @@ class bytesparse(Memory):
     def shift_backup(
         self,
         offset: Address,
-    ) -> Tuple[Address, 'Memory']:
+    ) -> Tuple[Address, ImmutableMemory]:
 
         if offset < 0:
             blocks = self._blocks
@@ -6327,7 +6340,7 @@ class bytesparse(Memory):
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> 'Memory':
+    ) -> ImmutableMemory:
 
         address = self._rectify_address(address)
         return super().write_backup(address, data)

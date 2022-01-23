@@ -849,6 +849,7 @@ class ImmutableMemory(collections.abc.Sequence,
             bytes_per_sep (int):
                 Number of bytes grouped between separators.
                 Defaults to one byte per group.
+                Available since Python 3.8.
 
         Returns:
             str: Hexadecimal string representation.
@@ -1312,7 +1313,7 @@ class MutableMemory(ImmutableMemory,
         self,
         start_min: Optional[Address],
         size: Address,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `_pretrim_endex()` operation.
 
         Arguments:
@@ -1324,7 +1325,7 @@ class MutableMemory(ImmutableMemory,
                 Size of the erasure range.
 
         Returns:
-            :obj:`MutableMemory`: Backup memory region.
+            :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
             :meth:`_pretrim_endex`
@@ -1359,7 +1360,7 @@ class MutableMemory(ImmutableMemory,
         self,
         endex_max: Optional[Address],
         size: Address,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `_pretrim_start()` operation.
 
         Arguments:
@@ -1371,7 +1372,7 @@ class MutableMemory(ImmutableMemory,
                 Size of the erasure range.
 
         Returns:
-            :obj:`MutableMemory`: Backup memory region.
+            :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
             :meth:`_pretrim_start`
@@ -1450,7 +1451,7 @@ class MutableMemory(ImmutableMemory,
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `clear()` operation.
 
         Arguments:
@@ -1463,7 +1464,7 @@ class MutableMemory(ImmutableMemory,
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`MutableMemory`: Backup memory region.
+            :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
             :meth:`clear`
@@ -1474,12 +1475,12 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def clear_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `clear()` operation.
 
         Arguments:
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -1516,7 +1517,7 @@ class MutableMemory(ImmutableMemory,
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Tuple[Optional['MutableMemory'], Optional['MutableMemory']]:
+    ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
         r"""Backups a `crop()` operation.
 
         Arguments:
@@ -1529,7 +1530,7 @@ class MutableMemory(ImmutableMemory,
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`MutableMemory` couple: Backup memory regions.
+            :obj:`ImmutableMemory` couple: Backup memory regions.
 
         See Also:
             :meth:`crop`
@@ -1540,16 +1541,16 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def crop_restore(
         self,
-        backup_start: Optional['MutableMemory'],
-        backup_endex: Optional['MutableMemory'],
+        backup_start: Optional[ImmutableMemory],
+        backup_endex: Optional[ImmutableMemory],
     ) -> None:
         r"""Restores a `crop()` operation.
 
         Arguments:
-            backup_start (:obj:`MutableMemory`):
+            backup_start (:obj:`ImmutableMemory`):
                 Backup memory region to restore at the beginning.
 
-            backup_endex (:obj:`MutableMemory`):
+            backup_endex (:obj:`ImmutableMemory`):
                 Backup memory region to restore at the end.
 
         See Also:
@@ -1586,7 +1587,7 @@ class MutableMemory(ImmutableMemory,
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `delete()` operation.
 
         Arguments:
@@ -1599,7 +1600,7 @@ class MutableMemory(ImmutableMemory,
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`MutableMemory`: Backup memory region.
+            :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
             :meth:`delete`
@@ -1610,12 +1611,12 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def delete_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `delete()` operation.
 
         Arguments:
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region
 
         See Also:
@@ -1627,7 +1628,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def extend(
         self,
-        items: Union[AnyBytes, 'ImmutableMemory'],
+        items: Union[AnyBytes, ImmutableMemory],
         offset: Address = 0,
     ) -> None:
         r"""Concatenates items.
@@ -1716,7 +1717,7 @@ class MutableMemory(ImmutableMemory,
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `fill()` operation.
 
         Arguments:
@@ -1729,7 +1730,7 @@ class MutableMemory(ImmutableMemory,
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`MutableMemory`: Backup memory region.
+            :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
             :meth:`fill`
@@ -1740,12 +1741,12 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def fill_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `fill()` operation.
 
         Arguments:
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -1853,7 +1854,7 @@ class MutableMemory(ImmutableMemory,
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> Tuple[Address, 'MutableMemory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups an `insert()` operation.
 
         Arguments:
@@ -1864,7 +1865,7 @@ class MutableMemory(ImmutableMemory,
                 Data to insert.
 
         Returns:
-            (int, :obj:`MutableMemory`): Insertion address, backup memory region.
+            (int, :obj:`ImmutableMemory`): Insertion address, backup memory region.
 
         See Also:
             :meth:`insert`
@@ -1876,7 +1877,7 @@ class MutableMemory(ImmutableMemory,
     def insert_restore(
         self,
         address: Address,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         ...
 
@@ -2094,7 +2095,7 @@ class MutableMemory(ImmutableMemory,
         item: Union[AnyBytes, Value],
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `remove()` operation.
 
         Arguments:
@@ -2121,7 +2122,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def remove_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `remove()` operation.
 
@@ -2163,7 +2164,7 @@ class MutableMemory(ImmutableMemory,
         self,
         address: Address,
         size: Address,
-    ) -> Tuple[Address, 'MutableMemory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups a `reserve()` operation.
 
         Arguments:
@@ -2174,7 +2175,7 @@ class MutableMemory(ImmutableMemory,
                 Size of the emptiness to insert.
 
         Returns:
-            (int, :obj:`MutableMemory`): Reservation address, backup memory region.
+            (int, :obj:`ImmutableMemory`): Reservation address, backup memory region.
 
         See Also:
             :meth:`reserve`
@@ -2186,7 +2187,7 @@ class MutableMemory(ImmutableMemory,
     def reserve_restore(
         self,
         address: Address,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `reserve()` operation.
 
@@ -2194,7 +2195,7 @@ class MutableMemory(ImmutableMemory,
             address (int):
                 Address of the reservation point.
 
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -2298,7 +2299,7 @@ class MutableMemory(ImmutableMemory,
     def shift_backup(
         self,
         offset: Address,
-    ) -> Tuple[Address, 'MutableMemory']:
+    ) -> Tuple[Address, ImmutableMemory]:
         r"""Backups a `shift()` operation.
 
         Arguments:
@@ -2306,7 +2307,7 @@ class MutableMemory(ImmutableMemory,
                 Signed amount of address shifting.
 
         Returns:
-            (int, :obj:`MutableMemory`): Shifting, backup memory region.
+            (int, :obj:`ImmutableMemory`): Shifting, backup memory region.
 
         See Also:
             :meth:`shift`
@@ -2318,7 +2319,7 @@ class MutableMemory(ImmutableMemory,
     def shift_restore(
         self,
         offset: Address,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores an `shift()` operation.
 
@@ -2326,7 +2327,7 @@ class MutableMemory(ImmutableMemory,
             offset (int):
                 Signed amount of address shifting.
 
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -2384,7 +2385,7 @@ class MutableMemory(ImmutableMemory,
         self,
         data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
         **kwargs: Any,  # string keys cannot become addresses
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups an `update()` operation.
 
         Arguments:
@@ -2394,7 +2395,7 @@ class MutableMemory(ImmutableMemory,
                 mapping, or an iterable of (address, value) pairs.
 
         Returns:
-            :obj:`MutableMemory` list: Backup memory regions.
+            :obj:`ImmutableMemory` list: Backup memory regions.
 
         See Also:
             :meth:`update`
@@ -2405,12 +2406,12 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores an `update()` operation.
 
         Arguments:
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -2437,7 +2438,7 @@ class MutableMemory(ImmutableMemory,
 
             clear (bool):
                 Clears the target range before writing data.
-                Useful only if `data` is a :obj:`MutableMemory` with empty spaces.
+                Useful only if `data` is a :obj:`ImmutableMemory` with empty spaces.
 
         See Also:
             :meth:`write_backup`
@@ -2450,7 +2451,7 @@ class MutableMemory(ImmutableMemory,
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> 'MutableMemory':
+    ) -> ImmutableMemory:
         r"""Backups a `write()` operation.
 
         Arguments:
@@ -2461,7 +2462,7 @@ class MutableMemory(ImmutableMemory,
                 Data to write.
 
         Returns:
-            :obj:`MutableMemory` list: Backup memory regions.
+            :obj:`ImmutableMemory` list: Backup memory regions.
 
         See Also:
             :meth:`write`
@@ -2472,12 +2473,12 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def write_restore(
         self,
-        backup: 'MutableMemory',
+        backup: ImmutableMemory,
     ) -> None:
         r"""Restores a `write()` operation.
 
         Arguments:
-            backup (:obj:`MutableMemory`):
+            backup (:obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
