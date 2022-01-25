@@ -1905,8 +1905,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] == b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test___copy___template(self):
         Memory = self.Memory
@@ -1917,8 +1916,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] == b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test_copy_empty(self):
         Memory = self.Memory
@@ -1928,8 +1926,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] == b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test_copy_template(self):
         Memory = self.Memory
@@ -1940,8 +1937,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] == b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test___deepcopy___doctest(self):
         pass  # no doctest
@@ -1954,10 +1950,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] is not b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
-        blocks1, blocks2 = memory1.to_blocks(), memory2.to_blocks()
-        assert blocks1 == blocks2
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test___deepcopy___template(self):
         Memory = self.Memory
@@ -1968,10 +1961,7 @@ class BaseMemorySuite:
         assert memory1.span == memory2.span
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
-        checks = [b1[1] is not b2[1] for b1, b2 in zip(memory1.to_blocks(), memory2.to_blocks())]
-        assert all(checks)
-        blocks1, blocks2 = memory1.to_blocks(), memory2.to_blocks()
-        assert blocks1 == blocks2
+        assert all(b1 == b2 for b1, b2 in zip(memory1.blocks(), memory2.blocks()))
 
     def test_contiguous_doctest(self):
         pass  # no doctest
