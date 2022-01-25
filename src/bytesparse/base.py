@@ -52,6 +52,8 @@ BlockList = List[Block]
 OpenInterval = Tuple[Optional[Address], Optional[Address]]
 ClosedInterval = Tuple[Address, Address]
 
+AddressValueMapping = Mapping[Address, Value]
+
 EllipsisType = Type['Ellipsis']
 
 STR_MAX_CONTENT_SIZE: Address = 1000
@@ -276,9 +278,9 @@ class ImmutableMemory(collections.abc.Sequence,
         self,
         address: Address,
     ) -> BlockIndex:
-        r"""Locates the first block after an address range.
+        r"""Locates the last block before an address range.
 
-        Returns the index of the first block whose end address is lesser than or
+        Returns the index of the last block whose end address is lesser than or
         equal to `address`.
 
         Useful to find the termination block index in a ranged search.
@@ -288,7 +290,7 @@ class ImmutableMemory(collections.abc.Sequence,
                 Exclusive end address of the scanned range.
 
         Returns:
-            int: First block index after `address`.
+            int: First block index before `address`.
         """
         ...
 
@@ -425,6 +427,10 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
+    # TODO: content_keys()
+
+    # TODO: content_items()
+
     @property
     @abc.abstractmethod
     def content_parts(
@@ -477,6 +483,8 @@ class ImmutableMemory(collections.abc.Sequence,
         Trimming is considered only for an empty memory.
         """
         ...
+
+    # TODO: content_values()
 
     @property
     @abc.abstractmethod
@@ -2116,11 +2124,15 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def popitem_restore(
         self,
+        address: Address,
         item: Value,
     ) -> None:
         r"""Restores a `popitem()` operation.
 
         Arguments:
+            address (int):
+                Address of the target item.
+
             item (int or byte):
                 Item to restore.
 
@@ -2436,9 +2448,11 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update(
         self,
-        data: Union[Iterable[Tuple[Address, Value]],
+        data: Union[AddressValueMapping,
+                    Iterable[Tuple[Address, Value]],
                     Mapping[Address, Union[Value, AnyBytes]],
                     ImmutableMemory],
+        clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> None:
         r"""Updates data.
@@ -2449,6 +2463,10 @@ class MutableMemory(ImmutableMemory,
                 Can be either another memory, an (address, value)
                 mapping, or an iterable of (address, value) pairs.
 
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
         See Also:
             :meth:`update_backup`
             :meth:`update_restore`
@@ -2458,9 +2476,9 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update_backup(
         self,
-        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[AddressValueMapping, Iterable[Tuple[Address, Value]], ImmutableMemory],
         **kwargs: Any,  # string keys cannot become addresses
-    ) -> ImmutableMemory:
+    ) -> Union[AddressValueMapping, ImmutableMemory]:
         r"""Backups an `update()` operation.
 
         Arguments:
@@ -2470,7 +2488,7 @@ class MutableMemory(ImmutableMemory,
                 mapping, or an iterable of (address, value) pairs.
 
         Returns:
-            :obj:`ImmutableMemory` list: Backup memory regions.
+            list of :obj:`ImmutableMemory`: Backup memory regions.
 
         See Also:
             :meth:`update`
@@ -2481,13 +2499,13 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update_restore(
         self,
-        backup: ImmutableMemory,
+        backups: Union[AddressValueMapping, List[ImmutableMemory]],
     ) -> None:
         r"""Restores an `update()` operation.
 
         Arguments:
-            backup (:obj:`ImmutableMemory`):
-                Backup memory region to restore.
+            backups (list of :obj:`ImmutableMemory`):
+                Backup memory regions to restore.
 
         See Also:
             :meth:`update`
@@ -2526,7 +2544,8 @@ class MutableMemory(ImmutableMemory,
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> ImmutableMemory:
+        clear: bool = False,
+    ) -> List[ImmutableMemory]:
         r"""Backups a `write()` operation.
 
         Arguments:
@@ -2536,8 +2555,12 @@ class MutableMemory(ImmutableMemory,
             data (bytes):
                 Data to write.
 
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
         Returns:
-            :obj:`ImmutableMemory` list: Backup memory regions.
+            list of :obj:`ImmutableMemory`: Backup memory regions.
 
         See Also:
             :meth:`write`
@@ -2548,13 +2571,13 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def write_restore(
         self,
-        backup: ImmutableMemory,
+        backups: Sequence[ImmutableMemory],
     ) -> None:
         r"""Restores a `write()` operation.
 
         Arguments:
-            backup (:obj:`ImmutableMemory`):
-                Backup memory region to restore.
+            backups (list of :obj:`ImmutableMemory`):
+                Backup memory regions to restore.
 
         See Also:
             :meth:`write`

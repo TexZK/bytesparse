@@ -1810,6 +1810,46 @@ class BaseMemorySuite:
         with pytest.raises(KeyError, match='empty'):
             memory.popitem()
 
+    def test_popitem(self):
+        Memory = self.Memory
+        blocks = create_template_blocks()
+        values = blocks_to_values(blocks, MAX_SIZE)
+        memory = Memory.from_blocks(blocks)
+
+        while values:
+            value = values.pop()
+            if value is not None:
+                offset = len(values)
+                memory_backup = memory.__deepcopy__()
+                backup_address, backup_value = memory.popitem_backup()
+                assert backup_address == offset
+                assert backup_value == value
+
+                address_out, value_out = memory.popitem()
+                memory.validate()
+                value_ref = value
+                assert address_out == offset
+                assert value_out == value_ref
+
+                blocks_out = memory.to_blocks()
+                blocks_ref = values_to_blocks(values)
+                assert blocks_out == blocks_ref
+
+                memory.popitem_restore(backup_address, backup_value)
+                memory.validate()
+                assert memory == memory_backup
+
+                memory.popitem()
+                memory.validate()
+
+    def test_popitem_empty(self):
+        Memory = self.Memory
+        memory = Memory()
+        with pytest.raises(KeyError, match='empty'):
+            memory.popitem()
+        with pytest.raises(KeyError, match='empty'):
+            memory.popitem_backup()
+
     def test_popitem_backup_doctest(self):
         pass  # no doctest
 
@@ -2988,6 +3028,43 @@ class BaseMemorySuite:
         memory.validate()
         assert memory.peek(7) is None
 
+    def test_setdefault_multi(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        value = memory.setdefault(0, b'X')
+        assert value == b'X'[0]
+
+        with pytest.raises(ValueError, match='expecting single item'):
+            memory.setdefault(1, b'YZ')
+
+    def test_setdefault_template(self):
+        Memory = self.Memory
+        for start in range(MAX_START):
+            blocks = create_template_blocks()
+            values = blocks_to_values(blocks, MAX_SIZE)
+            memory = Memory.from_blocks(blocks)
+            memory_backup = memory.__deepcopy__()
+
+            backup_address, backup_value = memory.setdefault_backup(start, start)
+            assert backup_address == start
+            assert backup_value == values[start]
+
+            answer = memory.setdefault(start, start)
+            memory.validate()
+            if values[start] is None:
+                assert answer == start
+                values[start] = start
+            else:
+                assert answer == values[start]
+            blocks_out = memory.to_blocks()
+            blocks_ref = values_to_blocks(values)
+            assert blocks_out == blocks_ref
+
+            memory.setdefault_restore(backup_address, backup_value)
+            memory.validate()
+            assert memory == memory_backup
+
     def test_setdefault_backup_doctest(self):
         pass  # no doctest
 
@@ -3010,6 +3087,60 @@ class BaseMemorySuite:
         memory.validate()
         assert memory.to_blocks() == [[1, b'xy@'], [5, b'A?C']]
 
+    def test_update_kwargs(self):
+        Memory = self.Memory
+        memory = Memory()
+        with pytest.raises(KeyError, match='cannot convert'):
+            memory.update((), dummy=0)
+        with pytest.raises(KeyError, match='cannot convert'):
+            memory.update_backup((), dummy=0)
+
+    def test_update_template_memory(self):
+        Memory = self.Memory
+        memory1 = Memory.from_blocks(create_template_blocks())
+        memory2 = Memory.from_blocks(create_hello_world_blocks())
+        memory_backup = memory1.__deepcopy__()
+
+        backup, = memory1.update_backup(memory2, clear=True)
+        start = memory2.start
+        endex = memory2.endex
+        memory_ref = memory_backup.extract(start=start, endex=endex)
+        assert backup == memory_ref
+
+        memory1.update(memory2)
+        memory1.validate()
+        memory_ref = memory_backup.__deepcopy__()
+        memory_ref.write(0, memory2)
+        assert memory1 == memory_ref
+
+        memory1.update_restore([backup])
+        memory1.validate()
+        assert memory1 == memory_backup
+
+    def test_update_template_mapping(self):
+        Memory = self.Memory
+        memory1 = Memory.from_blocks(create_template_blocks())
+        memory2 = Memory.from_blocks(create_hello_world_blocks())
+        memory2 = {k: v for k, v in memory2.items() if v is not None}
+        memory_backup = memory1.__deepcopy__()
+
+        backup = memory1.update_backup(memory2)
+        backup_dict_out = dict(backup.items())
+        backup_dict_ref = {k: memory_backup[k] for k in memory2.keys()}
+        assert backup_dict_out == backup_dict_ref
+
+        memory1.update(memory2)
+        memory1.validate()
+        memory_ref = dict(memory_backup.items())
+        memory_ref.update(memory2)
+        values_out = list(memory1.values(0, MAX_SIZE))
+        values_ref = [memory_ref.get(k) for k in range(MAX_SIZE)]
+        assert values_out == values_ref
+
+        memory1.update_restore(backup)
+        memory1.validate()
+        assert memory1 == memory_backup
+
     def test_update_backup_doctest(self):
         pass  # no doctest
 
@@ -3020,17 +3151,17 @@ class BaseMemorySuite:
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
         assert memory.extract().to_blocks() == [[1, b'ABCD'], [6, b'$'], [8, b'xyz']]
-        assert memory.extract(2, 9).to_blocks() == [[2, b'BCD'], [6, b'$'], [8, b'x']]
+        assert memory.extract(start=2, endex=9).to_blocks() == [[2, b'BCD'], [6, b'$'], [8, b'x']]
         assert memory.extract(start=2).to_blocks() == [[2, b'BCD'], [6, b'$'], [8, b'xyz']]
         assert memory.extract(endex=9).to_blocks() == [[1, b'ABCD'], [6, b'$'], [8, b'x']]
-        assert memory.extract(5, 8).span == (5, 8)
+        assert memory.extract(start=5, endex=8).span == (5, 8)
         assert memory.extract(pattern=b'.').to_blocks() == [[1, b'ABCD.$.xyz']]
         assert memory.extract(pattern=b'.', step=3).to_blocks() == [[1, b'AD.z']]
 
     def test_extract_negative(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
-        extracted = memory.extract(2, 0)
+        extracted = memory.extract(start=2, endex=0)
         assert extracted.span == (2, 2)
         assert extracted.to_blocks() == []
 
@@ -3043,7 +3174,7 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
 
                 for bound in (False, True):
-                    extracted = memory.extract(start, start + size, bound=bound)
+                    extracted = memory.extract(start=start, endex=(start + size), bound=bound)
                     extracted.validate()
                     assert not bound or extracted.span == (start, start + size)
                     blocks_out = extracted.to_blocks()
@@ -3058,7 +3189,7 @@ class BaseMemorySuite:
                 memory = Memory.from_blocks(blocks)
 
                 for step in range(-1, 1):
-                    extracted = memory.extract(start, start + size, step=step)
+                    extracted = memory.extract(start=start, endex=(start + size), step=step)
                     extracted.validate()
                     blocks_out = extracted.to_blocks()
                     blocks_ref = []
@@ -3075,7 +3206,7 @@ class BaseMemorySuite:
 
                 for step in range(1, MAX_TIMES):
                     for bound in (False, True):
-                        extracted = memory.extract(start, endex, step=step, bound=bound)
+                        extracted = memory.extract(start=start, endex=endex, step=step, bound=bound)
                         extracted.validate()
                         blocks_out = extracted.to_blocks()
                         blocks_ref = values_to_blocks(values[start:endex:step], start)
@@ -3096,7 +3227,7 @@ class BaseMemorySuite:
                     if values[start + index] is None:
                         values[start + index] = tiled[index]
 
-                extracted = memory.extract(start, start + size, pattern)
+                extracted = memory.extract(start=start, endex=(start + size), pattern=pattern)
                 blocks_out = extracted.to_blocks()
 
                 blocks_ref = values_to_blocks(values[start:(start + size)], start)
@@ -3134,9 +3265,10 @@ class BaseMemorySuite:
                     memory_backup = memory.__deepcopy__()
 
                     cut = memory.cut(start, endex, bound=bound)
+                    memory.validate()
                     cut.validate()
                     assert not bound or cut.span == (start, endex)
-                    extracted = memory_backup.extract(start, endex)
+                    extracted = memory_backup.extract(start=start, endex=endex)
                     assert cut == extracted
                     blocks_out = cut.to_blocks()
                     blocks_ref = values_to_blocks(values[start:endex], start)
@@ -3401,7 +3533,7 @@ class BaseMemorySuite:
 
                 memory_backup = memory.__deepcopy__()
                 backup = memory.delete_backup(start, endex)
-                assert backup == memory_backup.extract(start, endex)
+                assert backup == memory_backup.extract(start=start, endex=endex)
 
                 memory.delete(start, endex)
                 memory.validate()
@@ -3455,7 +3587,7 @@ class BaseMemorySuite:
                 memory_backup = memory.__deepcopy__()
                 backup = memory.clear_backup(start, endex)
                 assert backup.span == (start, endex)
-                assert backup == memory_backup.extract(start, endex)
+                assert backup == memory_backup.extract(start=start, endex=endex)
 
                 memory.clear(start, endex)
                 memory.validate()
@@ -3527,10 +3659,10 @@ class BaseMemorySuite:
                 backup_start, backup_endex = memory.crop_backup(start, endex)
                 if backup_start is not None:
                     assert backup_start.endex == start
-                    assert backup_start == memory_backup.extract(None, start)
+                    assert backup_start == memory_backup.extract(start=None, endex=start)
                 if backup_endex is not None:
                     assert backup_endex.start == endex
-                    assert backup_endex == memory_backup.extract(endex, None)
+                    assert backup_endex == memory_backup.extract(start=endex, endex=None)
 
                 memory.crop(start, endex)
                 memory.validate()
@@ -3585,9 +3717,9 @@ class BaseMemorySuite:
             memory.trim_endex = memory.content_endex + 1
 
             memory_backup = memory.__deepcopy__()
-            backup = memory.write_backup(offset, chunk)
+            backup, = memory.write_backup(offset, chunk)
             assert backup.span == (offset, offset + len(chunk))
-            assert backup == memory_backup.extract(offset, offset + len(chunk))
+            assert backup == memory_backup.extract(start=offset, endex=(offset + len(chunk)))
 
             memory.write(offset, chunk)
             memory.validate()
@@ -3599,7 +3731,7 @@ class BaseMemorySuite:
             blocks_ref = values_to_blocks(values)
             assert blocks_out == blocks_ref
 
-            memory.write_restore(backup)
+            memory.write_restore([backup])
             memory.validate()
             assert memory == memory_backup
 
@@ -3746,7 +3878,7 @@ class BaseMemorySuite:
                 memory_backup = memory.__deepcopy__()
                 backup = memory.fill_backup(start, endex)
                 assert backup.span == (start, endex)
-                assert backup == memory_backup.extract(start, endex)
+                assert backup == memory_backup.extract(start=start, endex=endex)
 
                 memory.fill(start, endex, pattern)
                 memory.validate()

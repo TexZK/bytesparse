@@ -40,12 +40,14 @@ from typing import Iterator
 from typing import List
 from typing import Mapping
 from typing import Optional
+from typing import Sequence
 from typing import Tuple
 from typing import Union
 from typing import cast as _cast
 
 from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
+from .base import AddressValueMapping
 from .base import AnyBytes
 from .base import BlockIndex
 from .base import BlockIterable
@@ -530,11 +532,11 @@ class Memory(MutableMemory):
 
             if isinstance(step, Value):
                 if step >= 1:
-                    return self.extract(start, endex, step=step)
+                    return self.extract(start=start, endex=endex, step=step)
                 else:
                     return Memory()  # empty
             else:
-                return self.extract(start, endex, pattern=step)
+                return self.extract(start=start, endex=endex, pattern=step)
         else:
             return self.peek(key.__index__())
 
@@ -885,16 +887,16 @@ class Memory(MutableMemory):
                 right = center - 1
             else:
                 return center
-        else:
-            return None
+
+        return None
 
     def _block_index_endex(
         self,
         address: Address,
     ) -> BlockIndex:
-        r"""Locates the first block after an address range.
+        r"""Locates the last block before an address range.
 
-        Returns the index of the first block whose end address is lesser than or
+        Returns the index of the last block whose end address is lesser than or
         equal to `address`.
 
         Useful to find the termination block index in a ranged search.
@@ -904,7 +906,7 @@ class Memory(MutableMemory):
                 Exclusive end address of the scanned range.
 
         Returns:
-            int: First block index after `address`.
+            int: Last block index before `address`.
 
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -944,8 +946,8 @@ class Memory(MutableMemory):
                 right = center - 1
             else:
                 return center + 1
-        else:
-            return right + 1
+
+        return right + 1
 
     def _block_index_start(
         self,
@@ -1003,8 +1005,8 @@ class Memory(MutableMemory):
                 right = center - 1
             else:
                 return center
-        else:
-            return left
+
+        return left
 
     def _erase(
         self,
@@ -1219,7 +1221,7 @@ class Memory(MutableMemory):
             start = trim_endex - size
             if start_min is not None and start < start_min:
                 start = start_min
-            return self.extract(start, None)
+            return self.extract(start=start, endex=None)
         else:
             return self.__class__()
 
@@ -1280,7 +1282,7 @@ class Memory(MutableMemory):
             endex = trim_start + size
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
-            return self.extract(None, endex)
+            return self.extract(start=None, endex=endex)
         else:
             return self.__class__()
 
@@ -1665,7 +1667,7 @@ class Memory(MutableMemory):
             :meth:`clear_restore`
         """
 
-        return self.extract(start, endex)
+        return self.extract(start=start, endex=endex)
 
     def clear_restore(
         self,
@@ -2149,13 +2151,13 @@ class Memory(MutableMemory):
             if start is not None:
                 block_start = blocks[0][0]
                 if block_start < start:
-                    backup_start = self.extract(block_start, start)
+                    backup_start = self.extract(start=block_start, endex=start)
 
             if endex is not None:
                 block_start, block_data = blocks[-1]
                 block_endex = block_start + len(block_data)
                 if endex < block_endex:
-                    backup_endex = self.extract(endex, block_endex)
+                    backup_endex = self.extract(start=endex, endex=block_endex)
 
         return backup_start, backup_endex
 
@@ -2322,7 +2324,7 @@ class Memory(MutableMemory):
             :meth:`delete_restore`
         """
 
-        return self.extract(start, endex)
+        return self.extract(start=start, endex=endex)
 
     def delete_restore(
         self,
@@ -2856,7 +2858,7 @@ class Memory(MutableMemory):
             :meth:`fill_restore`
         """
 
-        return self.extract(start, endex)
+        return self.extract(start=start, endex=endex)
 
     def fill_restore(
         self,
@@ -4223,11 +4225,15 @@ class Memory(MutableMemory):
 
     def popitem_restore(
         self,
+        address: Address,
         item: Value,
     ) -> None:
         r"""Restores a `popitem()` operation.
 
         Arguments:
+            address (int):
+                Address of the target item.
+
             item (int or byte):
                 Item to restore.
 
@@ -4236,7 +4242,10 @@ class Memory(MutableMemory):
             :meth:`popitem_backup`
         """
 
-        self.append(item)
+        if address == self.content_endex:
+            self.append(item)
+        else:
+            self.insert(address, item)
 
     def remove(
         self,
@@ -4328,7 +4337,7 @@ class Memory(MutableMemory):
 
         address = self.index(item, start, endex)
         size = 1 if isinstance(item, Value) else len(item)
-        return self.extract(address, address + size)
+        return self.extract(start=address, endex=(address + size))
 
     def remove_restore(
         self,
@@ -4830,10 +4839,7 @@ class Memory(MutableMemory):
         """
 
         backup = self.peek(address)
-        if backup is None:
-            return address, default
-        else:
-            return address, backup
+        return address, backup
 
     def setdefault_restore(
         self,
@@ -5219,9 +5225,11 @@ class Memory(MutableMemory):
 
     def update(
         self,
-        data: Union[Iterable[Tuple[Address, Value]],
+        data: Union[AddressValueMapping,
+                    Iterable[Tuple[Address, Value]],
                     Mapping[Address, Union[Value, AnyBytes]],
                     ImmutableMemory],
+        clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> None:
         r"""Updates data.
@@ -5231,6 +5239,10 @@ class Memory(MutableMemory):
                 Data to update with.
                 Can be either another memory, an (address, value)
                 mapping, or an iterable of (address, value) pairs.
+
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
 
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -5259,19 +5271,20 @@ class Memory(MutableMemory):
             raise KeyError('cannot convert kwargs.keys() into addresses')
 
         if isinstance(data, ImmutableMemory):
-            self.write(0, data)
+            self.write(0, data, clear=clear)
         else:
             if isinstance(data, Mapping):
                 data = data.items()
-
+            poke = self.poke
             for address, value in data:
-                self.poke(address, value)
+                poke(address, value)
 
     def update_backup(
         self,
-        data: Union[Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[AddressValueMapping, Iterable[Tuple[Address, Value]], ImmutableMemory],
+        clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
-    ) -> ImmutableMemory:
+    ) -> Union[AddressValueMapping, List[ImmutableMemory]]:
         r"""Backups an `update()` operation.
 
         Arguments:
@@ -5280,8 +5293,12 @@ class Memory(MutableMemory):
                 Can be either another memory, an (address, value)
                 mapping, or an iterable of (address, value) pairs.
 
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
         Returns:
-            :obj:`MutableMemory` list: Backup memory regions.
+            Backup memory regions.
 
         See Also:
             :meth:`update`
@@ -5292,26 +5309,23 @@ class Memory(MutableMemory):
             raise KeyError('cannot convert kwargs.keys() into addresses')
 
         if isinstance(data, ImmutableMemory):
-            return self.write_backup(0, data)
+            return self.write_backup(0, data, clear=clear)
         else:
             if isinstance(data, Mapping):
                 data = data.keys()
-            backup = self.__class__()
-            poke = backup.poke
+            data = _cast(Iterable[Address], data)
             peek = self.peek
-
-            for address, value in data:
-                poke(address, peek(address))
-            return backup
+            backups = {address: peek(address) for address in data}
+            return backups
 
     def update_restore(
         self,
-        backup: ImmutableMemory,
+        backups: Union[AddressValueMapping, List[ImmutableMemory]],
     ) -> None:
         r"""Restores an `update()` operation.
 
         Arguments:
-            backup (:obj:`ImmutableMemory`):
+            backups (list of :obj:`ImmutableMemory`):
                 Backup memory region to restore.
 
         See Also:
@@ -5319,7 +5333,11 @@ class Memory(MutableMemory):
             :meth:`update_backup`
         """
 
-        self.write(0, backup)
+        if isinstance(backups, list):
+            for backup in backups:
+                self.write(0, backup, clear=True)
+        else:
+            self.update(backups)
 
     def validate(
         self,
@@ -5672,7 +5690,8 @@ class Memory(MutableMemory):
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> ImmutableMemory:
+        clear: bool = False,
+    ) -> List[ImmutableMemory]:
         r"""Backups a `write()` operation.
 
         Arguments:
@@ -5682,33 +5701,57 @@ class Memory(MutableMemory):
             data (bytes):
                 Data to write.
 
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
+
         Returns:
-            :obj:`Memory` list: Backup memory regions.
+            list of :obj:`ImmutableMemory`: Backup memory regions.
 
         See Also:
             :meth:`write`
             :meth:`write_restore`
         """
 
-        size = 1 if isinstance(data, Value) else len(data)
-        return self.extract(address, address + size)
+        if isinstance(data, ImmutableMemory):
+            start = data.start + address
+            endex = data.endex + address
+            if endex <= start:
+                backups = []
+            elif clear:
+                backups = [self.extract(start=start, endex=endex)]
+            else:
+                intervals = data.intervals(start=start, endex=endex)
+                backups = [self.extract(start=block_start, endex=block_endex)
+                           for block_start, block_endex in intervals]
+        else:
+            if isinstance(data, Value):
+                data = (data,)
+            start = address
+            endex = start + len(data)
+            if start < endex:
+                backups = [self.extract(start=start, endex=endex)]
+            else:
+                backups = []
+        return backups
 
     def write_restore(
         self,
-        backup: ImmutableMemory,
+        backups: Sequence[ImmutableMemory],
     ) -> None:
         r"""Restores a `write()` operation.
 
         Arguments:
-            backup (:obj:`Memory`):
-                Backup memory region to restore.
+            backups (list of :obj:`ImmutableMemory`):
+                Backup memory regions to restore.
 
         See Also:
             :meth:`write`
             :meth:`write_backup`
         """
 
-        self.write(0, backup, clear=True)
+        for backup in backups:
+            self.write(0, backup, clear=True)
 
 
 class bytesparse(Memory):
@@ -6530,13 +6573,14 @@ class bytesparse(Memory):
     ) -> None:
 
         address = self._rectify_address(address)
-        super().write(address, data, clear)
+        super().write(address, data, clear=clear)
 
     def write_backup(
         self,
         address: Address,
         data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> ImmutableMemory:
+        clear: bool = False,
+    ) -> List[ImmutableMemory]:
 
         address = self._rectify_address(address)
-        return super().write_backup(address, data)
+        return super().write_backup(address, data, clear=clear)

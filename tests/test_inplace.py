@@ -30,6 +30,7 @@ from _common import *
 from bytesparse.inplace import Memory as _Memory
 from bytesparse.inplace import bytesparse as _bytesparse
 from bytesparse.inplace import collapse_blocks
+from bytesparse.inplace import _repeat2
 
 
 def test_collapse_blocks___doctest__():
@@ -52,6 +53,18 @@ def test_collapse_blocks___doctest__():
     ]
     ans_out = collapse_blocks(blocks)
     ans_ref = [[0, b'0$2'], [4, b'ABxyz']]
+    assert ans_out == ans_ref
+
+
+def test__repeat2_empty_pattern_infinite():
+    ans_out = bytes(islice(_repeat2(b'abc', 0, None), 8))
+    ans_ref = b'abcabcab'
+    assert ans_out == ans_ref
+
+
+def test__repeat2_empty_pattern_sized():
+    ans_out = bytes(_repeat2(b'abc', 0, 8))
+    ans_ref = b'abcabcab'
     assert ans_out == ans_ref
 
 
@@ -119,6 +132,13 @@ class TestMemory(BaseMemorySuite):
         assert memory1.trim_span == memory2.trim_span
         assert memory1.content_span == memory2.content_span
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory1._blocks, memory2._blocks))
+
+    def test___eq___memory_immutable(self):
+        Memory = self.Memory
+        memory1 = Memory.from_blocks(create_template_blocks())
+        memory2 = Memory.from_blocks(create_template_blocks())
+        memory3 = memory2  # FIXME: create from 'bytesparse.outplace.Memory'
+        assert memory1 == memory3
 
     def test_validate_empty_invalid_bounds(self):
         Memory = self.Memory
