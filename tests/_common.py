@@ -3077,6 +3077,62 @@ class BaseMemorySuite:
         memory.validate()
         assert memory.to_blocks() == [[1, b'xy@'], [5, b'A?C']]
 
+    def test_update_memory(self):
+        Memory = self.Memory
+        memory1 = Memory()
+        memory2 = Memory.from_bytes(b'ABC', 5)
+        memory_backup = memory1.__deepcopy__()
+
+        backup, = memory1.update_backup(memory2)
+        start = memory2.start
+        endex = memory2.endex
+        memory_ref = memory_backup.extract(start=start, endex=endex)
+        assert backup == memory_ref
+
+        memory1.update(memory2)
+        memory1.validate()
+        assert memory1.to_blocks() == [[5, b'ABC']]
+
+        memory1.update_restore([backup])
+        memory1.validate()
+        assert memory1 == memory_backup
+
+    def test_update_dict(self):
+        Memory = self.Memory
+        memory = Memory()
+        data = {6: ord('B'), 5: ord('A'), 7: ord('C')}
+        memory_backup = memory.__deepcopy__()
+
+        backups = memory.update_backup(data)
+        items_ref = dict(memory_backup.items(start=5, endex=8))
+        assert backups == items_ref
+
+        memory.update(data)
+        memory.validate()
+        assert memory.to_blocks() == [[5, b'ABC']]
+
+        memory.update_restore(backups)
+        memory.validate()
+        assert memory == memory_backup
+
+    def test_update_pairs(self):
+        Memory = self.Memory
+        memory = Memory()
+        data = [(6, ord('B')), (5, ord('A')), (7, ord('C'))]
+        memory_backup = memory.__deepcopy__()
+
+        backups = memory.update_backup(data)
+        items_ref = dict(memory_backup.items(start=5, endex=8))
+        assert backups == items_ref
+
+        memory.update(data)
+        memory.validate()
+        assert memory.to_blocks() == [[5, b'ABC']]
+
+        memory.update_restore(backups)
+        memory.validate()
+        assert memory == memory_backup
+
     def test_update_kwargs(self):
         Memory = self.Memory
         memory = Memory()
@@ -3841,6 +3897,23 @@ class BaseMemorySuite:
     def test_write_backup_doctest(self):
         pass  # no doctest
 
+    def test_write_backup_nothing(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        backups = memory.write_backup(0, Memory())
+        assert backups == []
+
+        backups = memory.write_backup(0, b'')
+        assert backups == []
+
+    def test_write_backup_value(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        backup, = memory.write_backup(0, 123)
+        assert backup.span == (0, 1)
+
     def test_write_restore_doctest(self):
         pass  # no doctest
 
@@ -4492,3 +4565,61 @@ class BaseBytearraySuite:
         assert memory.span == (0, len(data))
         assert memory.content_parts == 1
         assert memory == data
+
+    def test___init___source_corner(self):
+        bytesparse = self.bytesparse
+
+        memory = bytesparse(b'ABCDEF', start=3, endex=2)
+        assert not memory
+        assert memory.span == (3, 3)
+        assert memory.trim_span == (3, 3)
+
+        memory = bytesparse(b'ABCDEF', start=None, endex=2)
+        assert memory == b'AB'
+        assert memory.span == (0, 2)
+        assert memory.trim_span == (None, 2)
+
+    def test__rectify_address(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse.from_blocks(create_template_blocks())
+        endex_ = memory.endex
+
+        for offset in range(-1, -len(memory), -1):
+            assert memory._rectify_address(offset) == endex_ + offset
+            assert memory[offset] == memory[endex_ + offset]
+
+    def test__rectify_address_overflow(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse.from_blocks(create_template_blocks())
+        endex_ = memory.endex
+        assert memory._rectify_address(-endex_) == 0
+
+        with pytest.raises(IndexError, match='index out of range'):
+            memory._rectify_address(-endex_ - 1)
+
+    def test__rectify_span(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse.from_blocks(create_template_blocks())
+        start_ = memory.start
+        endex_ = memory.endex
+
+        for start in range(-1, -len(memory), -1):
+            assert memory._rectify_span(start, None) == ((endex_ + start), None)
+            assert memory[start:] == memory[(endex_ + start):]
+
+        for endex in range(-1, -len(memory), -1):
+            assert memory._rectify_span(None, endex) == (None, (endex_ + endex))
+            assert memory[:endex] == memory[:(endex_ + endex)]
+
+        for start in range(-1, -len(memory), -1):
+            for endex in range(-1, -len(memory), -1):
+                assert memory._rectify_span(start, endex) == ((endex_ + start), (endex_ + endex))
+                assert memory[start:endex] == memory[(endex_ + start):(endex_ + endex)]
+
+    def test__rectify_span_overflow(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse.from_blocks(create_template_blocks())
+        start_ = memory.start
+        endex_ = memory.endex
+        assert memory._rectify_span(-endex_, -endex_) == (0, 0)
+        assert memory._rectify_span(-endex_ - 1, -endex_ - 1) == (0, 0)

@@ -5312,10 +5312,11 @@ class Memory(MutableMemory):
             return self.write_backup(0, data, clear=clear)
         else:
             if isinstance(data, Mapping):
-                data = data.keys()
-            data = _cast(Iterable[Address], data)
+                keys = data.keys()
+            else:
+                keys = (pair[0] for pair in data)
             peek = self.peek
-            backups = {address: peek(address) for address in data}
+            backups = {address: peek(address) for address in keys}
             return backups
 
     def update_restore(
@@ -5817,8 +5818,8 @@ class bytesparse(Memory):
                 start = 0
 
             if endex is not None:
-                if endex < start:
-                    endex = start
+                if endex <= start:
+                    return
 
                 del data[(endex - start):]
 
@@ -5923,19 +5924,18 @@ class bytesparse(Memory):
             couple of int: Rectified address span.
         """
 
-        span_start = None
-        span_endex = None
+        endex_ = None
 
         if start is not None and start < 0:
-            span_start, span_endex = self.span
-            start = span_endex + start
+            endex_ = self.endex
+            start = endex_ + start
             if start < 0:
                 start = 0
 
         if endex is not None and endex < 0:
-            if span_start is None:
-                span_start, span_endex = self.span
-            endex = span_endex + endex
+            if endex_ is None:
+                endex_ = self.endex
+            endex = endex_ + endex
             if endex < 0:
                 endex = 0
 
