@@ -6440,7 +6440,7 @@ class bytesparse(Memory):
         offset: Address,
     ) -> Tuple[Address, ImmutableMemory]:
 
-        if offset < 0:
+        if self._trim_start is None and offset < 0:
             blocks = self._blocks
             if blocks:
                 block_start = blocks[0][0]

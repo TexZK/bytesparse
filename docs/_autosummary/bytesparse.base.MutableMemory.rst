@@ -1,4 +1,4 @@
-﻿bytesparse.base.MutableMemory
+bytesparse.base.MutableMemory
 =============================
 
 .. currentmodule:: bytesparse.base

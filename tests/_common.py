@@ -4623,3 +4623,68 @@ class BaseBytearraySuite:
         endex_ = memory.endex
         assert memory._rectify_span(-endex_, -endex_) == (0, 0)
         assert memory._rectify_span(-endex_ - 1, -endex_ - 1) == (0, 0)
+
+    def test_from_blocks_negative(self):
+        bytesparse = self.bytesparse
+        with pytest.raises(ValueError, match='negative offseted start'):
+            bytesparse.from_blocks([[5, b'ABC']], offset=-6)
+        with pytest.raises(ValueError, match='negative start'):
+            bytesparse.from_blocks([[5, b'ABC']], start=-1)
+        with pytest.raises(ValueError, match='negative endex'):
+            bytesparse.from_blocks([[5, b'ABC']], endex=-1)
+
+    def test_from_bytes_negative(self):
+        bytesparse = self.bytesparse
+        with pytest.raises(ValueError, match='negative offset'):
+            bytesparse.from_bytes(b'ABC', offset=-1)
+        with pytest.raises(ValueError, match='negative start'):
+            bytesparse.from_bytes(b'ABC', start=-1)
+        with pytest.raises(ValueError, match='negative endex'):
+            bytesparse.from_bytes(b'ABC', endex=-1)
+
+    def test_from_memory_negative(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse(b'ABC')
+        with pytest.raises(ValueError, match='negative offset'):
+            bytesparse.from_memory(memory, offset=-1)
+        with pytest.raises(ValueError, match='negative start'):
+            bytesparse.from_memory(memory, start=-1)
+        with pytest.raises(ValueError, match='negative endex'):
+            bytesparse.from_memory(memory, endex=-1)
+
+    def test_shift_negative(self):
+        bytesparse = self.bytesparse
+
+        memory = bytesparse()
+        memory.shift(-1)
+        memory.shift_backup(-1)
+
+        memory = bytesparse(b'ABC')
+        memory.shift(5)
+        memory.shift_backup(-3)
+
+        memory = bytesparse(b'ABC')
+        with pytest.raises(ValueError, match='negative offseted start'):
+            memory.shift(-1)
+        with pytest.raises(ValueError, match='negative offseted start'):
+            memory.shift_backup(-1)
+
+    def test_trim_endex_negative(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse(b'ABC')
+        with pytest.raises(ValueError, match='negative endex'):
+            memory.trim_endex = -1
+
+    def test_trim_span_negative(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse(b'ABC')
+        with pytest.raises(ValueError, match='negative start'):
+            memory.trim_span = (-1, None)
+        with pytest.raises(ValueError, match='negative endex'):
+            memory.trim_span = (None, -1)
+
+    def test_trim_start_negative(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse(b'ABC')
+        with pytest.raises(ValueError, match='negative start'):
+            memory.trim_start = -1

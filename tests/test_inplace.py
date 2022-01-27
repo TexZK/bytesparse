@@ -61,10 +61,26 @@ def test__repeat2_empty_pattern_infinite():
     ans_ref = b'abcabcab'
     assert ans_out == ans_ref
 
+    ans_out = bytes(islice(_repeat2(b'abc', 1, None), 8))
+    ans_ref = b'bcabcabc'
+    assert ans_out == ans_ref
+
+    ans_out = bytes(islice(_repeat2(b'abc', -1, None), 8))
+    ans_ref = b'cabcabca'
+    assert ans_out == ans_ref
+
 
 def test__repeat2_empty_pattern_sized():
     ans_out = bytes(_repeat2(b'abc', 0, 8))
     ans_ref = b'abcabcab'
+
+    assert ans_out == ans_ref
+    ans_out = bytes(_repeat2(b'abc', 1, 8))
+    ans_ref = b'bcabcabc'
+    assert ans_out == ans_ref
+
+    ans_out = bytes(_repeat2(b'abc', -1, 8))
+    ans_ref = b'cabcabca'
     assert ans_out == ans_ref
 
 
@@ -201,3 +217,10 @@ class TestBytesparse(BaseBytearraySuite, BaseMemorySuite):
     # Reuse some of BaseMemorySuite methods
     Memory: Type['_Memory'] = _bytesparse
     ADDR_NEG: bool = False
+
+    def test_validate_negative(self):
+        bytesparse = self.bytesparse
+        memory = bytesparse(b'ABC')
+        memory._blocks[0][0] = -1
+        with pytest.raises(ValueError, match='negative block start'):
+            memory.validate()
