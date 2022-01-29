@@ -2450,6 +2450,30 @@ class BaseMemorySuite:
         assert memory.content_endin < memory.endin
         assert memory.content_endin == endin
 
+    def test_content_items_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+        assert dict(memory.content_items()) == {1: 65, 2: 66, 5: 120, 7: 49, 8: 50, 9: 51}
+        assert dict(memory.content_items(2, 9)) == {2: 66, 5: 120, 7: 49, 8: 50}
+        assert dict(memory.content_items(3, 5)) == {}
+
+    def test_content_items_empty(self):
+        Memory = self.Memory
+        memory = Memory()
+        assert dict(memory.content_items()) == {}
+
+    def test_content_keys_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+        assert list(memory.content_keys()) == [1, 2, 5, 7, 8, 9]
+        assert list(memory.content_keys(2, 9)) == [2, 5, 7, 8]
+        assert list(memory.content_keys(3, 5)) == []
+
+    def test_content_keys_empty(self):
+        Memory = self.Memory
+        memory = Memory()
+        assert list(memory.content_keys()) == []
+
     def test_content_size_doctest(self):
         Memory = self.Memory
 
@@ -2499,6 +2523,18 @@ class BaseMemorySuite:
         blocks = create_template_blocks()
         memory = Memory.from_blocks(blocks)
         assert memory.content_parts == len(blocks)
+
+    def test_content_values_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+        assert list(memory.content_values()) == [65, 66, 120, 49, 50, 51]
+        assert list(memory.content_values(2, 9)) == [66, 120, 49, 50]
+        assert list(memory.content_values(3, 5)) == []
+
+    def test_content_values_empty(self):
+        Memory = self.Memory
+        memory = Memory()
+        assert list(memory.content_values()) == []
 
     def test_validate_doctest(self):
         pass  # no doctest

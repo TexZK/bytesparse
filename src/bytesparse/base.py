@@ -427,9 +427,57 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
-    # TODO: content_keys()
+    @abc.abstractmethod
+    def content_items(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Tuple[Address, Value]]:
+        r"""Iterates over content address and value pairs.
 
-    # TODO: content_items()
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content address and value pairs.
+
+        See Also:
+            meth:`content_keys`
+            meth:`content_values`
+        """
+        ...
+
+    @abc.abstractmethod
+    def content_keys(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Address]:
+        r"""Iterates over content addresses.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content addresses.
+
+        See Also:
+            meth:`content_items`
+            meth:`content_values`
+        """
+        ...
 
     @property
     @abc.abstractmethod
@@ -484,7 +532,31 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
-    # TODO: content_values()
+    @abc.abstractmethod
+    def content_values(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Value]:
+        r"""Iterates over content values.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content values.
+
+        See Also:
+            meth:`content_items`
+            meth:`content_keys`
+        """
+        ...
 
     @property
     @abc.abstractmethod
@@ -836,7 +908,7 @@ class ImmutableMemory(collections.abc.Sequence,
                 If ``None``, :attr:`endex` is considered.
 
         Yields:
-            couple of addresses: Block data interval boundaries.
+            pair of addresses: Block data interval boundaries.
 
         See Also:
             :meth:`intervals`
@@ -931,7 +1003,7 @@ class ImmutableMemory(collections.abc.Sequence,
                 If ``None``, :attr:`endex` is considered.
 
         Yields:
-            couple of addresses: Block data interval boundaries.
+            pair of addresses: Block data interval boundaries.
 
         See Also:
             :meth:`blocks`
@@ -946,9 +1018,9 @@ class ImmutableMemory(collections.abc.Sequence,
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
-        r"""Iterates over address and value couples.
+        r"""Iterates over address and value pairs.
 
-        Iterates over address and value couples, from `start` to `endex`.
+        Iterates over address and value pairs, from `start` to `endex`.
         Implemets the interface of :obj:`dict`.
 
         Arguments:
@@ -965,7 +1037,7 @@ class ImmutableMemory(collections.abc.Sequence,
                 Pattern of values to fill emptiness.
 
         Yields:
-            int: Range address and value couples.
+            int: Range address and value pairs.
         """
         ...
 
@@ -1611,7 +1683,7 @@ class MutableMemory(ImmutableMemory,
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`ImmutableMemory` couple: Backup memory regions.
+            :obj:`ImmutableMemory` pair: Backup memory regions.
 
         See Also:
             :meth:`crop`

@@ -1478,7 +1478,6 @@ class Memory(MutableMemory):
         if blocks:
             if start is None and endex is None:  # faster
                 yield from blocks
-
             else:
                 block_index_start = 0 if start is None else self._block_index_start(start)
                 block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
@@ -1799,6 +1798,127 @@ class Memory(MutableMemory):
         else:
             return self._trim_start - 1  # default to start-1
 
+    def content_items(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Tuple[Address, Value]]:
+        r"""Iterates over content address and value pairs.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content address and value pairs.
+
+        See Also:
+            meth:`content_keys`
+            meth:`content_values`
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> dict(memory.content_items())
+            {1: 65, 2: 66, 5: 120, 7: 49, 8: 50, 9: 51}
+            >>> dict(memory.content_items(2, 9))
+            {2: 66, 5: 120, 7: 49, 8: 50}
+            >>> dict(memory.content_items(3, 5))
+            {}
+        """
+
+        blocks = self._blocks
+        if blocks:
+            if start is None and endex is None:  # faster
+                for block_start, block_data in blocks:
+                    address = block_start + 0
+                    for value in block_data:
+                        yield address, value
+                        address += 1
+            else:
+                block_index_start = 0 if start is None else self._block_index_start(start)
+                block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
+                start, endex = self.bound(start, endex)
+                block_iterator = _islice(blocks, block_index_start, block_index_endex)
+
+                for block_start, block_data in block_iterator:
+                    block_endex = block_start + len(block_data)
+                    slice_start = block_start if start < block_start else start
+                    slice_endex = endex if endex < block_endex else block_endex
+                    if slice_start < slice_endex:
+                        slice_view = memoryview(block_data)
+                        address = slice_start + 0
+                        for value in slice_view[(slice_start - block_start):(slice_endex - block_start)]:
+                            yield address, value
+                            address += 1
+
+    def content_keys(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Address]:
+        r"""Iterates over content addresses.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content addresses.
+
+        See Also:
+            meth:`content_items`
+            meth:`content_values`
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.content_keys())
+            [1, 2, 5, 7, 8, 9]
+            >>> list(memory.content_keys(2, 9))
+            [2, 5, 7, 8]
+            >>> list(memory.content_keys(3, 5))
+            []
+        """
+
+        blocks = self._blocks
+        if blocks:
+            if start is None and endex is None:  # faster
+                for block_start, block_data in blocks:
+                    block_endex = block_start + len(block_data)
+                    yield from range(block_start, block_endex)
+            else:
+                block_index_start = 0 if start is None else self._block_index_start(start)
+                block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
+                start, endex = self.bound(start, endex)
+                block_iterator = _islice(blocks, block_index_start, block_index_endex)
+
+                for block_start, block_data in block_iterator:
+                    block_endex = block_start + len(block_data)
+                    slice_start = block_start if start < block_start else start
+                    slice_endex = endex if endex < block_endex else block_endex
+                    yield from range(slice_start, slice_endex)
+
     @ImmutableMemory.content_parts.getter
     def content_parts(
         self,
@@ -1970,6 +2090,64 @@ class Memory(MutableMemory):
         else:
             return self._trim_start
 
+    def content_values(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> Iterator[Value]:
+        r"""Iterates over content values.
+
+        Arguments:
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+        Yields:
+            int: Content values.
+
+        See Also:
+            meth:`content_items`
+            meth:`content_keys`
+
+        Examples:
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.content_values())
+            [65, 66, 120, 49, 50, 51]
+            >>> list(memory.content_values(2, 9))
+            [66, 120, 49, 50]
+            >>> list(memory.content_values(3, 5))
+            []
+        """
+
+        blocks = self._blocks
+        if blocks:
+            if start is None and endex is None:  # faster
+                for block in blocks:
+                    yield from block[1]
+            else:
+                block_index_start = 0 if start is None else self._block_index_start(start)
+                block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
+                start, endex = self.bound(start, endex)
+                block_iterator = _islice(blocks, block_index_start, block_index_endex)
+
+                for block_start, block_data in block_iterator:
+                    block_endex = block_start + len(block_data)
+                    slice_start = block_start if start < block_start else start
+                    slice_endex = endex if endex < block_endex else block_endex
+                    if slice_start < slice_endex:
+                        slice_view = memoryview(block_data)
+                        yield from slice_view[(slice_start - block_start):(slice_endex - block_start)]
+
     @ImmutableMemory.contiguous.getter
     def contiguous(
         self,
@@ -2136,7 +2314,7 @@ class Memory(MutableMemory):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            :obj:`Memory` couple: Backup memory regions.
+            :obj:`Memory` pair: Backup memory regions.
 
         See Also:
             :meth:`crop`
@@ -3369,7 +3547,7 @@ class Memory(MutableMemory):
                 If ``None``, :attr:`endex` is considered.
 
         Yields:
-            couple of addresses: Block data interval boundaries.
+            pair of addresses: Block data interval boundaries.
 
         See Also:
             :meth:`intervals`
@@ -3687,7 +3865,7 @@ class Memory(MutableMemory):
                 If ``None``, :attr:`endex` is considered.
 
         Yields:
-            couple of addresses: Block data interval boundaries.
+            pair of addresses: Block data interval boundaries.
 
         See Also:
             :meth:`blocks`
@@ -3729,9 +3907,9 @@ class Memory(MutableMemory):
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
     ) -> Iterator[Tuple[Address, Value]]:
-        r"""Iterates over address and value couples.
+        r"""Iterates over address and value pairs.
 
-        Iterates over address and value couples, from `start` to `endex`.
+        Iterates over address and value pairs, from `start` to `endex`.
         Implemets the interface of :obj:`dict`.
 
         Arguments:
@@ -3748,7 +3926,7 @@ class Memory(MutableMemory):
                 Pattern of values to fill emptiness.
 
         Yields:
-            int: Range address and value couples.
+            int: Range address and value pairs.
 
         Examples:
             >>> from itertools import islice
@@ -5921,7 +6099,7 @@ class bytesparse(Memory):
                 If ``None``, :attr:`endex` is considered.
 
         Returns:
-            couple of int: Rectified address span.
+            pair of int: Rectified address span.
         """
 
         endex_ = None
