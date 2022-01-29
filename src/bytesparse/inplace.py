@@ -1296,6 +1296,10 @@ class Memory(MutableMemory):
             item (int):
                 Value to append. Can be a single byte string or integer.
 
+        See Also:
+            :meth:`append_backup`
+            :meth:`append_restore`
+
         Examples:
             >>> memory = Memory()
             >>> memory.append(b'$')
@@ -1308,10 +1312,6 @@ class Memory(MutableMemory):
             >>> memory.append(3)
             >>> memory.to_blocks()
             [[0, b'\x03']]
-
-        See Also:
-            :meth:`append_backup`
-            :meth:`append_restore`
         """
 
         if not isinstance(item, Value):
@@ -1454,6 +1454,10 @@ class Memory(MutableMemory):
         Yields:
             (start, memoryview): Start and data view of each block/slice.
 
+        See Also:
+            :meth:`intervals`
+            :meth:`to_blocks`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -1468,10 +1472,6 @@ class Memory(MutableMemory):
             [[2, b'B'], [5, b'x'], [7, b'12']]
             >>> [[s, bytes(d)] for s, d in memory.blocks(3, 5)]
             []
-
-        See Also:
-            :meth:`intervals`
-            :meth:`to_blocks`
         """
 
         blocks = self._blocks
@@ -1615,6 +1615,10 @@ class Memory(MutableMemory):
                 Exclusive end address for clearing.
                 If ``None``, :attr:`endex` is considered.
 
+        See Also:
+            :meth:`clear_backup`
+            :meth:`clear_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -1628,10 +1632,6 @@ class Memory(MutableMemory):
             >>> memory.clear(6, 10)
             >>> memory.to_blocks()
             [[5, b'A'], [10, b'yz']]
-
-        See Also:
-            :meth:`clear_backup`
-            :meth:`clear_restore`
         """
 
         if start is None:
@@ -2261,6 +2261,10 @@ class Memory(MutableMemory):
                 Exclusive end address for cropping.
                 If ``None``, :attr:`endex` is considered.
 
+        See Also:
+            :meth:`crop_backup`
+            :meth:`crop_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -2274,10 +2278,6 @@ class Memory(MutableMemory):
             >>> memory.crop(6, 10)
             >>> memory.to_blocks()
             [[6, b'BC'], [9, b'x']]
-
-        See Also:
-            :meth:`crop_backup`
-            :meth:`crop_restore`
         """
 
         blocks = self._blocks  # may change during execution
@@ -2451,6 +2451,10 @@ class Memory(MutableMemory):
                 Exclusive end address for deletion.
                 If ``None``, :attr:`endex` is considered.
 
+        See Also:
+            :meth:`delete_backup`
+            :meth:`delete_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
@@ -2464,10 +2468,6 @@ class Memory(MutableMemory):
             >>> memory.delete(6, 10)
             >>> memory.to_blocks()
             [[5, b'Ayz']]
-
-        See Also:
-            :meth:`delete_backup`
-            :meth:`delete_restore`
         """
 
         if start is None:
@@ -2953,6 +2953,10 @@ class Memory(MutableMemory):
             pattern (items):
                 Pattern of items to fill the range.
 
+        See Also:
+            :meth:`fill_backup`
+            :meth:`fill_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -2981,10 +2985,6 @@ class Memory(MutableMemory):
             >>> memory.fill(3, 7, b'123')
             >>> memory.to_blocks()
             [[1, b'AB1231yz']]
-
-        See Also:
-            :meth:`fill_backup`
-            :meth:`fill_restore`
         """
 
         start_ = start
@@ -3104,6 +3104,10 @@ class Memory(MutableMemory):
             pattern (items):
                 Pattern of items to fill the range.
 
+        See Also:
+            :meth:`flood_backup`
+            :meth:`flood_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -3132,10 +3136,6 @@ class Memory(MutableMemory):
             >>> memory.flood(3, 7, b'123')
             >>> memory.to_blocks()
             [[1, b'ABC23xyz']]
-
-        See Also:
-            :meth:`flood_backup`
-            :meth:`flood_restore`
         """
 
         start, endex = self.bound(start, endex)
@@ -3273,6 +3273,9 @@ class Memory(MutableMemory):
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
+        See Also:
+            :meth:`to_blocks`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
@@ -3299,9 +3302,6 @@ class Memory(MutableMemory):
             >>> memory = Memory.from_blocks(collapse_blocks(blocks))
             >>> memory
                 ...
-
-        See Also:
-            :meth:`to_blocks`
         """
 
         offset = Address(offset)
@@ -3365,6 +3365,9 @@ class Memory(MutableMemory):
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
 
+        See Also:
+            :meth:`to_bytes`
+
         Examples:
             >>> memory = Memory.from_bytes(b'')
             >>> memory.to_blocks()
@@ -3381,9 +3384,6 @@ class Memory(MutableMemory):
             >>> memory = Memory.from_bytes(b'ABCxyz', 2)
             >>> memory.to_blocks()
             [[2, b'ABCxyz']]
-
-        See Also:
-            :meth:`to_bytes`
         """
 
         if data:
@@ -3770,6 +3770,10 @@ class Memory(MutableMemory):
             data (bytes):
                 Data to insert.
 
+        See Also:
+            :meth:`insert_backup`
+            :meth:`insert_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -3788,10 +3792,6 @@ class Memory(MutableMemory):
             >>> memory.insert(8, b'1')
             >>> memory.to_blocks()
             [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
-
-        See Also:
-            :meth:`insert_backup`
-            :meth:`insert_restore`
         """
 
         size = 1 if isinstance(data, Value) else len(data)
@@ -4109,6 +4109,10 @@ class Memory(MutableMemory):
             item (int or byte):
                 Item to set, ``None`` to clear the cell.
 
+        See Also:
+            :meth:`poke_backup`
+            :meth:`poke_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4124,10 +4128,6 @@ class Memory(MutableMemory):
             >>> memory.poke(5, b'@')
             >>> memory.peek(5)  # -> ord('@') = 64
             64
-
-        See Also:
-            :meth:`poke_backup`
-            :meth:`poke_restore`
         """
 
         if self._trim_start is not None and address < self._trim_start:
@@ -4249,6 +4249,10 @@ class Memory(MutableMemory):
         Return:
             int: Value at `address`; `default` within emptiness.
 
+        See Also:
+            :meth:`pop_backup`
+            :meth:`pop_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4267,10 +4271,6 @@ class Memory(MutableMemory):
             67
             >>> memory.pop(6, 63)  # -> ord('?') = 67
             63
-
-        See Also:
-            :meth:`pop_backup`
-            :meth:`pop_restore`
         """
 
         if address is None:
@@ -4346,6 +4346,10 @@ class Memory(MutableMemory):
         Return:
             (int, int): Address and value of the last item.
 
+        See Also:
+            :meth:`popitem_backup`
+            :meth:`popitem_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4364,10 +4368,6 @@ class Memory(MutableMemory):
             Traceback (most recent call last):
                 ...
             KeyError: empty
-
-        See Also:
-            :meth:`popitem_backup`
-            :meth:`popitem_restore`
         """
 
         blocks = self._blocks
@@ -4450,6 +4450,10 @@ class Memory(MutableMemory):
         Raises:
             :obj:`ValueError`: Item not found.
 
+        See Also:
+            :meth:`remove_backup`
+            :meth:`remove_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4472,10 +4476,6 @@ class Memory(MutableMemory):
             Traceback (most recent call last):
                 ...
             ValueError: subsection not found
-
-        See Also:
-            :meth:`remove_backup`
-            :meth:`remove_restore`
         """
 
         address = self.index(item, start, endex)
@@ -4551,6 +4551,10 @@ class Memory(MutableMemory):
             size (int):
                 Size of the emptiness to insert.
 
+        See Also:
+            :meth:`reserve_backup`
+            :meth:`reserve_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -4579,10 +4583,6 @@ class Memory(MutableMemory):
             >>> memory.reserve(5, 5)
             >>> memory.to_blocks()
             [[10, b'AB']]
-
-        See Also:
-            :meth:`reserve_backup`
-            :meth:`reserve_restore`
         """
 
         blocks = self._blocks
@@ -4952,6 +4952,10 @@ class Memory(MutableMemory):
         Return:
             int: Value at `address`; `default` within emptiness.
 
+        See Also:
+            :meth:`setdefault_backup`
+            :meth:`setdefault_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4976,10 +4980,6 @@ class Memory(MutableMemory):
             True
             >>> memory.peek(7) is None
             True
-
-        See Also:
-            :meth:`setdefault_backup`
-            :meth:`setdefault_restore`
         """
 
         backup = self.peek(address)
@@ -5050,6 +5050,10 @@ class Memory(MutableMemory):
             offset (int):
                 Signed amount of address shifting.
 
+        See Also:
+            :meth:`shift_backup`
+            :meth:`shift_restore`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -5078,10 +5082,6 @@ class Memory(MutableMemory):
             >>> memory.shift(-8)
             >>> memory.to_blocks()
             [[2, b'yz']]
-
-        See Also:
-            :meth:`shift_backup`
-            :meth:`shift_restore`
         """
 
         if offset and self._blocks:
@@ -5244,6 +5244,10 @@ class Memory(MutableMemory):
         Returns:
             list of blocks: Exported data blocks.
 
+        See Also:
+            :meth:`blocks`
+            :meth:`from_blocks`
+
         Examples:
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -5258,10 +5262,6 @@ class Memory(MutableMemory):
             [[2, b'B'], [5, b'x'], [7, b'12']]
             >>> memory.to_blocks(3, 5)]
             []
-
-        See Also:
-            :meth:`blocks`
-            :meth:`from_blocks`
         """
 
         blocks = [[block_start, bytes(block_data)]
@@ -5293,6 +5293,10 @@ class Memory(MutableMemory):
         Raises:
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
 
+        See Also:
+            :meth:`from_bytes`
+            :meth:`view`
+
         Examples:
             >>> memory = Memory.from_bytes(b'')
             >>> memory.to_bytes()
@@ -5315,10 +5319,6 @@ class Memory(MutableMemory):
             b'ABCx'
             >>> memory.to_bytes(4, 6)
             b'Cx'
-
-        See Also:
-            :meth:`from_bytes`
-            :meth:`view`
         """
 
         return bytes(self.view(start, endex))
@@ -5751,6 +5751,10 @@ class Memory(MutableMemory):
                 Clears the target range before writing data.
                 Useful only if `data` is a :obj:`Memory` with empty spaces.
 
+        See Also:
+            :meth:`write_backup`
+            :meth:`write_restore`
+
         Example:
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -5764,10 +5768,6 @@ class Memory(MutableMemory):
             >>> memory.write(5, b'123')
             >>> memory.to_blocks()
             [[1, b'ABC'], [5, b'123z']]
-
-        See Also:
-            :meth:`write_backup`
-            :meth:`write_restore`
         """
 
         if isinstance(data, Value):
