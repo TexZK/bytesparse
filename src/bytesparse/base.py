@@ -4083,7 +4083,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def trim_endex(
         self,
-        trim_endex: Address,
+        trim_endex: Optional[Address],
     ) -> None:
         ...
 
@@ -4099,7 +4099,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def trim_start(
         self,
-        trim_start: Address,
+        trim_start: Optional[Address],
     ) -> None:
         ...
 
