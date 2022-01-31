@@ -2484,7 +2484,7 @@ class Memory(MutableMemory):
     @trim_endex.setter
     def trim_endex(
         self,
-        trim_endex: Address,
+        trim_endex: Optional[Address],
     ) -> None:
 
         trim_start = self._trim_start
@@ -2527,7 +2527,7 @@ class Memory(MutableMemory):
     @trim_start.setter
     def trim_start(
         self,
-        trim_start: Address,
+        trim_start: Optional[Address],
     ) -> None:
 
         trim_endex = self._trim_endex
@@ -3539,7 +3539,7 @@ class bytesparse(Memory):
     @trim_endex.setter
     def trim_endex(
         self,
-        trim_endex: Address,
+        trim_endex: Optional[Address],
     ) -> None:
 
         if trim_endex is not None and trim_endex < 0:
@@ -3595,7 +3595,7 @@ class bytesparse(Memory):
     @trim_start.setter
     def trim_start(
         self,
-        trim_start: Address,
+        trim_start: Optional[Address],
     ) -> None:
 
         if trim_start is not None and trim_start < 0:
