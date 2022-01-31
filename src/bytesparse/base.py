@@ -148,7 +148,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             bool: Item is contained.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -253,7 +253,7 @@ class ImmutableMemory(collections.abc.Sequence,
             This method is typically not optimized for a :class:`slice` where
             its `step` is an integer greater than 1.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -363,7 +363,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             str: String representation.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -394,7 +394,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             int: Block index if found, ``None`` otherwise.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -430,7 +430,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             int: First block index before `address`.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -466,7 +466,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             int: First block index since `address`.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -1105,7 +1105,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Returns:
             int: The number of items equal to `value`.
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -1628,7 +1628,7 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             :meth:`intervals`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -1788,7 +1788,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`blocks`
             :meth:`gaps`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
@@ -2818,7 +2818,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`clear_backup`
             :meth:`clear_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+
@@ -2900,7 +2900,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`crop_backup`
             :meth:`crop_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+
@@ -3015,7 +3015,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`delete_backup`
             :meth:`delete_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
@@ -3360,7 +3360,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`insert_backup`
             :meth:`insert_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -3518,7 +3518,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`pop_backup`
             :meth:`pop_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -3596,7 +3596,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`popitem_backup`
             :meth:`popitem_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
@@ -4219,7 +4219,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`write_backup`
             :meth:`write_restore`
 
-        Example:
+        Examples:
             >>> from bytesparse.inplace import Memory
 
             +---+---+---+---+---+---+---+---+---+---+

@@ -1,4 +1,4 @@
-﻿bytesparse.base.MutableMemory
+bytesparse.base.MutableMemory
 =============================
 
 .. currentmodule:: bytesparse.base
@@ -34,6 +34,7 @@
       ~MutableMemory.crop
       ~MutableMemory.crop_backup
       ~MutableMemory.crop_restore
+      ~MutableMemory.cut
       ~MutableMemory.delete
       ~MutableMemory.delete_backup
       ~MutableMemory.delete_restore
