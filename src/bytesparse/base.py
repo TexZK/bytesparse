@@ -62,6 +62,34 @@ r"""Maximum memory content size for string representation."""
 
 class ImmutableMemory(collections.abc.Sequence,
                       collections.abc.Mapping):
+    r"""Immutable virtual memory.
+
+    This class is a handy wrapper around `blocks`, so that it can behave mostly
+    like a :obj:`bytearray`, but on sparse chunks of data.
+
+    Please look at examples of each method to get a glimpse of the features of
+    this class.
+
+    Arguments:
+        start (int):
+            Optional memory start address.
+            Anything before will be trimmed away.
+
+        endex (int):
+            Optional memory exclusive end address.
+            Anything at or after it will be trimmed away.
+
+    Examples:
+        >>> from bytesparse.inplace import Memory
+
+        >>> memory = Memory()
+        >>> memory.to_blocks()
+        []
+
+        >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+        >>> memory.to_blocks()
+        [[5, b'Hello, World!']]
+    """
 
     @abc.abstractmethod
     def __add__(
@@ -78,6 +106,17 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             bool: Has any items.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory()
+            >>> bool(memory)
+            False
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> bool(memory)
+            True
         """
         ...
 
@@ -108,6 +147,23 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             bool: Item is contained.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[1 | 2 | 3]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'123'], [9, b'xyz']])
+            >>> b'23' in memory
+            True
+            >>> ord('y') in memory
+            True
+            >>> b'$' in memory
+            False
         """
         ...
 
@@ -155,6 +211,25 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             bool: `self` is equal to `other`.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> data = b'Hello, World!'
+            >>> memory = Memory.from_bytes(data)
+            >>> memory == data
+            True
+            >>> memory.shift(1)
+            >>> memory == data
+            True
+
+            >>> data = b'Hello, World!'
+            >>> memory = Memory.from_bytes(data)
+            >>> memory == list(data)
+            True
+            >>> memory.shift(1)
+            >>> memory == list(data)
+            True
         """
         ...
 
@@ -173,6 +248,41 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             items: Items from the requested range.
+
+        Note:
+            This method is typically not optimized for a :class:`slice` where
+            its `step` is an integer greater than 1.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 68|   | 36|   |120|121|122|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory[9]  # -> ord('y') = 121
+            121
+            >>> memory[:3]._blocks
+            [[1, b'AB']]
+            >>> memory[3:10]._blocks
+            [[3, b'CD'], [6, b'$'], [8, b'xy']]
+            >>> bytes(memory[3:10:b'.'])
+            b'CD.$.xy'
+            >>> memory[memory.endex]
+            None
+            >>> bytes(memory[3:10:3])
+            b'C$y'
+            >>> memory[3:10:2]._blocks
+            [[3, b'C'], [6, b'y']]
+            >>> bytes(memory[3:10:2])
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
         """
         ...
 
@@ -252,6 +362,19 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             str: String representation.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [7, b'xyz']])
+            >>> str(memory)
+            <[[1, b'ABC'], [7, b'xyz']]>
         """
         ...
 
@@ -270,6 +393,21 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: Block index if found, ``None`` otherwise.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   | 0 | 0 | 0 | 0 |   | 1 |   | 2 | 2 | 2 |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_at(i) for i in range(12)]
+            [None, 0, 0, 0, 0, None, 1, None, 2, 2, 2, None]
         """
         ...
 
@@ -291,6 +429,21 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: First block index before `address`.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_endex(i) for i in range(12)]
+            [0, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3]
         """
         ...
 
@@ -312,6 +465,21 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: First block index since `address`.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 3 |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> [memory._block_index_start(i) for i in range(12)]
+            [0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 3]
         """
         ...
 
@@ -336,6 +504,33 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory()
+            >>> memory.block_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.block_span(2)
+            (0, 5, 66)
+            >>> memory.block_span(4)
+            (0, 5, 67)
+            >>> memory.block_span(5)
+            (5, 7, None)
+            >>> memory.block_span(10)
+            (10, None, None)
         """
         ...
 
@@ -363,6 +558,24 @@ class ImmutableMemory(collections.abc.Sequence,
 
         See Also:
             :meth:`intervals`
+            :meth:`to_blocks`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> [[s, bytes(d)] for s, d in memory.blocks()]
+            [[1, b'AB'], [5, b'x'], [7, b'123']]
+            >>> [[s, bytes(d)] for s, d in memory.blocks(2, 9)]
+            [[2, b'B'], [5, b'x'], [7, b'12']]
+            >>> [[s, bytes(d)] for s, d in memory.blocks(3, 5)]
+            []
         """
         ...
 
@@ -389,6 +602,52 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             tuple of int: Bounded `start` and `endex`, closed interval.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().bound(None, None)
+            (0, 0)
+            >>> Memory().bound(None, 100)
+            (0, 100)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.bound(0, 30)
+            (0, 30)
+            >>> memory.bound(2, 6)
+            (2, 6)
+            >>> memory.bound(None, 6)
+            (1, 6)
+            >>> memory.bound(2, None)
+            (2, 8)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |[A | B | C]|   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[3, b'ABC']], start=1, endex=8)
+            >>> memory.bound(None, None)
+            (1, 8)
+            >>> memory.bound(0, 30)
+            (1, 8)
+            >>> memory.bound(2, 6)
+            (2, 6)
+            >>> memory.bound(2, None)
+            (2, 8)
+            >>> memory.bound(None, 6)
+            (1, 6)
         """
         ...
 
@@ -406,6 +665,40 @@ class ImmutableMemory(collections.abc.Sequence,
         If the memory has no data and no trimming, :attr:`start` is returned.
 
         Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_endex
+            0
+            >>> Memory(endex=8).content_endex
+            0
+            >>> Memory(start=1, endex=8).content_endex
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_endex
+            8
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.content_endex
+            4
         """
         ...
 
@@ -424,6 +717,40 @@ class ImmutableMemory(collections.abc.Sequence,
         returned.
 
         Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_endin
+            -1
+            >>> Memory(endex=8).content_endin
+            -1
+            >>> Memory(start=1, endex=8).content_endin
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_endin
+            7
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.content_endin
+            3
         """
         ...
 
@@ -450,6 +777,23 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             meth:`content_keys`
             meth:`content_values`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> dict(memory.content_items())
+            {1: 65, 2: 66, 5: 120, 7: 49, 8: 50, 9: 51}
+            >>> dict(memory.content_items(2, 9))
+            {2: 66, 5: 120, 7: 49, 8: 50}
+            >>> dict(memory.content_items(3, 5))
+            {}
         """
         ...
 
@@ -476,6 +820,23 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             meth:`content_items`
             meth:`content_values`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.content_keys())
+            [1, 2, 5, 7, 8, 9]
+            >>> list(memory.content_keys(2, 9))
+            [2, 5, 7, 8]
+            >>> list(memory.content_keys(3, 5))
+            []
         """
         ...
 
@@ -488,6 +849,36 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The number of blocks.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_parts
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_parts
+            2
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.content_parts
+            1
         """
         ...
 
@@ -500,6 +891,38 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The sum of all block lengths.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_size
+            0
+            >>> Memory(start=1, endex=8).content_size
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_size
+            6
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.content_size
+            3
         """
         ...
 
@@ -512,6 +935,30 @@ class ImmutableMemory(collections.abc.Sequence,
 
         A :attr:`tuple` holding both :attr:`content_start` and
         :attr:`content_endex`.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_span
+            (0, 0)
+            >>> Memory(start=1).content_span
+            (1, 1)
+            >>> Memory(endex=8).content_span
+            (0, 0)
+            >>> Memory(start=1, endex=8).content_span
+            (1, 1)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_span
+            (1, 8)
         """
         ...
 
@@ -529,6 +976,40 @@ class ImmutableMemory(collections.abc.Sequence,
         If the memory has no data and no trimming, 0 is returned.
 
         Trimming is considered only for an empty memory.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().content_start
+            0
+            >>> Memory(start=1).content_start
+            1
+            >>> Memory(start=1, endex=8).content_start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.content_start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'xyz']], start=1)
+            >>> memory.content_start
+            5
         """
         ...
 
@@ -555,6 +1036,23 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             meth:`content_items`
             meth:`content_keys`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.content_values())
+            [65, 66, 120, 49, 50, 51]
+            >>> list(memory.content_values(2, 9))
+            [66, 120, 49, 50]
+            >>> list(memory.content_values(3, 5))
+            []
         """
         ...
 
@@ -606,6 +1104,19 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The number of items equal to `value`.
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[B | a | t]|   |[t | a | b]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'Bat'], [9, b'tab']])
+            >>> memory.count(b'a')
+            2
         """
         ...
 
@@ -623,6 +1134,36 @@ class ImmutableMemory(collections.abc.Sequence,
         If  :attr:`trim_endex` not ``None``, that is returned.
 
         If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().endex
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.endex
+            8
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.endex
+            8
         """
         ...
 
@@ -640,6 +1181,36 @@ class ImmutableMemory(collections.abc.Sequence,
         If  :attr:`trim_endex` not ``None``, that minus one is returned.
 
         If the memory has no data and no trimming, :attr:`start` is returned.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().endin
+            -1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.endin
+            7
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |)))|
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+            >>> memory.endin
+            7
         """
         ...
 
@@ -664,6 +1235,33 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             tuple: Start bound, exclusive end bound, and reference value.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory()
+            >>> memory.equal_span(0)
+            (None, None, None)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |[A | B | B | B | C]|   |   |[C | C | D]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 65| 66| 66| 66| 67|   |   | 67| 67| 68|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[0, b'ABBBC'], [7, b'CCD']])
+            >>> memory.equal_span(2)
+            (1, 4, 66)
+            >>> memory.equal_span(4)
+            (4, 5, 67)
+            >>> memory.equal_span(5)
+            (5, 7, None)
+            >>> memory.equal_span(10)
+            (10, None, None)
         """
         ...
 
@@ -705,6 +1303,31 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             :obj:`ImmutableMemory`: A copy of the memory from the selected range.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.extract()._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(2, 9)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(start=2)._blocks
+            [[2, b'BCD'], [6, b'$'], [8, b'xyz']]
+            >>> memory.extract(endex=9)._blocks
+            [[1, b'ABCD'], [6, b'$'], [8, b'x']]
+            >>> memory.extract(5, 8).span
+            (5, 8)
+            >>> memory.extract(pattern=b'.')._blocks
+            [[1, b'ABCD.$.xyz']]
+            >>> memory.extract(pattern=b'.', step=3)._blocks
+            [[1, b'AD.z']]
         """
         ...
 
@@ -776,6 +1399,35 @@ class ImmutableMemory(collections.abc.Sequence,
 
         See Also:
             :meth:`to_blocks`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> blocks = [[1, b'ABC'], [5, b'xyz']]
+            >>> memory = Memory.from_blocks(blocks)
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [5, b'xyz']]
+            >>> memory = Memory.from_blocks(blocks, offset=3)
+            >>> memory.to_blocks()
+            [[4, b'ABC'], [8, b'xyz']]
+
+            ~~~
+
+            >>> # Loads data from an Intel HEX record file
+            >>> # NOTE: Record files typically require collapsing!
+            >>> import hexrec.records as hr
+            >>> blocks = hr.load_blocks('records.hex')
+            >>> memory = Memory.from_blocks(collapse_blocks(blocks))
+            >>> memory
+                ...
         """
         ...
 
@@ -823,6 +1475,25 @@ class ImmutableMemory(collections.abc.Sequence,
 
         See Also:
             :meth:`to_bytes`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory.from_bytes(b'')
+            >>> memory.to_blocks()
+            []
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | B | C | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCxyz', 2)
+            >>> memory.to_blocks()
+            [[2, b'ABCxyz']]
         """
         ...
 
@@ -866,6 +1537,37 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Some requirements are not satisfied.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory1 = Memory.from_bytes(b'ABC', 5)
+            >>> memory2 = Memory.from_memory(memory1)
+            >>> memory2._blocks
+            [[5, b'ABC']]
+            >>> memory1 == memory2
+            True
+            >>> memory1 is memory2
+            False
+            >>> memory1._blocks is memory2._blocks
+            False
+
+            ~~~
+
+            >>> memory1 = Memory.from_bytes(b'ABC', 10)
+            >>> memory2 = Memory.from_memory(memory1, -3)
+            >>> memory2._blocks
+            [[7, b'ABC']]
+            >>> memory1 == memory2
+            False
+
+            ~~~
+
+            >>> memory1 = Memory.from_bytes(b'ABC', 10)
+            >>> memory2 = Memory.from_memory(memory1, copy=False)
+            >>> all((b1[1] is b2[1])  # compare block data
+            ...     for b1, b2 in zip(memory1._blocks, memory2._blocks))
+            True
         """
         ...
 
@@ -883,6 +1585,19 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             :obj:`ImmutableMemory`: The resulting memory object.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory.fromhex('')
+            >>> bytes(memory)
+            b''
+
+            ~~~
+
+            >>> memory = Memory.fromhex('48656C6C6F2C20576F726C6421')
+            >>> bytes(memory)
+            b'Hello, World!'
         """
         ...
 
@@ -912,6 +1627,25 @@ class ImmutableMemory(collections.abc.Sequence,
 
         See Also:
             :meth:`intervals`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.gaps())
+            [(None, 1), (3, 5), (6, 7), (10, None)]
+            >>> list(memory.gaps(0, 11))
+            [(0, 1), (3, 5), (6, 7), (10, 11)]
+            >>> list(memory.gaps(*memory.span))
+            [(3, 5), (6, 7)]
+            >>> list(memory.gaps(2, 6))
+            [(3, 5)]
         """
         ...
 
@@ -925,6 +1659,35 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The item at `address`, `default` if empty.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.get(3)  # -> ord('C') = 67
+            67
+            >>> memory.get(6)  # -> ord('$') = 36
+            36
+            >>> memory.get(10)  # -> ord('z') = 122
+            122
+            >>> memory.get(0)  # -> empty -> default = None
+            None
+            >>> memory.get(7)  # -> empty -> default = None
+            None
+            >>> memory.get(11)  # -> empty -> default = None
+            None
+            >>> memory.get(0, 123)  # -> empty -> default = 123
+            123
+            >>> memory.get(7, 123)  # -> empty -> default = 123
+            123
+            >>> memory.get(11, 123)  # -> empty -> default = 123
+            123
         """
         ...
 
@@ -951,6 +1714,22 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().hex() == ''
+            True
+
+            ~~~
+
+            >>> memory = Memory.from_bytes(b'Hello, World!')
+            >>> memory.hex()
+            48656c6c6f2c20576f726c6421
+            >>> memory.hex('.')
+            48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21
+            >>> memory.hex('.', 4)
+            48.656c6c6f.2c20576f.726c6421
         """
         ...
 
@@ -1008,6 +1787,23 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             :meth:`blocks`
             :meth:`gaps`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> list(memory.intervals())
+            [(1, 3), (5, 6), (7, 10)]
+            >>> list(memory.intervals(2, 9))
+            [(2, 3), (5, 6), (7, 9)]
+            >>> list(memory.intervals(3, 5))
+            []
         """
         ...
 
@@ -1038,6 +1834,36 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Range address and value pairs.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.items(endex=8))
+            [(0, None), (1, None), (2, None), (3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(memory.items(3, 8))
+            [(3, None), (4, None), (5, None), (6, None), (7, None)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, None), (4, None), (5, None), (6, None), (7, None), (8, None), (9, None)]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.items())
+            [(1, 65), (2, 66), (3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122)]
+            >>> list(memory.items(3, 8))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121)]
+            >>> list(islice(memory.items(3, ...), 7))
+            [(3, 67), (4, None), (5, None), (6, 120), (7, 121), (8, 122), (9, None)]
         """
         ...
 
@@ -1064,6 +1890,38 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Range address.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.keys())
+            []
+            >>> list(memory.keys(endex=8))
+            [0, 1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.keys())
+            [1, 2, 3, 4, 5, 6, 7, 8]
+            >>> list(memory.keys(endex=8))
+            [1, 2, 3, 4, 5, 6, 7]
+            >>> list(memory.keys(3, 8))
+            [3, 4, 5, 6, 7]
+            >>> list(islice(memory.keys(3, ...), 7))
+            [3, 4, 5, 6, 7, 8, 9]
         """
         ...
 
@@ -1102,6 +1960,29 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The item at `address`, ``None`` if empty.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.peek(3)  # -> ord('C') = 67
+            67
+            >>> memory.peek(6)  # -> ord('$') = 36
+            36
+            >>> memory.peek(10)  # -> ord('z') = 122
+            122
+            >>> memory.peek(0)
+            None
+            >>> memory.peek(7)
+            None
+            >>> memory.peek(11)
+            None
         """
         ...
 
@@ -1138,6 +2019,26 @@ class ImmutableMemory(collections.abc.Sequence,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Address:
+        r"""Index of an item, reversed search.
+
+        Arguments:
+            item (items):
+                Value to find. Can be either some byte string or an integer.
+
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            int: The index of the last item equal to `value`.
+
+        Raises:
+            :obj:`ValueError`: Item not found.
+        """
         ...
 
     @abc.abstractmethod
@@ -1192,6 +2093,50 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Range values.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |   |   | A | B | C | D | A |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |   |   | 65| 66| 67| 68| 65|   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.rvalues(endex=8))
+            [None, None, None, None, None, None, None, None]
+            >>> list(memory.rvalues(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.rvalues(..., 8), 7))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.rvalues(3, 8, b'ABCD'))
+            [65, 68, 67, 66, 65]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|<1 | 2>|[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 49| 50|120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.rvalues())
+            [122, 121, 120, None, None, 67, 66, 65]
+            >>> list(memory.rvalues(3, 8))
+            [121, 120, None, None, 67]
+            >>> list(islice(memory.rvalues(..., 8), 7))
+            [121, 120, None, None, 67, 66, 65]
+            >>> list(memory.rvalues(3, 8, b'0123'))
+            [121, 120, 50, 49, 67]
         """
         ...
 
@@ -1203,6 +2148,26 @@ class ImmutableMemory(collections.abc.Sequence,
         r"""tuple of int: Memory address span.
 
         A :obj:`tuple` holding both :attr:`start` and :attr:`endex`.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().span
+            (0, 0)
+            >>> Memory(start=1, endex=8).span
+            (1, 8)
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.span
+            (1, 8)
         """
         ...
 
@@ -1220,6 +2185,36 @@ class ImmutableMemory(collections.abc.Sequence,
         If :attr:`trim_start` not ``None``, that is returned.
 
         If the memory has no data and no trimming, 0 is returned.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> Memory().start
+            0
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.start
+            1
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'xyz']], start=1)
+            >>> memory.start
+            1
         """
         ...
 
@@ -1249,6 +2244,23 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             :meth:`blocks`
             :meth:`from_blocks`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> memory.to_blocks()
+            [[1, b'AB'], [5, b'x'], [7, b'123']]
+            >>> memory.to_blocks(2, 9)
+            [[2, b'B'], [5, b'x'], [7, b'12']]
+            >>> memory.to_blocks(3, 5)]
+            []
         """
         ...
 
@@ -1278,6 +2290,31 @@ class ImmutableMemory(collections.abc.Sequence,
         See Also:
             :meth:`from_bytes`
             :meth:`view`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory.from_bytes(b'')
+            >>> memory.to_bytes()
+            b''
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | B | C | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCxyz', 2)
+            >>> memory.to_bytes()
+            b'ABCxyz'
+            >>> memory.to_bytes(start=4)
+            b'Cxyz'
+            >>> memory.to_bytes(endex=6)
+            b'ABCx'
+            >>> memory.to_bytes(4, 6)
+            b'Cx'
         """
         ...
 
@@ -1357,6 +2394,50 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Range values.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |   |   | A | B | C | D | A |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |   |   | 65| 66| 67| 68| 65|   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> from itertools import islice
+            >>> memory = Memory()
+            >>> list(memory.values(endex=8))
+            [None, None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8))
+            [None, None, None, None, None]
+            >>> list(islice(memory.values(3, ...), 7))
+            [None, None, None, None, None, None, None]
+            >>> list(memory.values(3, 8, b'ABCD'))
+            [65, 66, 67, 68, 65]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|<1 | 2>|[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67|   |   |120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   | 65| 66| 67| 49| 50|120|121|122|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> list(memory.values())
+            [65, 66, 67, None, None, 120, 121, 122]
+            >>> list(memory.values(3, 8))
+            [67, None, None, 120, 121]
+            >>> list(islice(memory.values(3, ...), 7))
+            [67, None, None, 120, 121, 122, None]
+            >>> list(memory.values(3, 8, b'0123'))
+            [67, 49, 50, 120, 121]
         """
         ...
 
@@ -1385,6 +2466,29 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> bytes(memory.view(2, 5))
+            b'BCD'
+            >>> bytes(memory.view(9, 10))
+            b'y'
+            >>> memory.view()
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+            >>> memory.view(0, 6)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
         """
         ...
 
@@ -1403,6 +2507,51 @@ class MutableMemory(ImmutableMemory,
         Arguments:
             key (slice or int):
                 Deletion range or address.
+
+        Note:
+            This method is typically not optimized for a :class:`slice` where
+            its `step` is an integer greater than 1.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[4:9]
+            >>> memory.to_blocks()
+            [[1, b'ABCyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | z]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |   |[x]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> del memory[9]
+            >>> memory.to_blocks()
+            [[1, b'ABCD'], [6, b'$'], [8, b'xz']]
+            >>> del memory[3]
+            >>> memory.to_blocks()
+            [[1, b'ABD'], [5, b'$'], [7, b'xz']]
+            >>> del memory[2:10:3]
+            >>> memory.to_blocks()
+            [[1, b'AD'], [5, b'x']]
         """
         ...
 
@@ -1435,6 +2584,63 @@ class MutableMemory(ImmutableMemory,
             value (items):
                 Items to write at the selection address.
                 If `value` is null, the range is cleared.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |[C]|   |   | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A | 1 | C]|   |[2 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory[7:10] = None
+            >>> memory.to_blocks()
+            [[5, b'AB'], [10, b'yz']]
+            >>> memory[7] = b'C'
+            >>> memory[9] = b'x'
+            >>> memory.to_blocks() == [[5, b'ABC'], [9, b'xyz']]
+            True
+            >>> memory[6:12:3] = None
+            >>> memory.to_blocks()
+            [[5, b'A'], [7, b'C'], [10, b'yz']]
+            >>> memory[6:13:3] = b'123'
+            >>> memory.to_blocks()
+            [[5, b'A1C'], [9, b'2yz3']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |   |   |[A | B | C]|   |[x | y | z]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | 6 | 7 | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |[$]|   |[A | B | 4 | 5 | < | > | 8 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory[0:4] = b'$'
+            >>> memory.to_blocks()
+            [[0, b'$'], [2, b'ABC'], [6, b'xyz']]
+            >>> memory[4:7] = b'45678'
+            >>> memory.to_blocks()
+            [[0, b'$'], [2, b'AB45678yz']]
+            >>> memory[6:8] = b'<>'
+            >>> memory.to_blocks()
+            [[0, b'$'], [2, b'AB45<>8yz']]
         """
         ...
 
@@ -1546,6 +2752,21 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`append_backup`
             :meth:`append_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory()
+            >>> memory.append(b'$')
+            >>> memory.to_blocks()
+            [[0, b'$']]
+
+            ~~~
+
+            >>> memory = Memory()
+            >>> memory.append(3)
+            >>> memory.to_blocks()
+            [[0, b'\x03']]
         """
         ...
 
@@ -1596,6 +2817,22 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`clear_backup`
             :meth:`clear_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory.clear(6, 10)
+            >>> memory.to_blocks()
+            [[5, b'A'], [10, b'yz']]
         """
         ...
 
@@ -1662,6 +2899,22 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`crop_backup`
             :meth:`crop_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |[B | C]|   |[x]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory.crop(6, 10)
+            >>> memory.to_blocks()
+            [[6, b'BC'], [9, b'x']]
         """
         ...
 
@@ -1713,6 +2966,35 @@ class MutableMemory(ImmutableMemory,
         ...
 
     @abc.abstractmethod
+    def cut(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        bound: bool = True,
+    ) -> ImmutableMemory:
+        r"""Cuts a slice of memory.
+
+        Arguments:
+            start (int):
+                Inclusive start address for cutting.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for cutting.
+                If ``None``, :attr:`endex` is considered.
+
+            bound (bool):
+                The selected address range is applied to the resulting memory
+                as its trimming range. This retains information about any
+                initial and final emptiness of that range, which would be lost
+                otherwise.
+
+        Returns:
+            :obj:`Memory`: A copy of the memory from the selected range.
+        """
+        ...
+
+    @abc.abstractmethod
     def delete(
         self,
         start: Optional[Address] = None,
@@ -1732,6 +3014,22 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`delete_backup`
             :meth:`delete_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | y | z]|   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory.delete(6, 10)
+            >>> memory.to_blocks()
+            [[5, b'Ayz']]
         """
         ...
 
@@ -1862,6 +3160,37 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`fill_backup`
             :meth:`fill_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[1 | 2 | 3 | 1 | 2 | 3 | 1 | 2]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(pattern=b'123')
+            >>> memory.to_blocks()
+            [[1, b'12312312']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | 1 | 2 | 3 | 1 | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.fill(3, 7, b'123')
+            >>> memory.to_blocks()
+            [[1, b'AB1231yz']]
         """
         ...
 
@@ -1932,6 +3261,37 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`flood_backup`
             :meth:`flood_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 1 | 2 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(pattern=b'123')
+            >>> memory.to_blocks()
+            [[1, b'ABC12xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | 2 | 3 | x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.flood(3, 7, b'123')
+            >>> memory.to_blocks()
+            [[1, b'ABC23xyz']]
         """
         ...
 
@@ -1999,6 +3359,27 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`insert_backup`
             :meth:`insert_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | z]|   |[$]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |   |[x | y | 1 | z]|   |[$]|
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.insert(10, b'$')
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [6, b'xyz'], [10, b'$']]
+            >>> memory.insert(8, b'1')
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [6, b'xy1z'], [11, b'$']]
         """
         ...
 
@@ -2052,6 +3433,24 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`poke_backup`
             :meth:`poke_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.poke(3, b'@')
+            >>> memory.peek(3)  # -> ord('@') = 64
+            64
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.poke(5, b'@')
+            >>> memory.peek(5)  # -> ord('@') = 64
+            64
         """
         ...
 
@@ -2118,6 +3517,27 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`pop_backup`
             :meth:`pop_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C | D]|   |[$]|   |[x | y]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | D]|   |[$]|   |[x | y]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.pop()  # -> ord('z') = 122
+            122
+            >>> memory.pop(3)  # -> ord('C') = 67
+            67
+            >>> memory.pop(6, 63)  # -> ord('?') = 67
+            63
         """
         ...
 
@@ -2175,6 +3595,27 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`popitem_backup`
             :meth:`popitem_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A]|   |   |   |   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'A'], [9, b'yz']])
+            >>> memory.popitem()  # -> ord('z') = 122
+            (10, 122)
+            >>> memory.popitem()  # -> ord('y') = 121
+            (9, 121)
+            >>> memory.popitem()  # -> ord('A') = 65
+            (1, 65)
+            >>> memory.popitem()
+            Traceback (most recent call last):
+                ...
+            KeyError: empty
         """
         ...
 
@@ -2243,6 +3684,31 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`remove_backup`
             :meth:`remove_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |[$]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | D]|   |   |[x | y | z]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.remove(b'BC')
+            >>> memory.to_blocks()
+            [[1, b'AD'], [4, b'$'], [6, b'xyz']]
+            >>> memory.remove(ord('$'))
+            >>> memory.to_blocks()
+            [[1, b'AD'], [5, b'xyz']]
+            >>> memory.remove(b'?')
+            Traceback (most recent call last):
+                ...
+            ValueError: subsection not found
         """
         ...
 
@@ -2313,6 +3779,37 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`reserve_backup`
             :meth:`reserve_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[3, b'ABC'], [7, b'xyz']])
+            >>> memory.reserve(4, 2)
+            >>> memory.to_blocks()
+            [[3, b'A'], [6, b'BC'], [9, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |   |   |   |   |   |   |   |[A | B]|)))|
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], endex=12)
+            >>> memory.reserve(5, 5)
+            >>> memory.to_blocks()
+            [[10, b'AB']]
         """
         ...
 
@@ -2368,6 +3865,37 @@ class MutableMemory(ImmutableMemory,
         r"""Reverses the memory in-place.
 
         Data is reversed within the memory :attr:`span`.
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[z | y | x]|   |[$]|   |[D | C | B | A]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.reverse()
+            >>> memory.to_blocks()
+            [[1, b'zyx'], [5, b'$'], [7, b'DCBA']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |[[[|   |[A | B | C]|   |   |   |)))|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |   |[[[|   |   |[C | B | A]|   |   |)))|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_bytes(b'ABCD', 3, start=2, endex=10)
+            >>> memory.reverse()
+            >>> memory.to_blocks()
+            [[5, b'CBA']]
         """
 
     @abc.abstractmethod
@@ -2391,6 +3919,33 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`setdefault_backup`
             :meth:`setdefault_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> memory.setdefault(3, b'@')  # -> ord('C') = 67
+            67
+            >>> memory.peek(3)  # -> ord('C') = 67
+            67
+            >>> memory.setdefault(5, 64)  # -> ord('@') = 64
+            64
+            >>> memory.peek(5)  # -> ord('@') = 64
+            64
+            >>> memory.setdefault(9) is None
+            False
+            >>> memory.peek(9) is None
+            False
+            >>> memory.setdefault(7) is None
+            True
+            >>> memory.peek(7) is None
+            True
         """
         ...
 
@@ -2449,6 +4004,37 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`shift_backup`
             :meth:`shift_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[x | y | z]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory.shift(-2)
+            >>> memory.to_blocks()
+            [[3, b'ABC'], [7, b'xyz']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[[[|   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+            |   |[y | z]|   |   |   |   |   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']], start=3)
+            >>> memory.shift(-8)
+            >>> memory.to_blocks()
+            [[2, b'yz']]
         """
         ...
 
@@ -2542,6 +4128,30 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`update_backup`
             :meth:`update_restore`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |   |   |   |   |[A | B | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[x | y]|   |   |[A | B | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            |   |[x | y | @]|   |[A | ? | C]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory()
+            >>> memory.update(Memory.from_bytes(b'ABC', 5))
+            >>> memory.to_blocks()
+            [[5, b'ABC']]
+            >>> memory.update({1: b'x', 2: ord('y')})
+            >>> memory.to_blocks()
+            [[1, b'xy'], [5, b'ABC']]
+            >>> memory.update([(6, b'?'), (3, ord('@'))])
+            >>> memory.to_blocks()
+            [[1, b'xy@'], [5, b'A?C']]
         """
         ...
 
@@ -2608,6 +4218,22 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`write_backup`
             :meth:`write_restore`
+
+        Example:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B | C]|   |[1 | 2 | 3 | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.write(5, b'123')
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [5, b'123z']]
         """
         ...
 
