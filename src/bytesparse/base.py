@@ -3413,6 +3413,19 @@ class MutableMemory(ImmutableMemory,
         address: Address,
         backup: ImmutableMemory,
     ) -> None:
+        r"""Restores an `insert()` operation.
+
+        Arguments:
+            address (int):
+                Address of the insertion point.
+
+            backup (:obj:`Memory`):
+                Backup memory region to restore.
+
+        See Also:
+            :meth:`insert`
+            :meth:`insert_backup`
+        """
         ...
 
     @abc.abstractmethod

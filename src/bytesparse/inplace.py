@@ -2573,12 +2573,11 @@ class Memory(MutableMemory):
         if isinstance(data, ImmutableMemory):
             return self.write_backup(0, data, clear=clear)
         else:
-            if isinstance(data, Mapping):
-                keys = data.keys()
-            else:
-                keys = (pair[0] for pair in data)
             peek = self.peek
-            backups = {address: peek(address) for address in keys}
+            if isinstance(data, Mapping):
+                backups = {address: peek(address) for address in data.keys()}
+            else:
+                backups = {address: peek(address) for address, _ in data}
             return backups
 
     def update_restore(
