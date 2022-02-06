@@ -1813,7 +1813,7 @@ class ImmutableMemory(collections.abc.Sequence,
         start: Optional[Address] = None,
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Tuple[Address, Value]]:
+    ) -> Iterator[Tuple[Address, Optional[Value]]]:
         r"""Iterates over address and value pairs.
 
         Iterates over address and value pairs, from `start` to `endex`.

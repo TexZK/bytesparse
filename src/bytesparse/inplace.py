@@ -1945,7 +1945,7 @@ class Memory(MutableMemory):
         start: Optional[Address] = None,
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Tuple[Address, Value]]:
+    ) -> Iterator[Tuple[Address, Optional[Value]]]:
 
         if start is None:
             start = self.start
@@ -3320,7 +3320,7 @@ class bytesparse(Memory):
         start: Optional[Address] = None,
         endex: Optional[Union[Address, EllipsisType]] = None,
         pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Tuple[Address, Value]]:
+    ) -> Iterator[Tuple[Address, Optional[Value]]]:
 
         endex_ = endex  # backup
         if endex is Ellipsis:
