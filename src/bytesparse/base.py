@@ -4172,6 +4172,7 @@ class MutableMemory(ImmutableMemory,
     def update_backup(
         self,
         data: Union[AddressValueMapping, Iterable[Tuple[Address, Value]], ImmutableMemory],
+        clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> Union[AddressValueMapping, ImmutableMemory]:
         r"""Backups an `update()` operation.
@@ -4181,6 +4182,10 @@ class MutableMemory(ImmutableMemory,
                 Data to update with.
                 Can be either another memory, an (address, value)
                 mapping, or an iterable of (address, value) pairs.
+
+            clear (bool):
+                Clears the target range before writing data.
+                Useful only if `data` is a :obj:`Memory` with empty spaces.
 
         Returns:
             list of :obj:`ImmutableMemory`: Backup memory regions.
