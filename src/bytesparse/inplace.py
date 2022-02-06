@@ -380,7 +380,7 @@ class Memory(MutableMemory):
             memory = self.from_memory(self, validate=False)
 
             for time in range(times - 1):
-                self.write(offset, memory)
+                self.write(offset, memory, clear=True)
                 offset += size
         else:
             blocks.clear()
@@ -1349,7 +1349,7 @@ class Memory(MutableMemory):
     ) -> None:
 
         self.reserve(backup.start, len(backup))
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     @ImmutableMemory.endex.getter
     def endex(
@@ -1450,7 +1450,7 @@ class Memory(MutableMemory):
 
         if offset < 0:
             raise ValueError('negative extension offset')
-        self.write(self.content_endex + offset, items)
+        self.write(self.content_endex + offset, items, clear=True)
 
     def extend_backup(
         self,
@@ -2184,7 +2184,7 @@ class Memory(MutableMemory):
     ) -> None:
 
         self.reserve(backup.start, len(backup))
-        self.write(0, backup)
+        self.write(0, backup, clear=True)
 
     def reserve(
         self,
