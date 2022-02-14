@@ -2385,7 +2385,6 @@ class Memory(MutableMemory):
     def setdefault_backup(
         self,
         address: Address,
-        default: Optional[Value] = None,
     ) -> Tuple[Address, Optional[Value]]:
 
         backup = self.peek(address)
@@ -2881,28 +2880,6 @@ class bytesparse(Memory):
             Anything at or after it will be trimmed away.
     """
 
-    def __init__(
-        self,
-        *args: Any,  # see bytearray.__init__()
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ):
-
-        super().__init__(start, endex)
-
-        data = bytearray(*args)
-        if data:
-            if start is None:
-                start = 0
-
-            if endex is not None:
-                if endex <= start:
-                    return
-
-                del data[(endex - start):]
-
-            self._blocks.append([start, data])
-
     def __delitem__(
         self,
         key: Union[Address, slice],
@@ -2928,6 +2905,28 @@ class bytesparse(Memory):
             key = self._rectify_address(key)
 
         return super().__getitem__(key)
+
+    def __init__(
+        self,
+        *args: Any,  # see bytearray.__init__()
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ):
+
+        super().__init__(start, endex)
+
+        data = bytearray(*args)
+        if data:
+            if start is None:
+                start = 0
+
+            if endex is not None:
+                if endex <= start:
+                    return
+
+                del data[(endex - start):]
+
+            self._blocks.append([start, data])
 
     def __setitem__(
         self,
@@ -2969,8 +2968,7 @@ class bytesparse(Memory):
         address = address.__index__()
 
         if address < 0:
-            span_start, span_endex = self.span
-            address = span_endex + address
+            address = self.endex + address
             if address < 0:
                 raise IndexError('index out of range')
 
@@ -3034,7 +3032,7 @@ class bytesparse(Memory):
     ) -> Iterator[Tuple[Address, memoryview]]:
 
         start, endex = self._rectify_span(start, endex)
-        yield from super().blocks(start, endex)
+        yield from super().blocks(start=start, endex=endex)
 
     def bound(
         self,
@@ -3043,7 +3041,7 @@ class bytesparse(Memory):
     ) -> ClosedInterval:
 
         start, endex = self._rectify_span(start, endex)
-        return super().bound(start, endex)
+        return super().bound(start=start, endex=endex)
 
     def clear(
         self,
@@ -3052,7 +3050,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().clear(start, endex)
+        super().clear(start=start, endex=endex)
 
     def clear_backup(
         self,
@@ -3061,7 +3059,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().clear_backup(start, endex)
+        return super().clear_backup(start=start, endex=endex)
 
     def count(
         self,
@@ -3071,7 +3069,7 @@ class bytesparse(Memory):
     ) -> int:
 
         start, endex = self._rectify_span(start, endex)
-        return super().count(item, start, endex)
+        return super().count(item, start=start, endex=endex)
 
     def crop(
         self,
@@ -3080,7 +3078,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().crop(start, endex)
+        super().crop(start=start, endex=endex)
 
     def crop_backup(
         self,
@@ -3089,7 +3087,7 @@ class bytesparse(Memory):
     ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
 
         start, endex = self._rectify_span(start, endex)
-        return super().crop_backup(start, endex)
+        return super().crop_backup(start=start, endex=endex)
 
     def cut(
         self,
@@ -3099,7 +3097,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().cut(start, endex)
+        return super().cut(start=start, endex=endex)
 
     def delete(
         self,
@@ -3108,7 +3106,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().delete(start, endex)
+        super().delete(start=start, endex=endex)
 
     def delete_backup(
         self,
@@ -3117,7 +3115,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().delete_backup(start, endex)
+        return super().delete_backup(start=start, endex=endex)
 
     def equal_span(
         self,
@@ -3137,7 +3135,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().extract(start, endex, pattern, step, bound)
+        return super().extract(start=start, endex=endex, pattern=pattern, step=step, bound=bound)
 
     def fill(
         self,
@@ -3147,7 +3145,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().fill(start, endex, pattern)
+        super().fill(start=start, endex=endex, pattern=pattern)
 
     def fill_backup(
         self,
@@ -3156,7 +3154,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().fill_backup(start, endex)
+        return super().fill_backup(start=start, endex=endex)
 
     def find(
         self,
@@ -3166,7 +3164,7 @@ class bytesparse(Memory):
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
-        return super().find(item, start, endex)
+        return super().find(item, start=start, endex=endex)
 
     def flood(
         self,
@@ -3176,7 +3174,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().flood(start, endex, pattern)
+        super().flood(start=start, endex=endex, pattern=pattern)
 
     def flood_backup(
         self,
@@ -3185,7 +3183,7 @@ class bytesparse(Memory):
     ) -> List[OpenInterval]:
 
         start, endex = self._rectify_span(start, endex)
-        return super().flood_backup(start, endex)
+        return super().flood_backup(start=start, endex=endex)
 
     @classmethod
     def from_blocks(
@@ -3208,9 +3206,12 @@ class bytesparse(Memory):
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        memory = super().from_blocks(blocks, offset, start, endex, copy, validate)
-        memory = _cast(bytesparse, memory)
-        return memory
+        memory1 = super().from_blocks(blocks, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
+        memory2 = cls()
+        memory2._blocks = memory1._blocks
+        memory2._trim_start = memory1._trim_start
+        memory2._trim_endex = memory1._trim_endex
+        return memory2
 
     @classmethod
     def from_bytes(
@@ -3230,14 +3231,17 @@ class bytesparse(Memory):
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        memory = super().from_bytes(data, offset, start, endex, copy)
-        memory = _cast(bytesparse, memory)
-        return memory
+        memory1 = super().from_bytes(data, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
+        memory2 = cls()
+        memory2._blocks = memory1._blocks
+        memory2._trim_start = memory1._trim_start
+        memory2._trim_endex = memory1._trim_endex
+        return memory2
 
     @classmethod
     def from_memory(
         cls,
-        memory: Memory,
+        memory: ImmutableMemory,
         offset: Address = 0,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
@@ -3245,20 +3249,28 @@ class bytesparse(Memory):
         validate: bool = True,
     ) -> 'bytesparse':
 
-        blocks = memory._blocks
-        if blocks:
-            block_start = blocks[0][0]
-            if block_start + offset < 0:
-                raise ValueError('negative offseted start')
+        if isinstance(memory, Memory):
+            blocks = memory._blocks
+            if blocks:
+                block_start = blocks[0][0]
+                if block_start + offset < 0:
+                    raise ValueError('negative offseted start')
+        else:
+            if memory:
+                if memory.start + offset < 0:
+                    raise ValueError('negative offseted start')
 
         if start is not None and start < 0:
             raise ValueError('negative start')
         if endex is not None and endex < 0:
             raise ValueError('negative endex')
 
-        memory = super().from_memory(memory, offset, start, endex, copy)
-        memory = _cast(bytesparse, memory)
-        return memory
+        memory1 = super().from_memory(memory, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
+        memory2 = cls()
+        memory2._blocks = memory1._blocks
+        memory2._trim_start = memory1._trim_start
+        memory2._trim_endex = memory1._trim_endex
+        return memory2
 
     def gaps(
         self,
@@ -3267,7 +3279,7 @@ class bytesparse(Memory):
     ) -> Iterator[OpenInterval]:
 
         start, endex = self._rectify_span(start, endex)
-        yield from super().gaps(start, endex)
+        yield from super().gaps(start=start, endex=endex)
 
     def get(
         self,
@@ -3276,7 +3288,7 @@ class bytesparse(Memory):
     ) -> Optional[Value]:
 
         address = self._rectify_address(address)
-        return super().get(address, default)
+        return super().get(address, default=default)
 
     def index(
         self,
@@ -3286,7 +3298,7 @@ class bytesparse(Memory):
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
-        return super().index(item, start, endex)
+        return super().index(item, start=start, endex=endex)
 
     def insert(
         self,
@@ -3313,7 +3325,7 @@ class bytesparse(Memory):
     ) -> Iterator[ClosedInterval]:
 
         start, endex = self._rectify_span(start, endex)
-        yield from super().intervals(start, endex)
+        yield from super().intervals(start=start, endex=endex)
 
     def items(
         self,
@@ -3328,7 +3340,7 @@ class bytesparse(Memory):
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
-        yield from super().items(start, endex)
+        yield from super().items(start=start, endex=endex, pattern=pattern)
 
     def keys(
         self,
@@ -3342,7 +3354,7 @@ class bytesparse(Memory):
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
-        yield from super().keys(start, endex_)
+        yield from super().keys(start=start, endex=endex)
 
     def ofind(
         self,
@@ -3352,7 +3364,7 @@ class bytesparse(Memory):
     ) -> Optional[Address]:
 
         start, endex = self._rectify_span(start, endex)
-        return super().ofind(item, start, endex)
+        return super().ofind(item, start=start, endex=endex)
 
     def peek(
         self,
@@ -3387,7 +3399,7 @@ class bytesparse(Memory):
 
         if address is not None:
             address = self._rectify_address(address)
-        return super().pop(address, default)
+        return super().pop(address=address, default=default)
 
     def pop_backup(
         self,
@@ -3396,7 +3408,7 @@ class bytesparse(Memory):
 
         if address is not None:
             address = self._rectify_address(address)
-        return super().pop_backup(address)
+        return super().pop_backup(address=address)
 
     def remove(
         self,
@@ -3406,7 +3418,7 @@ class bytesparse(Memory):
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
-        super().remove(item, start, endex)
+        super().remove(item, start=start, endex=endex)
 
     def remove_backup(
         self,
@@ -3416,7 +3428,7 @@ class bytesparse(Memory):
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
-        return super().remove_backup(item, start, endex)
+        return super().remove_backup(item, start=start, endex=endex)
 
     def reserve(
         self,
@@ -3444,7 +3456,7 @@ class bytesparse(Memory):
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
-        return super().rfind(item, start, endex)
+        return super().rfind(item, start=start, endex=endex)
 
     def rindex(
         self,
@@ -3454,7 +3466,7 @@ class bytesparse(Memory):
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
-        return super().rindex(item, start, endex)
+        return super().rindex(item, start=start, endex=endex)
 
     def rofind(
         self,
@@ -3464,7 +3476,7 @@ class bytesparse(Memory):
     ) -> Optional[Address]:
 
         start, endex = self._rectify_span(start, endex)
-        return super().rofind(item, start, endex)
+        return super().rofind(item, start=start, endex=endex)
 
     def rvalues(
         self,
@@ -3479,7 +3491,7 @@ class bytesparse(Memory):
         start, endex = self._rectify_span(start, endex)
         if start_ is Ellipsis:
             start = start_  # restore
-        yield from super().rvalues(start, endex, pattern)
+        yield from super().rvalues(start=start, endex=endex, pattern=pattern)
 
     def setdefault(
         self,
@@ -3488,16 +3500,15 @@ class bytesparse(Memory):
     ) -> Optional[Value]:
 
         address = self._rectify_address(address)
-        return super().setdefault(address, default)
+        return super().setdefault(address, default=default)
 
     def setdefault_backup(
         self,
         address: Address,
-        default: Optional[Value] = None,
     ) -> Tuple[Address, Optional[Value]]:
 
         address = self._rectify_address(address)
-        return super().setdefault_backup(address, default)
+        return super().setdefault_backup(address)
 
     def shift(
         self,
@@ -3632,7 +3643,7 @@ class bytesparse(Memory):
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
-        yield from super().values(start, endex, pattern)
+        yield from super().values(start=start, endex=endex, pattern=pattern)
 
     def view(
         self,
@@ -3641,7 +3652,7 @@ class bytesparse(Memory):
     ) -> memoryview:
 
         start, endex = self._rectify_span(start, endex)
-        return super().view(start, endex)
+        return super().view(start=start, endex=endex)
 
     def write(
         self,
