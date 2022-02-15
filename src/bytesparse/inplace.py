@@ -841,8 +841,10 @@ class Memory(MutableMemory):
         trim_start = self._trim_start
         if trim_start is not None and size > 0:
             endex = trim_start + size
+
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
+
             return self.extract(start=None, endex=endex)
         else:
             return self.__class__()
@@ -1745,6 +1747,54 @@ class Memory(MutableMemory):
         )
 
     @classmethod
+    def from_items(
+        cls,
+        items: Union[AddressValueMapping,
+                     Iterable[Tuple[Address, Optional[Value]]],
+                     Mapping[Address, Optional[Union[Value, AnyBytes]]],
+                     ImmutableMemory],
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        validate: bool = True,
+    ) -> 'Memory':
+
+        if isinstance(items, Mapping):
+            keys = [key for key, value in items.items() if value is not None]
+        else:
+            items = {key: value for key, value in items if value is not None}
+            keys = list(items.keys())
+
+        blocks = []
+        if keys:
+            keys.sort()
+            key_seq = keys[0]
+            block_start = key_seq
+            block_data = bytearray()
+
+            for key in keys:
+                if key == key_seq:
+                    block_data.append(items[key])
+                    key_seq += 1
+                else:
+                    blocks.append([block_start + offset, block_data])
+                    block_start = key
+                    block_data = bytearray()
+                    block_data.append(items[key])
+                    key_seq = key + 1
+
+            if block_data:
+                blocks.append([block_start + offset, block_data])
+
+        return cls.from_blocks(
+            blocks,
+            start=start,
+            endex=endex,
+            copy=False,
+            validate=validate,
+        )
+
+    @classmethod
     def from_memory(
         cls,
         memory: Union[ImmutableMemory, 'Memory'],
@@ -1769,6 +1819,41 @@ class Memory(MutableMemory):
                           for block_start, block_data in memory._blocks]
             else:
                 blocks = memory._blocks
+
+        return cls.from_blocks(
+            blocks,
+            start=start,
+            endex=endex,
+            copy=False,
+            validate=validate,
+        )
+
+    @classmethod
+    def from_values(
+        cls,
+        values: Iterable[Optional[Value]],
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        validate: bool = True,
+    ) -> 'Memory':
+
+        blocks = []
+        block_start = offset
+        block_data = bytearray()
+
+        for value in values:
+            offset += 1
+            if value is None:
+                if block_data:
+                    blocks.append([block_start, block_data])
+                    block_data = bytearray()
+                block_start = offset
+            else:
+                block_data.append(value)
+
+        if block_data:
+            blocks.append([block_start, block_data])
 
         return cls.from_blocks(
             blocks,
@@ -2540,8 +2625,8 @@ class Memory(MutableMemory):
     def update(
         self,
         data: Union[AddressValueMapping,
-                    Iterable[Tuple[Address, Value]],
-                    Mapping[Address, Union[Value, AnyBytes]],
+                    Iterable[Tuple[Address, Optional[Value]]],
+                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
                     ImmutableMemory],
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
@@ -2561,7 +2646,10 @@ class Memory(MutableMemory):
 
     def update_backup(
         self,
-        data: Union[AddressValueMapping, Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[AddressValueMapping,
+                    Iterable[Tuple[Address, Optional[Value]]],
+                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
+                    ImmutableMemory],
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> Union[AddressValueMapping, List[ImmutableMemory]]:

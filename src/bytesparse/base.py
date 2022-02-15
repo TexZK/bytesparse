@@ -1499,6 +1499,77 @@ class ImmutableMemory(collections.abc.Sequence,
 
     @classmethod
     @abc.abstractmethod
+    def from_items(
+        cls,
+        items: Union[AddressValueMapping,
+                     Iterable[Tuple[Address, Optional[Value]]],
+                     Mapping[Address, Optional[Union[Value, AnyBytes]]],
+                     'ImmutableMemory'],
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        validate: bool = True,
+    ) -> 'ImmutableMemory':
+        r"""Creates a virtual memory from a byte-like chunk.
+
+        Arguments:
+            items (iterable address/byte mapping):
+                An iterable mapping of address to byte values.
+                Values of ``None`` are translated as gaps.
+                When an address is stated multiple times, the last is kept.
+
+            offset (int):
+                An address offset applied to all the values.
+
+            start (int):
+                Optional memory start address.
+                Anything before will be trimmed away.
+
+            endex (int):
+                Optional memory exclusive end address.
+                Anything at or after it will be trimmed away.
+
+            validate (bool):
+                Validates the resulting :obj:`ImmutableMemory` object.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
+
+        Raises:
+            :obj:`ValueError`: Some requirements are not satisfied.
+
+        See Also:
+            :meth:`to_bytes`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory.from_values({})
+            >>> memory.to_blocks()
+            []
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | Z]|   |[x]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> items = [
+            ...     (0, ord('A')),
+            ...     (1, ord('B')),
+            ...     (3, ord('x')),
+            ...     (1, ord('Z')),
+            ... ]
+            >>> memory = Memory.from_items(items, offset=2)
+            >>> memory.to_blocks()
+            [[2, b'AZ'], [5, b'x']]
+        """
+        ...
+
+    @classmethod
+    @abc.abstractmethod
     def from_memory(
         cls,
         memory: 'ImmutableMemory',
@@ -1568,6 +1639,67 @@ class ImmutableMemory(collections.abc.Sequence,
             >>> all((b1[1] is b2[1])  # compare block data
             ...     for b1, b2 in zip(memory1._blocks, memory2._blocks))
             True
+        """
+        ...
+
+    @classmethod
+    @abc.abstractmethod
+    def from_values(
+        cls,
+        values: Iterable[Optional[Value]],
+        offset: Address = 0,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        validate: bool = True,
+    ) -> 'ImmutableMemory':
+        r"""Creates a virtual memory from a byte-like chunk.
+
+        Arguments:
+            values (iterable byte-like sequence):
+                An iterable sequence of byte values.
+                Values of ``None`` are translated as gaps.
+
+            offset (int):
+                An address offset applied to all the values.
+
+            start (int):
+                Optional memory start address.
+                Anything before will be trimmed away.
+
+            endex (int):
+                Optional memory exclusive end address.
+                Anything at or after it will be trimmed away.
+
+            validate (bool):
+                Validates the resulting :obj:`ImmutableMemory` object.
+
+        Returns:
+            :obj:`ImmutableMemory`: The resulting memory object.
+
+        Raises:
+            :obj:`ValueError`: Some requirements are not satisfied.
+
+        See Also:
+            :meth:`to_bytes`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            >>> memory = Memory.from_values(range(0))
+            >>> memory.to_blocks()
+            []
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+            +===+===+===+===+===+===+===+===+===+
+            |   |   |[A | B | C | D | E]|   |   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_values(range(ord('A'), ord('F')), offset=2)
+            >>> memory.to_blocks()
+            [[2, b'ABCDE']]
         """
         ...
 
@@ -4120,8 +4252,8 @@ class MutableMemory(ImmutableMemory,
     def update(
         self,
         data: Union[AddressValueMapping,
-                    Iterable[Tuple[Address, Value]],
-                    Mapping[Address, Union[Value, AnyBytes]],
+                    Iterable[Tuple[Address, Optional[Value]]],
+                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
                     ImmutableMemory],
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
@@ -4171,7 +4303,10 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def update_backup(
         self,
-        data: Union[AddressValueMapping, Iterable[Tuple[Address, Value]], ImmutableMemory],
+        data: Union[AddressValueMapping,
+                    Iterable[Tuple[Address, Optional[Value]]],
+                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
+                    ImmutableMemory],
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> Union[AddressValueMapping, ImmutableMemory]:

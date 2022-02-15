@@ -392,6 +392,21 @@ class BaseMemorySuite:
         assert memory.to_bytes(endex=6) == b'ABCx'
         assert memory.to_bytes(4, 6) == b'Cx'
 
+    def test_from_items_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory.from_items({})
+        assert memory.to_blocks() == []
+
+        items = [
+            (0, ord('A')),
+            (1, ord('B')),
+            (3, ord('x')),
+            (1, ord('Z')),
+        ]
+        memory = Memory.from_items(items, offset=2)
+        assert memory.to_blocks() == [[2, b'AZ'], [5, b'x']]
+
     def test_from_memory_doctest(self):
         Memory = self.Memory
 
@@ -405,6 +420,15 @@ class BaseMemorySuite:
         memory2 = Memory.from_memory(memory1, -3)
         assert memory2.to_blocks() == [[7, b'ABC']]
         assert (memory1 == memory2) is False
+
+    def test_from_values_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory.from_values(range(0))
+        assert memory.to_blocks() == []
+
+        memory = Memory.from_values(range(ord('A'), ord('F')), offset=2)
+        assert memory.to_blocks() == [[2, b'ABCDE']]
 
     def test_fromhex_doctest(self):
         Memory = self.Memory
