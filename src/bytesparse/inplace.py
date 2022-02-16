@@ -1849,6 +1849,11 @@ class Memory(MutableMemory):
 
         for value in values:
             offset += 1
+            if start is not None and offset <= start:
+                continue
+            if endex is not None and offset > endex:
+                break
+
             if value is None:
                 if block_data:
                     blocks.append([block_start, block_data])
