@@ -1759,6 +1759,11 @@ class Memory(MutableMemory):
         validate: bool = True,
     ) -> 'Memory':
 
+        if isinstance(items, ImmutableMemory):
+            memory = cls(start=start, endex=endex)
+            self.write(0, items, clear=True)
+            return memory
+
         if isinstance(items, Mapping):
             keys = [key for key, value in items.items() if value is not None]
         else:

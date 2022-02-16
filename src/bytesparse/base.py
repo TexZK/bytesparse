@@ -1510,7 +1510,7 @@ class ImmutableMemory(collections.abc.Sequence,
         endex: Optional[Address] = None,
         validate: bool = True,
     ) -> 'ImmutableMemory':
-        r"""Creates a virtual memory from a byte-like chunk.
+        r"""Creates a virtual memory from a iterable address/byte mapping.
 
         Arguments:
             items (iterable address/byte mapping):
@@ -1652,7 +1652,7 @@ class ImmutableMemory(collections.abc.Sequence,
         endex: Optional[Address] = None,
         validate: bool = True,
     ) -> 'ImmutableMemory':
-        r"""Creates a virtual memory from a byte-like chunk.
+        r"""Creates a virtual memory from a byte-like sequence.
 
         Arguments:
             values (iterable byte-like sequence):
