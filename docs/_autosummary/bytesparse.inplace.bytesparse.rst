@@ -52,7 +52,9 @@ bytesparse.inplace.bytesparse
       ~bytesparse.flood_restore
       ~bytesparse.from_blocks
       ~bytesparse.from_bytes
+      ~bytesparse.from_items
       ~bytesparse.from_memory
+      ~bytesparse.from_values
       ~bytesparse.fromhex
       ~bytesparse.gaps
       ~bytesparse.get

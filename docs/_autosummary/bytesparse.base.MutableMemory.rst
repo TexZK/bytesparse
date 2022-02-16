@@ -52,7 +52,9 @@ bytesparse.base.MutableMemory
       ~MutableMemory.flood_restore
       ~MutableMemory.from_blocks
       ~MutableMemory.from_bytes
+      ~MutableMemory.from_items
       ~MutableMemory.from_memory
+      ~MutableMemory.from_values
       ~MutableMemory.fromhex
       ~MutableMemory.gaps
       ~MutableMemory.get

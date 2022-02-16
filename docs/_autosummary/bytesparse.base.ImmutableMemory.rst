@@ -30,7 +30,9 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.find
       ~ImmutableMemory.from_blocks
       ~ImmutableMemory.from_bytes
+      ~ImmutableMemory.from_items
       ~ImmutableMemory.from_memory
+      ~ImmutableMemory.from_values
       ~ImmutableMemory.fromhex
       ~ImmutableMemory.gaps
       ~ImmutableMemory.get
