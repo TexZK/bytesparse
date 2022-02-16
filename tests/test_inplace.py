@@ -149,13 +149,6 @@ class TestMemory(BaseMemorySuite):
         assert memory1.content_span == memory2.content_span
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory1._blocks, memory2._blocks))
 
-    def test___eq___memory_immutable(self):
-        Memory = self.Memory
-        memory1 = Memory.from_blocks(create_template_blocks())
-        memory2 = Memory.from_blocks(create_template_blocks())
-        memory3 = memory2  # FIXME: create from 'bytesparse.outplace.Memory'
-        assert memory1 == memory3
-
     def test_validate_empty_invalid_bounds(self):
         Memory = self.Memory
         memory = Memory()

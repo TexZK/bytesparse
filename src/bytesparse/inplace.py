@@ -1761,16 +1761,13 @@ class Memory(MutableMemory):
 
         if isinstance(items, ImmutableMemory):
             memory = cls(start=start, endex=endex)
-            self.write(0, items, clear=True)
+            memory.write(offset, items, clear=True)
             return memory
 
-        if isinstance(items, Mapping):
-            keys = [key for key, value in items.items() if value is not None]
-        else:
-            items = {key: value for key, value in items if value is not None}
-            keys = list(items.keys())
-
         blocks = []
+        items = dict(items)
+        keys = [key for key, value in items.items() if value is not None]
+
         if keys:
             keys.sort()
             key_seq = keys[0]
@@ -1780,7 +1777,7 @@ class Memory(MutableMemory):
             for key in keys:
                 if key == key_seq:
                     block_data.append(items[key])
-                    key_seq += 1
+                    key_seq = key_seq + 1
                 else:
                     blocks.append([block_start + offset, block_data])
                     block_start = key
@@ -1788,8 +1785,7 @@ class Memory(MutableMemory):
                     block_data.append(items[key])
                     key_seq = key + 1
 
-            if block_data:
-                blocks.append([block_start + offset, block_data])
+            blocks.append([block_start + offset, block_data])
 
         return cls.from_blocks(
             blocks,
@@ -1849,8 +1845,11 @@ class Memory(MutableMemory):
 
         for value in values:
             offset += 1
+
             if start is not None and offset <= start:
+                block_start = offset
                 continue
+
             if endex is not None and offset > endex:
                 break
 
