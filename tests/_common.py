@@ -231,6 +231,14 @@ def test_create_bitmask_values():
 
 
 class FakeImmutableMemory:
+    r"""A fake ImmutableMemory class.
+
+    It implements the bare minimum stuff to run tests against
+    ``ImmutableMemory`` objects.
+    """
+
+    def __bool__(self):
+        return bool(self._blocks)
 
     def __init__(self, blocks):
         self._blocks = blocks
@@ -489,6 +497,19 @@ class BaseMemorySuite:
         memory2 = Memory.from_memory(memory1, -3)
         assert memory2.to_blocks() == [[7, b'ABC']]
         assert (memory1 == memory2) is False
+
+    def test_from_memory_immutable(self):
+        Memory = self.Memory
+
+        blocks = []
+        memory1 = FakeImmutableMemory(blocks)
+        memory2 = Memory.from_memory(memory1)
+        assert memory2.to_blocks() == blocks
+
+        blocks = create_template_blocks()
+        memory1 = FakeImmutableMemory(blocks)
+        memory2 = Memory.from_memory(memory1)
+        assert memory2.to_blocks() == blocks
 
     def test_from_values_doctest(self):
         Memory = self.Memory
@@ -4808,6 +4829,10 @@ class BaseBytearraySuite:
 
     def test_from_memory_negative(self):
         bytesparse = self.bytesparse
+
+        memory = bytesparse()
+        bytesparse.from_memory(memory, offset=-1)
+
         memory = bytesparse(b'ABC')
         with pytest.raises(ValueError, match='negative offset'):
             bytesparse.from_memory(memory, offset=-1)
@@ -4815,6 +4840,13 @@ class BaseBytearraySuite:
             bytesparse.from_memory(memory, start=-1)
         with pytest.raises(ValueError, match='negative endex'):
             bytesparse.from_memory(memory, endex=-1)
+
+        memory = FakeImmutableMemory([])
+        bytesparse.from_memory(memory, offset=-1)
+
+        memory = FakeImmutableMemory([[0, b'ABC']])
+        with pytest.raises(ValueError, match='negative offset'):
+            bytesparse.from_memory(memory, offset=-1)
 
     def test_shift_negative(self):
         bytesparse = self.bytesparse
