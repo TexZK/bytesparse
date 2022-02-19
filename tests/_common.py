@@ -35,6 +35,7 @@ from bytesparse.base import BlockList
 from bytesparse.base import ImmutableMemory
 from bytesparse.base import OpenInterval
 from bytesparse.base import Value
+from bytesparse.inplace import Memory as _InplaceMemory
 
 MAX_START: Address = 22
 MAX_SIZE: Address = 26
@@ -230,39 +231,11 @@ def test_create_bitmask_values():
     assert create_bitmask_values(15, 4) == [0, 1, 2, 3]
 
 
-class FakeImmutableMemory:
-    r"""A fake ImmutableMemory class.
-
-    It implements the bare minimum stuff to run tests against
-    ``ImmutableMemory`` objects.
-    """
-
-    def __bool__(self):
-        return bool(self._blocks)
-
-    def __init__(self, blocks):
-        self._blocks = blocks
-
-    def blocks(self):
-        yield from self._blocks
-
-    @property
-    def start(self):
-        if self._blocks:
-            block_start, _ = self._blocks[0]
-            return block_start
-        return 0
-
-    @property
-    def endex(self):
-        if self._blocks:
-            block_start, block_data = self._blocks[-1]
-            return block_start + len(block_data)
-        return self.start
-
-
-ImmutableMemory.register(FakeImmutableMemory)
-assert issubclass(FakeImmutableMemory, ImmutableMemory)
+# Create a fake ImmutableMemory, by just cloning an existing common class.
+# This allows to check against sub-classing with all the features available.
+FakeMemory = type('FakeMemory', (), dict(_InplaceMemory.__dict__))
+ImmutableMemory.register(FakeMemory)
+assert issubclass(FakeMemory, ImmutableMemory)
 
 
 class BaseMemorySuite:
@@ -469,7 +442,7 @@ class BaseMemorySuite:
         memory = Memory.from_items({})
         assert memory.to_blocks() == []
 
-        items = FakeImmutableMemory([[0, b'AZ'], [3, b'x']])
+        items = FakeMemory.from_blocks([[0, b'AZ'], [3, b'x']])
         memory = Memory.from_items(items, offset=2)
         assert memory.to_blocks() == [[2, b'AZ'], [5, b'x']]
 
@@ -502,12 +475,12 @@ class BaseMemorySuite:
         Memory = self.Memory
 
         blocks = []
-        memory1 = FakeImmutableMemory(blocks)
+        memory1 = FakeMemory.from_blocks(blocks)
         memory2 = Memory.from_memory(memory1)
         assert memory2.to_blocks() == blocks
 
         blocks = create_template_blocks()
-        memory1 = FakeImmutableMemory(blocks)
+        memory1 = FakeMemory.from_blocks(blocks)
         memory2 = Memory.from_memory(memory1)
         assert memory2.to_blocks() == blocks
 
@@ -701,7 +674,7 @@ class BaseMemorySuite:
     def test___eq___memory_immutable(self):
         Memory = self.Memory
         memory1 = Memory.from_blocks(create_template_blocks())
-        memory2 = FakeImmutableMemory(create_template_blocks())
+        memory2 = FakeMemory.from_blocks(create_template_blocks())
         assert memory1 == memory2
 
     def test___eq___multi_bytes(self):
@@ -4785,7 +4758,6 @@ class BaseBytearraySuite:
     def test__rectify_span(self):
         bytesparse = self.bytesparse
         memory = bytesparse.from_blocks(create_template_blocks())
-        start_ = memory.start
         endex_ = memory.endex
 
         for start in range(-1, -len(memory), -1):
@@ -4804,7 +4776,6 @@ class BaseBytearraySuite:
     def test__rectify_span_overflow(self):
         bytesparse = self.bytesparse
         memory = bytesparse.from_blocks(create_template_blocks())
-        start_ = memory.start
         endex_ = memory.endex
         assert memory._rectify_span(-endex_, -endex_) == (0, 0)
         assert memory._rectify_span(-endex_ - 1, -endex_ - 1) == (0, 0)
@@ -4841,10 +4812,10 @@ class BaseBytearraySuite:
         with pytest.raises(ValueError, match='negative endex'):
             bytesparse.from_memory(memory, endex=-1)
 
-        memory = FakeImmutableMemory([])
+        memory = FakeMemory.from_blocks([])
         bytesparse.from_memory(memory, offset=-1)
 
-        memory = FakeImmutableMemory([[0, b'ABC']])
+        memory = FakeMemory.from_blocks([[0, b'ABC']])
         with pytest.raises(ValueError, match='negative offset'):
             bytesparse.from_memory(memory, offset=-1)
 
