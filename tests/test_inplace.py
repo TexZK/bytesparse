@@ -166,6 +166,27 @@ class TestMemory(BaseMemorySuite):
         with pytest.raises(ValueError, match='invalid block data size'):
             memory.validate()
 
+    def test_validate_invalid_block_bounds(self):
+        Memory = self.Memory
+
+        blocks = [[1, b'ABC']]
+        memory = Memory.from_blocks(blocks, start=3, endex=6, copy=False, validate=False)
+
+        with pytest.raises(ValueError, match='invalid block bounds'):
+            memory.validate()
+
+        blocks = [[5, b'xyz']]
+        memory = Memory.from_blocks(blocks, start=3, endex=6, copy=False, validate=False)
+
+        with pytest.raises(ValueError, match='invalid block bounds'):
+            memory.validate()
+
+        blocks = [[0, b'123'], [10, b'ABC'], [5, b'xyz']]
+        memory = Memory.from_blocks(blocks, copy=False, validate=False)
+
+        with pytest.raises(ValueError, match='invalid block bounds'):
+            memory.validate()
+
     def test__place_nothing(self):
         Memory = self.Memory
         blocks = [[1, b'ABC'], [6, b'xyz']]

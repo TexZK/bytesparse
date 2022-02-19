@@ -1712,7 +1712,7 @@ class Memory(MutableMemory):
         memory = cls(start=start, endex=endex)
         memory._blocks = blocks
 
-        if (start is not None or endex is not None) and validate:  # fast check
+        if start is not None or endex is not None:
             memory.crop(start, endex)
 
         if validate:
@@ -1758,11 +1758,6 @@ class Memory(MutableMemory):
         endex: Optional[Address] = None,
         validate: bool = True,
     ) -> 'Memory':
-
-        if isinstance(items, ImmutableMemory):
-            memory = cls(start=start, endex=endex)
-            memory.write(offset, items, clear=True)
-            return memory
 
         blocks = []
         items = dict(items)
