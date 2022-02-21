@@ -169,20 +169,26 @@ class TestMemory(BaseMemorySuite):
     def test_validate_invalid_block_bounds(self):
         Memory = self.Memory
 
+        memory = Memory(start=3, endex=6)
         blocks = [[1, b'ABC']]
-        memory = Memory.from_blocks(blocks, start=3, endex=6, copy=False, validate=False)
+        blocks = [[start, bytearray(data)] for start, data in blocks]
+        memory._blocks = blocks
 
         with pytest.raises(ValueError, match='invalid block bounds'):
             memory.validate()
 
+        memory = Memory(start=3, endex=6)
         blocks = [[5, b'xyz']]
-        memory = Memory.from_blocks(blocks, start=3, endex=6, copy=False, validate=False)
+        blocks = [[start, bytearray(data)] for start, data in blocks]
+        memory._blocks = blocks
 
         with pytest.raises(ValueError, match='invalid block bounds'):
             memory.validate()
 
+        memory = Memory(start=3, endex=6)
         blocks = [[0, b'123'], [10, b'ABC'], [5, b'xyz']]
-        memory = Memory.from_blocks(blocks, copy=False, validate=False)
+        blocks = [[start, bytearray(data)] for start, data in blocks]
+        memory._blocks = blocks
 
         with pytest.raises(ValueError, match='invalid block bounds'):
             memory.validate()
