@@ -7,8 +7,10 @@ Changelog
 * Added ``bytesparse`` class, closer to ``bytearray`` than ``Memory``.
 * Added missing abstract and ported methods.
 * Added cut feature.
+* Added more helper methods.
 * Fixed values iteration.
 * Improved extraction performance.
+* Improved testing.
 
 
 0.0.4 (2022-01-09)
