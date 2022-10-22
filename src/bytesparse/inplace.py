@@ -43,7 +43,6 @@ from typing import Optional
 from typing import Sequence
 from typing import Tuple
 from typing import Union
-from typing import cast as _cast
 
 from .base import STR_MAX_CONTENT_SIZE
 from .base import Address

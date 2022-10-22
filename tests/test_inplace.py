@@ -28,9 +28,9 @@ from typing import Type
 from _common import *
 
 from bytesparse.inplace import Memory as _Memory
+from bytesparse.inplace import _repeat2
 from bytesparse.inplace import bytesparse as _bytesparse
 from bytesparse.inplace import collapse_blocks
-from bytesparse.inplace import _repeat2
 
 
 def test_collapse_blocks___doctest__():

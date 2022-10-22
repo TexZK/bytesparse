@@ -6,6 +6,8 @@ graft _static
 
 include .coveragerc
 include .editorconfig
+include .gitignore
+include .readthedocs.yaml
 
 include AUTHORS.rst
 include CHANGELOG.rst
