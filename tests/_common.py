@@ -83,17 +83,14 @@ def values_to_blocks(
 
     blocks = []
     cell_count = len(values)
-    block_start = None
-    block_data = None
     i = 0
 
     while i < cell_count:
         while i < cell_count and values[i] is None:
             i += 1
 
-        if i != block_start:
-            block_start = i
-            block_data = bytearray()
+        block_start = i
+        block_data = bytearray()
 
         while i < cell_count and values[i] is not None:
             block_data.append(values[i])
@@ -139,12 +136,11 @@ def values_to_intervals(
     size = len(values)
 
     if start is None:
+        start = size
         for offset in range(size):
             if values[offset] is not None:
                 start = offset
                 break
-        else:
-            start = size
     offset = start
 
     if endex is not None:
@@ -157,8 +153,7 @@ def values_to_intervals(
             start = offset
             while offset < size and values[offset] is not None:
                 offset += 1
-            if start < offset:
-                intervals.append((start, offset))
+            intervals.append((start, offset))
 
     return intervals
 
@@ -171,19 +166,17 @@ def values_to_gaps(
 ) -> List[OpenInterval]:
 
     gaps = []
+    size = len(values)
 
-    if any(x is not None for x in values):
-        size = len(values)
+    if start is None:
+        for offset in range(size):
+            if values[offset] is not None:
+                if not bound:
+                    gaps.append((None, offset))
+                start = offset
+                break
 
-        if start is None:
-            for offset in range(size):
-                if values[offset] is not None:
-                    if not bound:
-                        gaps.append((None, offset))
-                    start = offset
-                    break
-            else:
-                start = size
+    if start is not None:
         offset = start
 
         if endex is not None:
@@ -209,6 +202,16 @@ def values_to_gaps(
         gaps.append((None, None))
 
     return gaps
+
+
+def test_values_to_gaps_bounded():
+    values = [None, 1, 2, 3, None]
+    ans_out = values_to_gaps(values, bound=True)
+    assert ans_out == []
+
+    values = [None] * MAX_SIZE
+    ans_out = values_to_gaps(values, bound=True)
+    assert ans_out == []
 
 
 def create_bitmask_values(
@@ -4534,6 +4537,10 @@ class BaseMemorySuite:
         blocks = []
         values = blocks_to_values(blocks, MAX_SIZE)
         memory = Memory.from_blocks(blocks)
+
+        gaps_ref = values_to_gaps(values)
+        gaps_out = list(memory.gaps())
+        assert gaps_out == gaps_ref
 
         gaps_ref = values_to_gaps(values)
         gaps_out = list(memory.gaps())
