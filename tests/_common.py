@@ -2965,10 +2965,10 @@ class BaseMemorySuite:
         memory = Memory.from_bytes(data, offset=5, start=3)
 
         memory_backup = memory.__deepcopy__()
-        backup = memory._pretrim_start_backup(7, 4)
+        backup = memory._pretrim_start_backup(7, 11)
         assert backup.to_blocks() == [[5, b'56']]
 
-        memory._pretrim_start(7, 4)
+        memory._pretrim_start(7, 11)
         memory.validate()
 
         memory.write(0, backup)
