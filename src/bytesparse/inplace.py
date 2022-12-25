@@ -48,6 +48,7 @@ from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
 from .base import AddressValueMapping
 from .base import AnyBytes
+from .base import Block
 from .base import BlockIndex
 from .base import BlockIterable
 from .base import BlockList
@@ -1012,6 +1013,23 @@ class Memory(MutableMemory):
     ) -> None:
 
         self.write(0, backup, clear=True)
+
+    def content_blocks(
+        self,
+        block_index_start: Optional[BlockIndex] = None,
+        block_index_endex: Optional[BlockIndex] = None,
+        block_index_step: Optional[BlockIndex] = None,
+    ) -> Iterator[Union[Tuple[Address, Union[memoryview, bytearray]], Block]]:
+
+        blocks = self._blocks
+
+        if block_index_start is not None and block_index_start < 0:
+            block_index_start = len(blocks) + block_index_start
+
+        if block_index_endex is not None and block_index_endex < 0:
+            block_index_endex = len(blocks) + block_index_endex
+
+        yield from _islice(blocks, block_index_start, block_index_endex, block_index_step)
 
     @ImmutableMemory.content_endex.getter
     def content_endex(

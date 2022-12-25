@@ -651,6 +651,63 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
+    @abc.abstractmethod
+    def content_blocks(
+        self,
+        block_index_start: Optional[BlockIndex] = None,
+        block_index_endex: Optional[BlockIndex] = None,
+        block_index_step: Optional[BlockIndex] = None,
+    ) -> Iterator[Union[Tuple[Address, Union[memoryview, bytearray]], Block]]:
+        r"""Iterates over blocks.
+
+        Iterates over data blocks within a block index range.
+
+        Arguments:
+            block_index_start (int):
+                Inclusive block start index.
+                A negative index is referred to :attr:`content_parts`.
+                If ``None``, ``0`` is considered.
+
+            block_index_endex (int):
+                Exclusive block end index.
+                A negative index is referred to :attr:`content_parts`.
+                If ``None``, :attr:`content_parts` is considered.
+
+            block_index_step (int):
+                Block index step, which can be negative.
+                If ``None``, ``1`` is considered.
+
+        Yields:
+            (start, memoryview): Start and data view of each block/slice.
+
+        See Also:
+            :attr:`content_parts`
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
+            +===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B]|   |   |[x]|   |[1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks()]
+            [[1, b'AB'], [5, b'x'], [7, b'123']]
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks(1, 2)]
+            [[5, b'x']]
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks(3, 5)]
+            []
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks(block_index_start=-2)]
+            [[5, b'x'], [7, b'123']]
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks(block_index_endex=-1)]
+            [[1, b'AB'], [5, b'x']]
+            >>> [[s, bytes(d)] for s, d in memory.content_blocks(block_index_step=2)]
+            [[1, b'AB'], [7, b'123']]
+        """
+        ...
+
     @property
     @abc.abstractmethod
     def content_endex(

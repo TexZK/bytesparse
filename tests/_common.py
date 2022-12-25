@@ -2472,6 +2472,34 @@ class BaseMemorySuite:
         memory = Memory.from_blocks([[1, b'ABC']], endex=8)
         assert memory.content_endex == 4
 
+    def test_content_blocks_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks()]
+        ans_ref = [[1, b'AB'], [5, b'x'], [7, b'123']]
+        assert ans_out == ans_ref
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(1, 2)]
+        ans_ref = [[5, b'x']]
+        assert ans_out == ans_ref
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(3, 5)]
+        ans_ref = []
+        assert ans_out == ans_ref
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(block_index_start=-2)]
+        ans_ref = [[5, b'x'], [7, b'123']]
+        assert ans_out == ans_ref
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(block_index_endex=-1)]
+        ans_ref = [[1, b'AB'], [5, b'x']]
+        assert ans_out == ans_ref
+
+        ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(block_index_step=2)]
+        ans_ref = [[1, b'AB'], [7, b'123']]
+        assert ans_out == ans_ref
+
     def test_content_endex(self):
         Memory = self.Memory
         memory = Memory()
