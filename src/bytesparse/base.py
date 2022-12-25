@@ -65,7 +65,10 @@ class ImmutableMemory(collections.abc.Sequence,
     r"""Immutable virtual memory.
 
     This class is a handy wrapper around `blocks`, so that it can behave mostly
-    like a :obj:`bytearray`, but on sparse chunks of data.
+    like a :obj:`bytes`, but on sparse chunks of data.
+
+    Being immutable, only getters and queries can be performed against
+    instances of this class.
 
     Please look at examples of each method to get a glimpse of the features of
     this class.
@@ -2685,6 +2688,21 @@ class ImmutableMemory(collections.abc.Sequence,
 class MutableMemory(ImmutableMemory,
                     collections.abc.MutableSequence,
                     collections.abc.MutableMapping):
+    r"""Mutable virtual memory.
+
+    This class is a handy wrapper around `blocks`, so that it can behave mostly
+    like a :obj:`bytearray`, but on sparse chunks of data.
+
+    Being mutable, instances of this class can be updated dynamically.
+    All of the methods and attributes of an :obj:`ImmutableMemory` are
+    available as well.
+
+    Please look at examples of each method to get a glimpse of the features of
+    this class.
+
+    See Also:
+        :obj:`ImmutableMemory`
+    """
 
     @abc.abstractmethod
     def __delitem__(
