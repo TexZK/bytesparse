@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.0.6 (TBD)
+-----------
+
+* Added some minor features.
+* Improved testing.
+* Minor fixes.
+
+
 0.0.5 (2022-02-22)
 ------------------
 
