@@ -1134,10 +1134,10 @@ class ImmutableMemory(collections.abc.Sequence,
     def copy(
         self,
     ) -> 'ImmutableMemory':
-        r"""Creates a shallow copy.
+        r"""Creates a deep copy.
 
         Returns:
-            :obj:`ImmutableMemory`: Shallow copy.
+            :obj:`ImmutableMemory`: Deep copy.
         """
         ...
 

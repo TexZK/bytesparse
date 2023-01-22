@@ -1228,7 +1228,7 @@ class Memory(MutableMemory):
         self,
     ) -> 'Memory':
 
-        return self.__copy__()
+        return self.__deepcopy__()
 
     def crop(
         self,
