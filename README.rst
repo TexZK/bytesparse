@@ -45,8 +45,8 @@ Overview
     :alt: Supported implementations
     :target: https://pypi.org/project/bytesparse/
 
-
 .. end-badges
+
 
 Library to handle sparse bytes within a virtual memory space.
 

@@ -2,7 +2,6 @@ graft .github
 graft docs
 graft src
 graft tests
-graft _static
 
 include .coveragerc
 include .editorconfig
@@ -15,6 +14,9 @@ include CONTRIBUTING.rst
 include LICENSE
 include README.rst
 
+include requirements.txt
+include pyproject.toml
+include setup.cfg
 include tox.ini
 
 global-exclude *.py[cod] __pycache__ *.so *.dylib
