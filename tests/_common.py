@@ -35,6 +35,7 @@ from bytesparse.base import Address
 from bytesparse.base import BlockList
 from bytesparse.base import ImmutableMemory
 from bytesparse.base import OpenInterval
+from bytesparse.base import TypeAlias
 from bytesparse.base import Value
 from bytesparse.inplace import Memory as _InplaceMemory
 
@@ -237,7 +238,7 @@ def test_create_bitmask_values():
 
 # Create a fake ImmutableMemory, by just cloning an existing common class.
 # This allows to check against sub-classing with all the features available.
-FakeMemory = type('FakeMemory', (), dict(_InplaceMemory.__dict__))
+FakeMemory: TypeAlias = type('FakeMemory', (), dict(_InplaceMemory.__dict__))
 ImmutableMemory.register(FakeMemory)
 assert issubclass(FakeMemory, ImmutableMemory)
 

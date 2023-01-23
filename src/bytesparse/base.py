@@ -39,22 +39,27 @@ from typing import Tuple
 from typing import Type
 from typing import Union
 
-Address = int
-Value = int
-AnyBytes = Union[ByteString, bytes, bytearray, memoryview, Sequence[Value]]
+try:
+    from typing import TypeAlias
+except ImportError:  # pragma: no cover
+    TypeAlias = Any  # Python < 3.10
 
-Block = List[Union[Address, AnyBytes]]  # typed as Tuple[Address, Data]
-BlockIndex = int
-BlockIterable = Iterable[Block]
-BlockSequence = Sequence[Block]
-BlockList = List[Block]
+Address: TypeAlias = int
+Value: TypeAlias = int
+AnyBytes: TypeAlias = Union[ByteString, bytes, bytearray, memoryview, Sequence[Value]]
 
-OpenInterval = Tuple[Optional[Address], Optional[Address]]
-ClosedInterval = Tuple[Address, Address]
+Block: TypeAlias = List[Union[Address, AnyBytes]]  # typed as Tuple[Address, Data]
+BlockIndex: TypeAlias = int
+BlockIterable: TypeAlias = Iterable[Block]
+BlockSequence: TypeAlias = Sequence[Block]
+BlockList: TypeAlias = List[Block]
 
-AddressValueMapping = Mapping[Address, Value]
+OpenInterval: TypeAlias = Tuple[Optional[Address], Optional[Address]]
+ClosedInterval: TypeAlias = Tuple[Address, Address]
 
-EllipsisType = Type['Ellipsis']
+AddressValueMapping: TypeAlias = Mapping[Address, Value]
+
+EllipsisType: TypeAlias = Type['Ellipsis']
 
 STR_MAX_CONTENT_SIZE: Address = 1000
 r"""Maximum memory content size for string representation."""
