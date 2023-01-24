@@ -2816,6 +2816,13 @@ class BaseMemorySuite:
         bound = memory.bound(0, None)
         assert bound == (11, 44)
 
+    def test_bound_span_none(self):
+        Memory = self.Memory
+        memory = Memory(start=11, endex=44)
+        assert memory.bound_span == (11, 44)
+        memory.bound_span = None
+        assert memory.bound_span == (None, None)
+
     def test_bound_start(self):
         Memory = self.Memory
         memory = Memory(start=11)

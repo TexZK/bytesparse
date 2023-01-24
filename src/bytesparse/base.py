@@ -3022,7 +3022,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def bound_span(
         self,
-        bound_span: OpenInterval,
+        bound_span: Optional[OpenInterval],  # `None` translates to `(None, None)`
     ) -> None:
         ...
 

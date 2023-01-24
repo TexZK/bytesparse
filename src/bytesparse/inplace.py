@@ -1017,9 +1017,11 @@ class Memory(MutableMemory):
     @bound_span.setter
     def bound_span(
         self,
-        bound_span: OpenInterval,
+        bound_span: Optional[OpenInterval],
     ) -> None:
 
+        if bound_span is None:
+            bound_span = (None, None)
         bound_start, bound_endex = bound_span
         if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
             bound_endex = bound_start
