@@ -134,7 +134,7 @@ class TestMemory(BaseMemorySuite):
         memory2 = memory1.__copy__()
         memory2.validate()
         assert memory1.span == memory2.span
-        assert memory1.trim_span == memory2.trim_span
+        assert memory1.bound_span == memory2.bound_span
         assert memory1.content_span == memory2.content_span
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory1._blocks, memory2._blocks))
 
@@ -145,15 +145,15 @@ class TestMemory(BaseMemorySuite):
         memory2 = memory1.__copy__()
         memory2.validate()
         assert memory1.span == memory2.span
-        assert memory1.trim_span == memory2.trim_span
+        assert memory1.bound_span == memory2.bound_span
         assert memory1.content_span == memory2.content_span
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory1._blocks, memory2._blocks))
 
     def test_validate_empty_invalid_bounds(self):
         Memory = self.Memory
         memory = Memory()
-        memory._trim_start = 7
-        memory._trim_endex = 3
+        memory._bound_start = 7
+        memory._bound_endex = 3
 
         with pytest.raises(ValueError, match='invalid bounds'):
             memory.validate()

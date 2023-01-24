@@ -211,22 +211,22 @@ class Memory(MutableMemory):
         _blocks (list of blocks):
             A sequence of spaced blocks, sorted by address.
 
-        _trim_start (int):
-            Memory trimming start address. Any data before this address is
+        _bound_start (int):
+            Memory bounds start address. Any data before this address is
             automatically discarded; disabled if ``None``.
 
-        _trim_endex (int):
-            Memory trimming exclusive end address. Any data at or after this
+        _bound_endex (int):
+            Memory bounds exclusive end address. Any data at or after this
             address is automatically discarded; disabled if ``None``.
 
     Arguments:
         start (int):
             Optional memory start address.
-            Anything before will be trimmed away.
+            Anything before will be bounded away.
 
         endex (int):
             Optional memory exclusive end address.
-            Anything at or after it will be trimmed away.
+            Anything at or after it will be bounded away.
 
     Examples:
         >>> memory = Memory()
@@ -270,13 +270,13 @@ class Memory(MutableMemory):
         self,
     ) -> 'Memory':
 
-        return self.from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=False)
+        return self.from_memory(self, start=self._bound_start, endex=self._bound_endex, copy=False)
 
     def __deepcopy__(
         self,
     ) -> 'Memory':
 
-        return self.from_memory(self, start=self._trim_start, endex=self._trim_endex, copy=True)
+        return self.from_memory(self, start=self._bound_start, endex=self._bound_endex, copy=True)
 
     def __delitem__(
         self,
@@ -400,8 +400,8 @@ class Memory(MutableMemory):
                 endex = start
 
         self._blocks: BlockList = []
-        self._trim_start: Optional[Address] = start
-        self._trim_endex: Optional[Address] = endex
+        self._bound_start: Optional[Address] = start
+        self._bound_endex: Optional[Address] = endex
 
     def __iter__(
         self,
@@ -525,13 +525,13 @@ class Memory(MutableMemory):
     ) -> str:
 
         if self.content_size < STR_MAX_CONTENT_SIZE:
-            trim_start = '' if self._trim_start is None else f'{self._trim_start}, '
-            trim_endex = '' if self._trim_endex is None else f', {self._trim_endex}'
+            bound_start = '' if self._bound_start is None else f'{self._bound_start}, '
+            bound_endex = '' if self._bound_endex is None else f', {self._bound_endex}'
 
             inner = ', '.join(f'[{block_start}, b{block_data.decode()!r}]'
                               for block_start, block_data in self._blocks)
 
-            return f'<{trim_start}[{inner}]{trim_endex}>'
+            return f'<{bound_start}[{inner}]{bound_endex}>'
         else:
             return repr(self)
 
@@ -787,60 +787,60 @@ class Memory(MutableMemory):
                 # Append a standalone block after
                 blocks.append([address, data[:]])
 
-    def _pretrim_endex(
+    def _prebound_endex(
         self,
         start_min: Optional[Address],
         size: Address,
     ) -> None:
 
-        trim_endex = self._trim_endex
-        if trim_endex is not None and size > 0:
-            start = trim_endex - size
+        bound_endex = self._bound_endex
+        if bound_endex is not None and size > 0:
+            start = bound_endex - size
 
             if start_min is not None and start < start_min:
                 start = start_min
 
             self._erase(start, self.content_endex, False)  # clear
 
-    def _pretrim_endex_backup(
+    def _prebound_endex_backup(
         self,
         start_min: Optional[Address],
         size: Address,
     ) -> ImmutableMemory:
 
-        trim_endex = self._trim_endex
-        if trim_endex is not None and size > 0:
-            start = trim_endex - size
+        bound_endex = self._bound_endex
+        if bound_endex is not None and size > 0:
+            start = bound_endex - size
             if start_min is not None and start < start_min:
                 start = start_min
             return self.extract(start=start, endex=None)
         else:
             return self.__class__()
 
-    def _pretrim_start(
+    def _prebound_start(
         self,
         endex_max: Optional[Address],
         size: Address,
     ) -> None:
 
-        trim_start = self._trim_start
-        if trim_start is not None and size > 0:
-            endex = trim_start + size
+        bound_start = self._bound_start
+        if bound_start is not None and size > 0:
+            endex = bound_start + size
 
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
 
             self._erase(self.content_start, endex, False)  # clear
 
-    def _pretrim_start_backup(
+    def _prebound_start_backup(
         self,
         endex_max: Optional[Address],
         size: Address,
     ) -> ImmutableMemory:
 
-        trim_start = self._trim_start
-        if trim_start is not None and size > 0:
-            endex = trim_start + size
+        bound_start = self._bound_start
+        if bound_start is not None and size > 0:
+            endex = bound_start + size
 
             if endex_max is not None and endex > endex_max:
                 endex = endex_max
@@ -948,38 +948,38 @@ class Memory(MutableMemory):
     ) -> ClosedInterval:
 
         blocks = self._blocks
-        trim_start = self._trim_start
-        trim_endex = self._trim_endex
+        bound_start = self._bound_start
+        bound_endex = self._bound_endex
 
         if start is None:
-            if trim_start is None:
+            if bound_start is None:
                 if blocks:
                     start = blocks[0][0]
                 else:
                     start = 0
             else:
-                start = trim_start
+                start = bound_start
         else:
-            if trim_start is not None:
-                if start < trim_start:
-                    start = trim_start
+            if bound_start is not None:
+                if start < bound_start:
+                    start = bound_start
             if endex is not None:
                 if endex < start:
                     endex = start
 
         if endex is None:
-            if trim_endex is None:
+            if bound_endex is None:
                 if blocks:
                     block_start, block_data = blocks[-1]
                     endex = block_start + len(block_data)
                 else:
                     endex = start
             else:
-                endex = trim_endex
+                endex = bound_endex
         else:
-            if trim_endex is not None:
-                if endex > trim_endex:
-                    endex = trim_endex
+            if bound_endex is not None:
+                if endex > bound_endex:
+                    endex = bound_endex
             if start > endex:
                 start = endex
 
@@ -1040,10 +1040,10 @@ class Memory(MutableMemory):
         if blocks:
             block_start, block_data = blocks[-1]
             return block_start + len(block_data)
-        elif self._trim_start is None:  # default to start
+        elif self._bound_start is None:  # default to start
             return 0
         else:
-            return self._trim_start  # default to start
+            return self._bound_start  # default to start
 
     @ImmutableMemory.content_endin.getter
     def content_endin(
@@ -1054,10 +1054,10 @@ class Memory(MutableMemory):
         if blocks:
             block_start, block_data = blocks[-1]
             return block_start + len(block_data) - 1
-        elif self._trim_start is None:  # default to start-1
+        elif self._bound_start is None:  # default to start-1
             return -1
         else:
-            return self._trim_start - 1  # default to start-1
+            return self._bound_start - 1  # default to start-1
 
     def content_items(
         self,
@@ -1143,10 +1143,10 @@ class Memory(MutableMemory):
         blocks = self._blocks
         if blocks:
             return blocks[0][0]
-        elif self._trim_start is None:
+        elif self._bound_start is None:
             return 0
         else:
-            return self._trim_start
+            return self._bound_start
 
     def content_values(
         self,
@@ -1238,14 +1238,14 @@ class Memory(MutableMemory):
 
         blocks = self._blocks  # may change during execution
 
-        # Trim blocks exceeding before memory start
+        # Bound blocks exceeding before memory start
         if start is not None and blocks:
             block_start = blocks[0][0]
 
             if block_start < start:
                 self._erase(block_start, start, False)  # clear
 
-        # Trim blocks exceeding after memory end
+        # Bound blocks exceeding after memory end
         if endex is not None and blocks:
             block_start, block_data = blocks[-1]
             block_endex = block_start + len(block_data)
@@ -1317,12 +1317,12 @@ class Memory(MutableMemory):
                 memory_blocks = [[block_start, block_data]
                                  for block_start, block_data in memory_blocks]
 
-                # Trim cloned data before the selection start address
+                # Bound cloned data before the selection start address
                 block_start, block_data = memory_blocks[0]
                 if block_start < start:
                     memory_blocks[0] = [start, block_data[(start - block_start):]]
 
-                # Trim cloned data after the selection end address
+                # Bound cloned data after the selection end address
                 block_start, block_data = memory_blocks[-1]
                 block_endex = block_start + len(block_data)
                 if endex < block_endex:
@@ -1335,8 +1335,8 @@ class Memory(MutableMemory):
                 self._erase(start, endex, False)  # clear
 
         if bound:
-            memory._trim_start = start
-            memory._trim_endex = endex
+            memory._bound_start = start
+            memory._bound_endex = endex
 
         return memory
 
@@ -1375,8 +1375,8 @@ class Memory(MutableMemory):
         self,
     ) -> Address:
 
-        trim_endex = self._trim_endex
-        if trim_endex is None:
+        bound_endex = self._bound_endex
+        if bound_endex is None:
             # Return actual
             blocks = self._blocks
             if blocks:
@@ -1385,15 +1385,15 @@ class Memory(MutableMemory):
             else:
                 return self.start
         else:
-            return trim_endex
+            return bound_endex
 
     @ImmutableMemory.endin.getter
     def endin(
         self,
     ) -> Address:
 
-        trim_endex = self._trim_endex
-        if trim_endex is None:
+        bound_endex = self._bound_endex
+        if bound_endex is None:
             # Return actual
             blocks = self._blocks
             if blocks:
@@ -1402,7 +1402,7 @@ class Memory(MutableMemory):
             else:
                 return self.start - 1
         else:
-            return trim_endex - 1
+            return bound_endex - 1
 
     def equal_span(
         self,
@@ -1519,13 +1519,13 @@ class Memory(MutableMemory):
                     memory_blocks = [[block_start, bytearray(block_data)]
                                      for block_start, block_data in memory_blocks]
 
-                    # Trim cloned data before the selection start address
+                    # Bound cloned data before the selection start address
                     block_start, block_data = memory_blocks[0]
                     if block_start < start:
                         del block_data[:(start - block_start)]
                         memory_blocks[0] = [start, block_data]
 
-                    # Trim cloned data after the selection end address
+                    # Bound cloned data after the selection end address
                     block_start, block_data = memory_blocks[-1]
                     block_endex = block_start + len(block_data)
                     if endex < block_endex:
@@ -1567,8 +1567,8 @@ class Memory(MutableMemory):
                     endex = offset
 
         if bound:
-            memory._trim_start = start
-            memory._trim_endex = endex
+            memory._bound_start = start
+            memory._bound_endex = endex
 
         return memory
 
@@ -1909,7 +1909,7 @@ class Memory(MutableMemory):
             start, endex = self.bound(start, endex)
 
             if start_ is None:
-                start = blocks[0][0]  # override trim start
+                start = blocks[0][0]  # override bound start
                 yield None, start
                 block_index_start = 0
             else:
@@ -2014,7 +2014,7 @@ class Memory(MutableMemory):
     ) -> Tuple[Address, ImmutableMemory]:
 
         size = 1 if isinstance(data, Value) else len(data)
-        backup = self._pretrim_endex_backup(address, size)
+        backup = self._prebound_endex_backup(address, size)
         return address, backup
 
     def insert_restore(
@@ -2106,9 +2106,9 @@ class Memory(MutableMemory):
         item: Optional[Union[AnyBytes, Value]],
     ) -> None:
 
-        if self._trim_start is not None and address < self._trim_start:
+        if self._bound_start is not None and address < self._bound_start:
             return
-        if self._trim_endex is not None and address >= self._trim_endex:
+        if self._bound_endex is not None and address >= self._bound_endex:
             return
 
         if item is None:
@@ -2164,7 +2164,7 @@ class Memory(MutableMemory):
             self._erase(address, address + 1, False)  # clear
             self._place(address, bytearray((item,)), False)  # write
 
-            self.crop(self._trim_start, self._trim_endex)
+            self.crop(self._bound_start, self._bound_endex)
 
     def poke_backup(
         self,
@@ -2301,7 +2301,7 @@ class Memory(MutableMemory):
         blocks = self._blocks
 
         if size > 0 and blocks:
-            self._pretrim_endex(address, size)
+            self._prebound_endex(address, size)
             block_index = self._block_index_start(address)
 
             if block_index < len(blocks):
@@ -2327,7 +2327,7 @@ class Memory(MutableMemory):
         size: Address,
     ) -> Tuple[Address, ImmutableMemory]:
 
-        backup = self._pretrim_endex_backup(address, size)
+        backup = self._prebound_endex_backup(address, size)
         return address, backup
 
     def reserve_restore(
@@ -2511,9 +2511,9 @@ class Memory(MutableMemory):
 
         if offset and self._blocks:
             if offset < 0:
-                self._pretrim_start(None, -offset)
+                self._prebound_start(None, -offset)
             else:
-                self._pretrim_endex(None, +offset)
+                self._prebound_endex(None, +offset)
 
             for block in self._blocks:
                 block[0] += offset
@@ -2524,9 +2524,9 @@ class Memory(MutableMemory):
     ) -> Tuple[Address, ImmutableMemory]:
 
         if offset < 0:
-            backup = self._pretrim_start_backup(None, -offset)
+            backup = self._prebound_start_backup(None, -offset)
         else:
-            backup = self._pretrim_endex_backup(None, +offset)
+            backup = self._prebound_endex_backup(None, +offset)
         return offset, backup
 
     def shift_restore(
@@ -2550,8 +2550,8 @@ class Memory(MutableMemory):
         self,
     ) -> Address:
 
-        trim_start = self._trim_start
-        if trim_start is None:
+        bound_start = self._bound_start
+        if bound_start is None:
             # Return actual
             blocks = self._blocks
             if blocks:
@@ -2559,7 +2559,7 @@ class Memory(MutableMemory):
             else:
                 return 0
         else:
-            return trim_start
+            return bound_start
 
     def to_blocks(
         self,
@@ -2579,69 +2579,69 @@ class Memory(MutableMemory):
 
         return bytes(self.view(start, endex))
 
-    @ImmutableMemory.trim_endex.getter
-    def trim_endex(
+    @ImmutableMemory.bound_endex.getter
+    def bound_endex(
         self,
     ) -> Optional[Address]:
 
-        return self._trim_endex
+        return self._bound_endex
 
-    @trim_endex.setter
-    def trim_endex(
+    @bound_endex.setter
+    def bound_endex(
         self,
-        trim_endex: Optional[Address],
+        bound_endex: Optional[Address],
     ) -> None:
 
-        trim_start = self._trim_start
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            self._trim_start = trim_start = trim_endex
+        bound_start = self._bound_start
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_start = bound_start = bound_endex
 
-        self._trim_endex = trim_endex
-        if trim_endex is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_endex = bound_endex
+        if bound_endex is not None:
+            self.crop(bound_start, bound_endex)
 
-    @ImmutableMemory.trim_span.getter
-    def trim_span(
+    @ImmutableMemory.bound_span.getter
+    def bound_span(
         self,
     ) -> OpenInterval:
 
-        return self._trim_start, self._trim_endex
+        return self._bound_start, self._bound_endex
 
-    @trim_span.setter
-    def trim_span(
+    @bound_span.setter
+    def bound_span(
         self,
-        trim_span: OpenInterval,
+        bound_span: OpenInterval,
     ) -> None:
 
-        trim_start, trim_endex = trim_span
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            trim_endex = trim_start
+        bound_start, bound_endex = bound_span
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            bound_endex = bound_start
 
-        self._trim_start = trim_start
-        self._trim_endex = trim_endex
-        if trim_start is not None or trim_endex is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_start = bound_start
+        self._bound_endex = bound_endex
+        if bound_start is not None or bound_endex is not None:
+            self.crop(bound_start, bound_endex)
 
-    @ImmutableMemory.trim_start.getter
-    def trim_start(
+    @ImmutableMemory.bound_start.getter
+    def bound_start(
         self,
     ) -> Optional[Address]:
 
-        return self._trim_start
+        return self._bound_start
 
-    @trim_start.setter
-    def trim_start(
+    @bound_start.setter
+    def bound_start(
         self,
-        trim_start: Optional[Address],
+        bound_start: Optional[Address],
     ) -> None:
 
-        trim_endex = self._trim_endex
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            self._trim_endex = trim_endex = trim_start
+        bound_endex = self._bound_endex
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_endex = bound_endex = bound_start
 
-        self._trim_start = trim_start
-        if trim_start is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_start = bound_start
+        if bound_start is not None:
+            self.crop(bound_start, bound_endex)
 
     def update(
         self,
@@ -2829,12 +2829,12 @@ class Memory(MutableMemory):
         if not size:
             return
 
-        trim_start = self._trim_start
-        if trim_start is not None and endex <= trim_start:
+        bound_start = self._bound_start
+        if bound_start is not None and endex <= bound_start:
             return
 
-        trim_endex = self._trim_endex
-        if trim_endex is not None and trim_endex <= start:
+        bound_endex = self._bound_endex
+        if bound_endex is not None and bound_endex <= start:
             return
 
         if data_is_immutable_memory:
@@ -2855,37 +2855,37 @@ class Memory(MutableMemory):
                 block_start = block_start + address
                 block_endex = block_start + len(block_data)
 
-                if trim_start is not None and block_endex <= trim_start:
+                if bound_start is not None and block_endex <= bound_start:
                     continue
-                if trim_endex is not None and trim_endex <= block_start:
+                if bound_endex is not None and bound_endex <= block_start:
                     break
 
                 block_data = bytearray(block_data)  # clone
 
-                # Trim before memory
-                if trim_start is not None and block_start < trim_start:
-                    offset = trim_start - block_start
+                # Bound before memory
+                if bound_start is not None and block_start < bound_start:
+                    offset = bound_start - block_start
                     block_start += offset
                     del block_data[:offset]
 
-                # Trim after memory
-                if trim_endex is not None and trim_endex < block_endex:
-                    offset = block_endex - trim_endex
+                # Bound after memory
+                if bound_endex is not None and bound_endex < block_endex:
+                    offset = block_endex - bound_endex
                     block_endex -= offset
                     del block_data[(block_endex - block_start):]
 
                 self._place(block_start, block_data, False)  # write
         else:
-            # Trim before memory
-            if trim_start is not None and start < trim_start:
-                offset = trim_start - start
+            # Bound before memory
+            if bound_start is not None and start < bound_start:
+                offset = bound_start - start
                 size -= offset
                 start += offset
                 del data[:offset]
 
-            # Trim after memory
-            if trim_endex is not None and trim_endex < endex:
-                offset = endex - trim_endex
+            # Bound after memory
+            if bound_endex is not None and bound_endex < endex:
+                offset = endex - bound_endex
                 size -= offset
                 endex -= offset
                 del data[size:]
@@ -2941,6 +2941,7 @@ class Memory(MutableMemory):
             self.write(0, backup, clear=True)
 
 
+# noinspection PyPep8Naming
 class bytesparse(Memory):
     r"""Wrapper for more `bytearray` compatibility.
 
@@ -2980,13 +2981,13 @@ class bytesparse(Memory):
 
         start (int):
             Optional memory start address.
-            Anything before will be trimmed away.
+            Anything before will be bounded away.
             If `source` is provided, its data start at this address
             (0 if `start` is ``None``).
 
         endex (int):
             Optional memory exclusive end address.
-            Anything at or after it will be trimmed away.
+            Anything at or after it will be bounded away.
     """
 
     def __delitem__(
@@ -3318,8 +3319,8 @@ class bytesparse(Memory):
         memory1 = super().from_blocks(blocks, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
         memory2 = cls()
         memory2._blocks = memory1._blocks
-        memory2._trim_start = memory1._trim_start
-        memory2._trim_endex = memory1._trim_endex
+        memory2._bound_start = memory1._bound_start
+        memory2._bound_endex = memory1._bound_endex
         return memory2
 
     @classmethod
@@ -3343,8 +3344,8 @@ class bytesparse(Memory):
         memory1 = super().from_bytes(data, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
         memory2 = cls()
         memory2._blocks = memory1._blocks
-        memory2._trim_start = memory1._trim_start
-        memory2._trim_endex = memory1._trim_endex
+        memory2._bound_start = memory1._bound_start
+        memory2._bound_endex = memory1._bound_endex
         return memory2
 
     @classmethod
@@ -3377,8 +3378,8 @@ class bytesparse(Memory):
         memory1 = super().from_memory(memory, offset=offset, start=start, endex=endex, copy=copy, validate=validate)
         memory2 = cls()
         memory2._blocks = memory1._blocks
-        memory2._trim_start = memory1._trim_start
-        memory2._trim_endex = memory1._trim_endex
+        memory2._bound_start = memory1._bound_start
+        memory2._bound_endex = memory1._bound_endex
         return memory2
 
     def gaps(
@@ -3624,7 +3625,7 @@ class bytesparse(Memory):
         offset: Address,
     ) -> None:
 
-        if self._trim_start is None and offset < 0:
+        if self._bound_start is None and offset < 0:
             blocks = self._blocks
             if blocks:
                 block_start = blocks[0][0]
@@ -3638,7 +3639,7 @@ class bytesparse(Memory):
         offset: Address,
     ) -> Tuple[Address, ImmutableMemory]:
 
-        if self._trim_start is None and offset < 0:
+        if self._bound_start is None and offset < 0:
             blocks = self._blocks
             if blocks:
                 block_start = blocks[0][0]
@@ -3647,87 +3648,87 @@ class bytesparse(Memory):
 
         return super().shift_backup(offset)
 
-    @ImmutableMemory.trim_endex.getter
-    def trim_endex(
+    @ImmutableMemory.bound_endex.getter
+    def bound_endex(
         self,
     ) -> Optional[Address]:
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        return self._trim_endex
+        return self._bound_endex
 
-    @trim_endex.setter
-    def trim_endex(
+    @bound_endex.setter
+    def bound_endex(
         self,
-        trim_endex: Optional[Address],
+        bound_endex: Optional[Address],
     ) -> None:
 
-        if trim_endex is not None and trim_endex < 0:
+        if bound_endex is not None and bound_endex < 0:
             raise ValueError('negative endex')
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        trim_start = self._trim_start
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            self._trim_start = trim_start = trim_endex
+        bound_start = self._bound_start
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_start = bound_start = bound_endex
 
-        self._trim_endex = trim_endex
-        if trim_endex is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_endex = bound_endex
+        if bound_endex is not None:
+            self.crop(bound_start, bound_endex)
 
-    @ImmutableMemory.trim_span.getter
-    def trim_span(
+    @ImmutableMemory.bound_span.getter
+    def bound_span(
         self,
     ) -> OpenInterval:
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        return self._trim_start, self._trim_endex
+        return self._bound_start, self._bound_endex
 
-    @trim_span.setter
-    def trim_span(
+    @bound_span.setter
+    def bound_span(
         self,
-        trim_span: OpenInterval,
+        bound_span: OpenInterval,
     ) -> None:
 
-        trim_start, trim_endex = trim_span
-        if trim_start is not None and trim_start < 0:
+        bound_start, bound_endex = bound_span
+        if bound_start is not None and bound_start < 0:
             raise ValueError('negative start')
-        if trim_endex is not None and trim_endex < 0:
+        if bound_endex is not None and bound_endex < 0:
             raise ValueError('negative endex')
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        trim_start, trim_endex = trim_span
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            trim_endex = trim_start
+        bound_start, bound_endex = bound_span
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            bound_endex = bound_start
 
-        self._trim_start = trim_start
-        self._trim_endex = trim_endex
-        if trim_start is not None or trim_endex is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_start = bound_start
+        self._bound_endex = bound_endex
+        if bound_start is not None or bound_endex is not None:
+            self.crop(bound_start, bound_endex)
 
-    @ImmutableMemory.trim_start.getter
-    def trim_start(
+    @ImmutableMemory.bound_start.getter
+    def bound_start(
         self,
     ) -> Optional[Address]:
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        return self._trim_start
+        return self._bound_start
 
-    @trim_start.setter
-    def trim_start(
+    @bound_start.setter
+    def bound_start(
         self,
-        trim_start: Optional[Address],
+        bound_start: Optional[Address],
     ) -> None:
 
-        if trim_start is not None and trim_start < 0:
+        if bound_start is not None and bound_start < 0:
             raise ValueError('negative start')
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
-        trim_endex = self._trim_endex
-        if trim_start is not None and trim_endex is not None and trim_endex < trim_start:
-            self._trim_endex = trim_endex = trim_start
+        bound_endex = self._bound_endex
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_endex = bound_endex = bound_start
 
-        self._trim_start = trim_start
-        if trim_start is not None:
-            self.crop(trim_start, trim_endex)
+        self._bound_start = bound_start
+        if bound_start is not None:
+            self.crop(bound_start, bound_endex)
 
     def validate(
         self,

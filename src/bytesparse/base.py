@@ -81,11 +81,11 @@ class ImmutableMemory(collections.abc.Sequence,
     Arguments:
         start (int):
             Optional memory start address.
-            Anything before will be trimmed away.
+            Anything before will be deleted.
 
         endex (int):
             Optional memory exclusive end address.
-            Anything at or after it will be trimmed away.
+            Anything at or after it will be deleted.
 
     Examples:
         >>> from bytesparse.inplace import Memory
@@ -323,7 +323,7 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Computes the actual length of the stored items, i.e.
         (:attr:`endex` - :attr:`start`).
-        This will consider any trimmings being active.
+        This will consider any bounds being active.
 
         Returns:
             int: Memory length.
@@ -460,7 +460,7 @@ class ImmutableMemory(collections.abc.Sequence,
         self,
         address: Address,
     ) -> BlockIndex:
-        r"""Locates the first block inside of an address range.
+        r"""Locates the first block inside an address range.
 
         Returns the index of the first block whose start address is greater than
         or equal to `address`.
@@ -602,7 +602,7 @@ class ImmutableMemory(collections.abc.Sequence,
         In case of stored data, :attr:`content_start` and
         :attr:`content_endex` are used as bounds.
 
-        In case of trimming limits, :attr:`trim_start` or :attr:`trim_endex`
+        In case of bounds limits, :attr:`bound_start` or :attr:`bound_endex`
         are used as bounds, when not ``None``.
 
         In case `start` and `endex` are in the wrong order, one clamps
@@ -727,9 +727,9 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current maximmum exclusive end address of
         the last stored block.
 
-        If the memory has no data and no trimming, :attr:`start` is returned.
+        If the memory has no data and no bounds, :attr:`start` is returned.
 
-        Trimming is considered only for an empty memory.
+        Bounds considered only for an empty memory.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -778,10 +778,10 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current maximmum inclusive end address of
         the last stored block.
 
-        If the memory has no data and no trimming, :attr:`start` minus one is
+        If the memory has no data and no bounds, :attr:`start` minus one is
         returned.
 
-        Trimming is considered only for an empty memory.
+        Bounds considered only for an empty memory.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -1038,9 +1038,9 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current minimum inclusive start address of
         the first stored block.
 
-        If the memory has no data and no trimming, 0 is returned.
+        If the memory has no data and no bounds, 0 is returned.
 
-        Trimming is considered only for an empty memory.
+        Bounds considered only for an empty memory.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -1131,7 +1131,7 @@ class ImmutableMemory(collections.abc.Sequence,
         The memory is considered to have contiguous data if there is no empty
         space between blocks.
 
-        If trimming is defined, there must be no empty space also towards it.
+        If bounds are defined, there must be no empty space also towards it.
         """
         ...
 
@@ -1196,9 +1196,9 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current maximmum exclusive end address of
         the last stored block.
 
-        If  :attr:`trim_endex` not ``None``, that is returned.
+        If  :attr:`bound_endex` not ``None``, that is returned.
 
-        If the memory has no data and no trimming, :attr:`start` is returned.
+        If the memory has no data and no bounds, :attr:`start` is returned.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -1243,9 +1243,9 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current maximmum inclusive end address of
         the last stored block.
 
-        If  :attr:`trim_endex` not ``None``, that minus one is returned.
+        If  :attr:`bound_endex` not ``None``, that minus one is returned.
 
-        If the memory has no data and no trimming, :attr:`start` is returned.
+        If the memory has no data and no bounds, :attr:`start` is returned.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -1362,7 +1362,7 @@ class ImmutableMemory(collections.abc.Sequence,
 
             bound (bool):
                 The selected address range is applied to the resulting memory
-                as its trimming range. This retains information about any
+                as its bounds range. This retains information about any
                 initial and final emptiness of that range, which would be lost
                 otherwise.
 
@@ -1444,11 +1444,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
             start (int):
                 Optional memory start address.
-                Anything before will be trimmed away.
+                Anything before will be deleted.
 
             endex (int):
                 Optional memory exclusive end address.
-                Anything at or after it will be trimmed away.
+                Anything at or after it will be deleted.
 
             copy (bool):
                 Forces copy of provided input data.
@@ -1489,6 +1489,7 @@ class ImmutableMemory(collections.abc.Sequence,
             >>> # Loads data from an Intel HEX record file
             >>> # NOTE: Record files typically require collapsing!
             >>> import hexrec.records as hr
+            >>> from bytesparse.inplace import collapse_blocks
             >>> blocks = hr.load_blocks('records.hex')
             >>> memory = Memory.from_blocks(collapse_blocks(blocks))
             >>> memory
@@ -1519,11 +1520,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
             start (int):
                 Optional memory start address.
-                Anything before will be trimmed away.
+                Anything before will be deleted.
 
             endex (int):
                 Optional memory exclusive end address.
-                Anything at or after it will be trimmed away.
+                Anything at or after it will be deleted.
 
             copy (bool):
                 Forces copy of provided input data into the underlying data
@@ -1588,11 +1589,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
             start (int):
                 Optional memory start address.
-                Anything before will be trimmed away.
+                Anything before will be deleted.
 
             endex (int):
                 Optional memory exclusive end address.
-                Anything at or after it will be trimmed away.
+                Anything at or after it will be deleted.
 
             validate (bool):
                 Validates the resulting :obj:`ImmutableMemory` object.
@@ -1655,11 +1656,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
             start (int):
                 Optional memory start address.
-                Anything before will be trimmed away.
+                Anything before will be deleted.
 
             endex (int):
                 Optional memory exclusive end address.
-                Anything at or after it will be trimmed away.
+                Anything at or after it will be deleted.
 
             copy (bool):
                 Forces copy of provided input data into the underlying data
@@ -1729,11 +1730,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
             start (int):
                 Optional memory start address.
-                Anything before will be trimmed away.
+                Anything before will be deleted.
 
             endex (int):
                 Optional memory exclusive end address.
-                Anything at or after it will be trimmed away.
+                Anything at or after it will be deleted.
 
             validate (bool):
                 Validates the resulting :obj:`ImmutableMemory` object.
@@ -2379,9 +2380,9 @@ class ImmutableMemory(collections.abc.Sequence,
         By default, it is the current minimum inclusive start address of
         the first stored block.
 
-        If :attr:`trim_start` not ``None``, that is returned.
+        If :attr:`bound_start` not ``None``, that is returned.
 
-        If the memory has no data and no trimming, 0 is returned.
+        If the memory has no data and no bounds, 0 is returned.
 
         Examples:
             >>> from bytesparse.inplace import Memory
@@ -2517,10 +2518,10 @@ class ImmutableMemory(collections.abc.Sequence,
 
     @property
     @abc.abstractmethod
-    def trim_endex(
+    def bound_endex(
         self,
     ) -> Optional[Address]:
-        r"""int: Trimming exclusive end address.
+        r"""int: Bounds exclusive end address.
 
         Any data at or after this address is automatically discarded.
         Disabled if ``None``.
@@ -2529,21 +2530,21 @@ class ImmutableMemory(collections.abc.Sequence,
 
     @property
     @abc.abstractmethod
-    def trim_span(
+    def bound_span(
         self,
     ) -> OpenInterval:
-        r"""tuple of int: Trimming span addresses.
+        r"""tuple of int: Bounds span addresses.
 
-        A :obj:`tuple` holding :attr:`trim_start` and :attr:`trim_endex`.
+        A :obj:`tuple` holding :attr:`bound_start` and :attr:`bound_endex`.
         """
         ...
 
     @property
     @abc.abstractmethod
-    def trim_start(
+    def bound_start(
         self,
     ) -> Optional[Address]:
-        r"""int: Trimming start address.
+        r"""int: Bounds start address.
 
         Any data before this address is automatically discarded.
         Disabled if ``None``.
@@ -2857,40 +2858,40 @@ class MutableMemory(ImmutableMemory,
         ...
 
     @abc.abstractmethod
-    def _pretrim_endex(
+    def _prebound_endex(
         self,
         start_min: Optional[Address],
         size: Address,
     ) -> None:
-        r"""Trims final data.
+        r"""Bounds final data.
 
-        Low-level method to manage trimming of data starting from an address.
+        Low-level method to manage bounds of data starting from an address.
 
         Arguments:
             start_min (int):
                 Starting address of the erasure range.
-                If ``None``, :attr:`trim_endex` minus `size` is considered.
+                If ``None``, :attr:`bound_endex` minus `size` is considered.
 
             size (int):
                 Size of the erasure range.
 
         See Also:
-            :meth:`_pretrim_endex_backup`
+            :meth:`_prebound_endex_backup`
         """
         ...
 
     @abc.abstractmethod
-    def _pretrim_endex_backup(
+    def _prebound_endex_backup(
         self,
         start_min: Optional[Address],
         size: Address,
     ) -> ImmutableMemory:
-        r"""Backups a `_pretrim_endex()` operation.
+        r"""Backups a `_prebound_endex()` operation.
 
         Arguments:
             start_min (int):
                 Starting address of the erasure range.
-                If ``None``, :attr:`trim_endex` minus `size` is considered.
+                If ``None``, :attr:`bound_endex` minus `size` is considered.
 
             size (int):
                 Size of the erasure range.
@@ -2899,45 +2900,45 @@ class MutableMemory(ImmutableMemory,
             :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
-            :meth:`_pretrim_endex`
+            :meth:`_prebound_endex`
         """
         ...
 
     @abc.abstractmethod
-    def _pretrim_start(
+    def _prebound_start(
         self,
         endex_max: Optional[Address],
         size: Address,
     ) -> None:
-        r"""Trims initial data.
+        r"""Bounds initial data.
 
-        Low-level method to manage trimming of data starting from an address.
+        Low-level method to manage bounds of data starting from an address.
 
         Arguments:
             endex_max (int):
                 Exclusive end address of the erasure range.
-                If ``None``, :attr:`trim_start` plus `size` is considered.
+                If ``None``, :attr:`bound_start` plus `size` is considered.
 
             size (int):
                 Size of the erasure range.
 
         See Also:
-            :meth:`_pretrim_start_backup`
+            :meth:`_prebound_start_backup`
         """
         ...
 
     @abc.abstractmethod
-    def _pretrim_start_backup(
+    def _prebound_start_backup(
         self,
         endex_max: Optional[Address],
         size: Address,
     ) -> ImmutableMemory:
-        r"""Backups a `_pretrim_start()` operation.
+        r"""Backups a `_prebound_start()` operation.
 
         Arguments:
             endex_max (int):
                 Exclusive end address of the erasure range.
-                If ``None``, :attr:`trim_start` plus `size` is considered.
+                If ``None``, :attr:`bound_start` plus `size` is considered.
 
             size (int):
                 Size of the erasure range.
@@ -2946,7 +2947,7 @@ class MutableMemory(ImmutableMemory,
             :obj:`ImmutableMemory`: Backup memory region.
 
         See Also:
-            :meth:`_pretrim_start`
+            :meth:`_prebound_start`
         """
         ...
 
@@ -3197,7 +3198,7 @@ class MutableMemory(ImmutableMemory,
 
             bound (bool):
                 The selected address range is applied to the resulting memory
-                as its trimming range. This retains information about any
+                as its bounds range. This retains information about any
                 initial and final emptiness of that range, which would be lost
                 otherwise.
 
@@ -4304,27 +4305,27 @@ class MutableMemory(ImmutableMemory,
         """
         ...
 
-    @ImmutableMemory.trim_endex.setter
+    @ImmutableMemory.bound_endex.setter
     @abc.abstractmethod
-    def trim_endex(
+    def bound_endex(
         self,
-        trim_endex: Optional[Address],
+        bound_endex: Optional[Address],
     ) -> None:
         ...
 
-    @ImmutableMemory.trim_span.setter
+    @ImmutableMemory.bound_span.setter
     @abc.abstractmethod
-    def trim_span(
+    def bound_span(
         self,
-        trim_span: OpenInterval,
+        bound_span: OpenInterval,
     ) -> None:
         ...
 
-    @ImmutableMemory.trim_start.setter
+    @ImmutableMemory.bound_start.setter
     @abc.abstractmethod
-    def trim_start(
+    def bound_start(
         self,
-        trim_start: Optional[Address],
+        bound_start: Optional[Address],
     ) -> None:
         ...
 
