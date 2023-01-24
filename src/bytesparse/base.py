@@ -2700,7 +2700,7 @@ class MutableMemory(ImmutableMemory,
     like a :obj:`bytearray`, but on sparse chunks of data.
 
     Being mutable, instances of this class can be updated dynamically.
-    All of the methods and attributes of an :obj:`ImmutableMemory` are
+    All the methods and attributes of an :obj:`ImmutableMemory` are
     available as well.
 
     Please look at examples of each method to get a glimpse of the features of

@@ -2946,6 +2946,7 @@ class Memory(MutableMemory):
 
 # noinspection PyPep8Naming
 class bytesparse(Memory, MutableBytesparse):
+    __doc__ = MutableBytesparse.__doc__
 
     def __delitem__(
         self,
