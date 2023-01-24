@@ -985,6 +985,70 @@ class Memory(MutableMemory):
 
         return start, endex
 
+    @ImmutableMemory.bound_endex.getter
+    def bound_endex(
+        self,
+    ) -> Optional[Address]:
+
+        return self._bound_endex
+
+    @bound_endex.setter
+    def bound_endex(
+        self,
+        bound_endex: Optional[Address],
+    ) -> None:
+
+        bound_start = self._bound_start
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_start = bound_start = bound_endex
+
+        self._bound_endex = bound_endex
+        if bound_endex is not None:
+            self.crop(bound_start, bound_endex)
+
+    @ImmutableMemory.bound_span.getter
+    def bound_span(
+        self,
+    ) -> OpenInterval:
+
+        return self._bound_start, self._bound_endex
+
+    @bound_span.setter
+    def bound_span(
+        self,
+        bound_span: OpenInterval,
+    ) -> None:
+
+        bound_start, bound_endex = bound_span
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            bound_endex = bound_start
+
+        self._bound_start = bound_start
+        self._bound_endex = bound_endex
+        if bound_start is not None or bound_endex is not None:
+            self.crop(bound_start, bound_endex)
+
+    @ImmutableMemory.bound_start.getter
+    def bound_start(
+        self,
+    ) -> Optional[Address]:
+
+        return self._bound_start
+
+    @bound_start.setter
+    def bound_start(
+        self,
+        bound_start: Optional[Address],
+    ) -> None:
+
+        bound_endex = self._bound_endex
+        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
+            self._bound_endex = bound_endex = bound_start
+
+        self._bound_start = bound_start
+        if bound_start is not None:
+            self.crop(bound_start, bound_endex)
+
     def clear(
         self,
         start: Optional[Address] = None,
@@ -2578,70 +2642,6 @@ class Memory(MutableMemory):
     ) -> bytes:
 
         return bytes(self.view(start, endex))
-
-    @ImmutableMemory.bound_endex.getter
-    def bound_endex(
-        self,
-    ) -> Optional[Address]:
-
-        return self._bound_endex
-
-    @bound_endex.setter
-    def bound_endex(
-        self,
-        bound_endex: Optional[Address],
-    ) -> None:
-
-        bound_start = self._bound_start
-        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
-            self._bound_start = bound_start = bound_endex
-
-        self._bound_endex = bound_endex
-        if bound_endex is not None:
-            self.crop(bound_start, bound_endex)
-
-    @ImmutableMemory.bound_span.getter
-    def bound_span(
-        self,
-    ) -> OpenInterval:
-
-        return self._bound_start, self._bound_endex
-
-    @bound_span.setter
-    def bound_span(
-        self,
-        bound_span: OpenInterval,
-    ) -> None:
-
-        bound_start, bound_endex = bound_span
-        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
-            bound_endex = bound_start
-
-        self._bound_start = bound_start
-        self._bound_endex = bound_endex
-        if bound_start is not None or bound_endex is not None:
-            self.crop(bound_start, bound_endex)
-
-    @ImmutableMemory.bound_start.getter
-    def bound_start(
-        self,
-    ) -> Optional[Address]:
-
-        return self._bound_start
-
-    @bound_start.setter
-    def bound_start(
-        self,
-        bound_start: Optional[Address],
-    ) -> None:
-
-        bound_endex = self._bound_endex
-        if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
-            self._bound_endex = bound_endex = bound_start
-
-        self._bound_start = bound_start
-        if bound_start is not None:
-            self.crop(bound_start, bound_endex)
 
     def update(
         self,

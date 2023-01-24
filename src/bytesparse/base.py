@@ -659,6 +659,41 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
+    @property
+    @abc.abstractmethod
+    def bound_endex(
+        self,
+    ) -> Optional[Address]:
+        r"""int: Bounds exclusive end address.
+
+        Any data at or after this address is automatically discarded.
+        Disabled if ``None``.
+        """
+        ...
+
+    @property
+    @abc.abstractmethod
+    def bound_span(
+        self,
+    ) -> OpenInterval:
+        r"""tuple of int: Bounds span addresses.
+
+        A :obj:`tuple` holding :attr:`bound_start` and :attr:`bound_endex`.
+        """
+        ...
+
+    @property
+    @abc.abstractmethod
+    def bound_start(
+        self,
+    ) -> Optional[Address]:
+        r"""int: Bounds start address.
+
+        Any data before this address is automatically discarded.
+        Disabled if ``None``.
+        """
+        ...
+
     @abc.abstractmethod
     def content_blocks(
         self,
@@ -2516,41 +2551,6 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
-    @property
-    @abc.abstractmethod
-    def bound_endex(
-        self,
-    ) -> Optional[Address]:
-        r"""int: Bounds exclusive end address.
-
-        Any data at or after this address is automatically discarded.
-        Disabled if ``None``.
-        """
-        ...
-
-    @property
-    @abc.abstractmethod
-    def bound_span(
-        self,
-    ) -> OpenInterval:
-        r"""tuple of int: Bounds span addresses.
-
-        A :obj:`tuple` holding :attr:`bound_start` and :attr:`bound_endex`.
-        """
-        ...
-
-    @property
-    @abc.abstractmethod
-    def bound_start(
-        self,
-    ) -> Optional[Address]:
-        r"""int: Bounds start address.
-
-        Any data before this address is automatically discarded.
-        Disabled if ``None``.
-        """
-        ...
-
     @abc.abstractmethod
     def validate(
         self,
@@ -3008,6 +3008,30 @@ class MutableMemory(ImmutableMemory,
             :meth:`append`
             :meth:`append_backup`
         """
+        ...
+
+    @ImmutableMemory.bound_endex.setter
+    @abc.abstractmethod
+    def bound_endex(
+        self,
+        bound_endex: Optional[Address],
+    ) -> None:
+        ...
+
+    @ImmutableMemory.bound_span.setter
+    @abc.abstractmethod
+    def bound_span(
+        self,
+        bound_span: OpenInterval,
+    ) -> None:
+        ...
+
+    @ImmutableMemory.bound_start.setter
+    @abc.abstractmethod
+    def bound_start(
+        self,
+        bound_start: Optional[Address],
+    ) -> None:
         ...
 
     @abc.abstractmethod
@@ -4303,30 +4327,6 @@ class MutableMemory(ImmutableMemory,
             :meth:`shift`
             :meth:`shift_backup`
         """
-        ...
-
-    @ImmutableMemory.bound_endex.setter
-    @abc.abstractmethod
-    def bound_endex(
-        self,
-        bound_endex: Optional[Address],
-    ) -> None:
-        ...
-
-    @ImmutableMemory.bound_span.setter
-    @abc.abstractmethod
-    def bound_span(
-        self,
-        bound_span: OpenInterval,
-    ) -> None:
-        ...
-
-    @ImmutableMemory.bound_start.setter
-    @abc.abstractmethod
-    def bound_start(
-        self,
-        bound_start: Optional[Address],
-    ) -> None:
         ...
 
     @abc.abstractmethod
