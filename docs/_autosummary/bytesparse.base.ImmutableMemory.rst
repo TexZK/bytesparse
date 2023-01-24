@@ -62,6 +62,9 @@
 
    .. autosummary::
    
+      ~ImmutableMemory.bound_endex
+      ~ImmutableMemory.bound_span
+      ~ImmutableMemory.bound_start
       ~ImmutableMemory.content_endex
       ~ImmutableMemory.content_endin
       ~ImmutableMemory.content_parts
@@ -73,8 +76,5 @@
       ~ImmutableMemory.endin
       ~ImmutableMemory.span
       ~ImmutableMemory.start
-      ~ImmutableMemory.trim_endex
-      ~ImmutableMemory.trim_span
-      ~ImmutableMemory.trim_start
    
    

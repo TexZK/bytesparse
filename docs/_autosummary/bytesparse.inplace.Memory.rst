@@ -115,6 +115,9 @@
 
    .. autosummary::
    
+      ~Memory.bound_endex
+      ~Memory.bound_span
+      ~Memory.bound_start
       ~Memory.content_endex
       ~Memory.content_endin
       ~Memory.content_parts
@@ -126,8 +129,5 @@
       ~Memory.endin
       ~Memory.span
       ~Memory.start
-      ~Memory.trim_endex
-      ~Memory.trim_span
-      ~Memory.trim_start
    
    

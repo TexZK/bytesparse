@@ -115,6 +115,9 @@
 
    .. autosummary::
    
+      ~MutableMemory.bound_endex
+      ~MutableMemory.bound_span
+      ~MutableMemory.bound_start
       ~MutableMemory.content_endex
       ~MutableMemory.content_endin
       ~MutableMemory.content_parts
@@ -126,8 +129,5 @@
       ~MutableMemory.endin
       ~MutableMemory.span
       ~MutableMemory.start
-      ~MutableMemory.trim_endex
-      ~MutableMemory.trim_span
-      ~MutableMemory.trim_start
    
    
