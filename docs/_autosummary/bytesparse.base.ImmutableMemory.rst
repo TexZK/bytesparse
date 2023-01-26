@@ -44,6 +44,7 @@
       ~ImmutableMemory.keys
       ~ImmutableMemory.ofind
       ~ImmutableMemory.peek
+      ~ImmutableMemory.read
       ~ImmutableMemory.rfind
       ~ImmutableMemory.rindex
       ~ImmutableMemory.rofind

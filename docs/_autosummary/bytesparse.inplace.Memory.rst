@@ -78,6 +78,7 @@
       ~Memory.popitem
       ~Memory.popitem_backup
       ~Memory.popitem_restore
+      ~Memory.read
       ~Memory.remove
       ~Memory.remove_backup
       ~Memory.remove_restore

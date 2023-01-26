@@ -78,6 +78,7 @@
       ~MutableMemory.popitem
       ~MutableMemory.popitem_backup
       ~MutableMemory.popitem_restore
+      ~MutableMemory.read
       ~MutableMemory.remove
       ~MutableMemory.remove_backup
       ~MutableMemory.remove_restore
