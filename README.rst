@@ -106,6 +106,16 @@ Please refer to `the collections.abc reference manual
 about the interface API methods and capabilities.
 
 
+Cython implementation
+=====================
+
+The library also provides an experimental `Cython` implementation. It tries to
+mimic the same algorithms of the Python implementation, while leveraging the
+speedup of compiled `C` code.
+
+Please refer to the ``cbytesparse`` Python package for more details.
+
+
 Examples
 ========
 
@@ -232,13 +242,12 @@ b'Ciao..Work!'
 [[0, b'M*******g']]
 >>> # ----------------------------------------------------------------
 >>> v = a.view(1, -1)  # creates a memory view spanning the asterisks
->>> v = memoryview(v)  # ensure memoryview object
 >>> v[::2] = b'1234'  # replaces even asterisks with numbers
 >>> a.to_blocks()
 [[0, b'M1*2*3*4g']]
 >>> a.count(b'*')  # counts all the asterisks
 3
->>> del v  # release memory view
+>>> v.release()  # release memory view
 >>> # ----------------------------------------------------------------
 >>> c = a.copy()  # creates a (deep) copy
 >>> c == a
@@ -299,16 +308,6 @@ False
 >>> k.flood(pattern=b'.')  # floods between span
 >>> k.to_blocks()
 [[2, b'..ABC..xy....']]
-
-
-Cython implementation
-=====================
-
-The library also provides an experimental `Cython` implementation. It tries to
-mimic the same algorithms of the Python implementation, while leveraging the
-speedup of compiled `C` code.
-
-Please refer to the ``cbytesparse`` Python package for more details.
 
 
 Background
