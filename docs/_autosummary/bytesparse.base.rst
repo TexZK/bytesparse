@@ -28,6 +28,7 @@ bytesparse.base
       :nosignatures:
    
       ImmutableMemory
+      MutableBytesparse
       MutableMemory
    
    

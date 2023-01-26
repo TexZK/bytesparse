@@ -88,7 +88,7 @@ class ImmutableMemory(collections.abc.Sequence,
             Anything at or after it will be deleted.
 
     Examples:
-        >>> from bytesparse.inplace import Memory
+        >>> from bytesparse import Memory
 
         >>> memory = Memory()
         >>> memory.to_blocks()
@@ -116,7 +116,7 @@ class ImmutableMemory(collections.abc.Sequence,
             bool: Has any items.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory()
             >>> bool(memory)
@@ -157,7 +157,7 @@ class ImmutableMemory(collections.abc.Sequence,
             bool: Item is contained.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -221,7 +221,7 @@ class ImmutableMemory(collections.abc.Sequence,
             bool: `self` is equal to `other`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> data = b'Hello, World!'
             >>> memory = Memory.from_bytes(data)
@@ -262,7 +262,7 @@ class ImmutableMemory(collections.abc.Sequence,
             its `step` is an integer greater than 1.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -372,7 +372,7 @@ class ImmutableMemory(collections.abc.Sequence,
             str: String representation.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -403,7 +403,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: Block index if found, ``None`` otherwise.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -439,7 +439,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: First block index before `address`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -475,7 +475,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: First block index since `address`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -514,7 +514,7 @@ class ImmutableMemory(collections.abc.Sequence,
             tuple: Start bound, exclusive end bound, and reference value.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory()
             >>> memory.block_span(0)
@@ -569,7 +569,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`to_blocks`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -612,7 +612,7 @@ class ImmutableMemory(collections.abc.Sequence,
             tuple of int: Bounded `start` and `endex`, closed interval.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().bound(None, None)
             (0, 0)
@@ -713,7 +713,7 @@ class ImmutableMemory(collections.abc.Sequence,
             list of blocks: Collapsed block list.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -801,7 +801,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :attr:`content_parts`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -841,7 +841,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Bounds considered only for an empty memory.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_endex
             0
@@ -893,7 +893,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Bounds considered only for an empty memory.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_endin
             -1
@@ -953,7 +953,7 @@ class ImmutableMemory(collections.abc.Sequence,
             meth:`content_values`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -996,7 +996,7 @@ class ImmutableMemory(collections.abc.Sequence,
             meth:`content_values`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -1025,7 +1025,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: The number of blocks.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_parts
             0
@@ -1067,7 +1067,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: The sum of all block lengths.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_size
             0
@@ -1111,7 +1111,7 @@ class ImmutableMemory(collections.abc.Sequence,
         :attr:`content_endex`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_span
             (0, 0)
@@ -1152,7 +1152,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Bounds considered only for an empty memory.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().content_start
             0
@@ -1212,7 +1212,7 @@ class ImmutableMemory(collections.abc.Sequence,
             meth:`content_keys`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -1280,7 +1280,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: The number of items equal to `value`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -1310,7 +1310,7 @@ class ImmutableMemory(collections.abc.Sequence,
         If the memory has no data and no bounds, :attr:`start` is returned.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().endex
             0
@@ -1357,7 +1357,7 @@ class ImmutableMemory(collections.abc.Sequence,
         If the memory has no data and no bounds, :attr:`start` is returned.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().endin
             -1
@@ -1411,7 +1411,7 @@ class ImmutableMemory(collections.abc.Sequence,
             tuple: Start bound, exclusive end bound, and reference value.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory()
             >>> memory.equal_span(0)
@@ -1479,7 +1479,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ImmutableMemory`: A copy of the memory from the selected range.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -1575,7 +1575,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`to_blocks`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
@@ -1651,7 +1651,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`to_bytes`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory.from_bytes(b'')
             >>> memory.to_blocks()
@@ -1716,7 +1716,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`to_bytes`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory.from_values({})
             >>> memory.to_blocks()
@@ -1784,7 +1784,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ValueError`: Some requirements are not satisfied.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory1 = Memory.from_bytes(b'ABC', 5)
             >>> memory2 = Memory.from_memory(memory1)
@@ -1857,7 +1857,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`to_bytes`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory.from_values(range(0))
             >>> memory.to_blocks()
@@ -1893,7 +1893,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ImmutableMemory`: The resulting memory object.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory.fromhex('')
             >>> bytes(memory)
@@ -1935,7 +1935,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`intervals`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -1967,7 +1967,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: The item at `address`, `default` if empty.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2022,7 +2022,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().hex() == ''
             True
@@ -2095,7 +2095,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`gaps`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -2142,7 +2142,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: Range address and value pairs.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> from itertools import islice
             >>> memory = Memory()
@@ -2198,7 +2198,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: Range address.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> from itertools import islice
             >>> memory = Memory()
@@ -2268,7 +2268,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: The item at `address`, ``None`` if empty.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2317,7 +2317,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2450,7 +2450,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: Range values.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -2505,7 +2505,7 @@ class ImmutableMemory(collections.abc.Sequence,
         A :obj:`tuple` holding both :attr:`start` and :attr:`endex`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().span
             (0, 0)
@@ -2542,7 +2542,7 @@ class ImmutableMemory(collections.abc.Sequence,
         If the memory has no data and no bounds, 0 is returned.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> Memory().start
             0
@@ -2601,7 +2601,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`from_blocks`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10|
@@ -2647,7 +2647,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :meth:`view`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory.from_bytes(b'')
             >>> memory.to_bytes()
@@ -2716,7 +2716,7 @@ class ImmutableMemory(collections.abc.Sequence,
             int: Range values.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -2788,7 +2788,7 @@ class ImmutableMemory(collections.abc.Sequence,
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2848,7 +2848,7 @@ class MutableMemory(ImmutableMemory,
             its `step` is an integer greater than 1.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -2921,7 +2921,7 @@ class MutableMemory(ImmutableMemory,
                 If `value` is null, the range is cleared.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -3089,7 +3089,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`append_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             >>> memory = Memory()
             >>> memory.append(b'$')
@@ -3178,7 +3178,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`clear_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -3260,7 +3260,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`crop_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -3375,7 +3375,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`delete_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13|
@@ -3521,7 +3521,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`fill_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -3622,7 +3622,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`flood_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
@@ -3720,7 +3720,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`insert_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -3807,7 +3807,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`poke_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -3891,7 +3891,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`pop_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -3969,7 +3969,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`popitem_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4058,7 +4058,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`remove_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4153,7 +4153,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`reserve_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -4239,7 +4239,7 @@ class MutableMemory(ImmutableMemory,
         Data is reversed within the memory :attr:`span`.
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4293,7 +4293,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`setdefault_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4378,7 +4378,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`shift_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+
             | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
@@ -4478,7 +4478,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`update_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
@@ -4576,7 +4576,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`write_restore`
 
         Examples:
-            >>> from bytesparse.inplace import Memory
+            >>> from bytesparse import Memory
 
             +---+---+---+---+---+---+---+---+---+---+
             | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |

@@ -1,4 +1,4 @@
-﻿bytesparse.base.ImmutableMemory
+bytesparse.base.ImmutableMemory
 ===============================
 
 .. currentmodule:: bytesparse.base
@@ -20,6 +20,7 @@
       ~ImmutableMemory.block_span
       ~ImmutableMemory.blocks
       ~ImmutableMemory.bound
+      ~ImmutableMemory.collapse_blocks
       ~ImmutableMemory.content_blocks
       ~ImmutableMemory.content_items
       ~ImmutableMemory.content_keys

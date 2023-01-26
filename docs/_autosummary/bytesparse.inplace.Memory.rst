@@ -1,4 +1,4 @@
-﻿bytesparse.inplace.Memory
+bytesparse.inplace.Memory
 =========================
 
 .. currentmodule:: bytesparse.inplace
@@ -26,6 +26,7 @@
       ~Memory.clear
       ~Memory.clear_backup
       ~Memory.clear_restore
+      ~Memory.collapse_blocks
       ~Memory.content_blocks
       ~Memory.content_items
       ~Memory.content_keys
