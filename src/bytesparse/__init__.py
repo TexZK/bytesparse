@@ -116,4 +116,3 @@ __version__ = '0.0.6'
 
 from .inplace import Memory  # noqa F401
 from .inplace import bytesparse  # noqa F401
-from .inplace import collapse_blocks  # noqa F401

@@ -30,30 +30,6 @@ from _common import *
 from bytesparse.inplace import Memory as _Memory
 from bytesparse.inplace import _repeat2
 from bytesparse.inplace import bytesparse as _bytesparse
-from bytesparse.inplace import collapse_blocks
-
-
-def test_collapse_blocks___doctest__():
-    blocks = [
-        [0, b'0123456789'],
-        [0, b'ABCD'],
-        [3, b'EF'],
-        [0, b'$'],
-        [6, b'xyz'],
-    ]
-    ans_out = collapse_blocks(blocks)
-    ans_ref = [[0, b'$BCEF5xyz9']]
-    assert ans_out == ans_ref
-
-    blocks = [
-        [0, b'012'],
-        [4, b'AB'],
-        [6, b'xyz'],
-        [1, b'$'],
-    ]
-    ans_out = collapse_blocks(blocks)
-    ans_ref = [[0, b'0$2'], [4, b'ABxyz']]
-    assert ans_out == ans_ref
 
 
 def test__repeat2_empty_pattern_infinite():
