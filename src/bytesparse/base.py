@@ -2220,6 +2220,55 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def read(
+        self,
+        address: Address,
+        size: Address,
+    ) -> memoryview:
+        r"""Reads data.
+
+        Reads a chunk of data from an address, with a given size.
+        Data within the range is required to be contiguous.
+
+        Arguments:
+            address (int):
+                Start address of the chunk to read.
+
+            size (int):
+                Chunk size.
+
+        Returns:
+            :obj:`memoryview`: A view over the addressed chunk.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> from bytesparse.inplace import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> bytes(memory.read(2, 3))
+            b'BCD'
+            >>> bytes(memory.read(9, 1))
+            b'y'
+            >>> memory.read(4, 3)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+            >>> memory.view(0, 6)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+        """
+        ...
+
+    @abc.abstractmethod
     def rfind(
         self,
         item: Union[AnyBytes, Value],
@@ -2700,7 +2749,7 @@ class MutableMemory(ImmutableMemory,
     like a :obj:`bytearray`, but on sparse chunks of data.
 
     Being mutable, instances of this class can be updated dynamically.
-    All the methods and attributes of an :obj:`ImmutableMemory` are
+    All of the methods and attributes of an :obj:`ImmutableMemory` are
     available as well.
 
     Please look at examples of each method to get a glimpse of the features of
@@ -3022,7 +3071,7 @@ class MutableMemory(ImmutableMemory,
     @abc.abstractmethod
     def bound_span(
         self,
-        bound_span: Optional[OpenInterval],  # `None` translates to `(None, None)`
+        bound_span: OpenInterval,
     ) -> None:
         ...
 
@@ -4514,116 +4563,5 @@ class MutableMemory(ImmutableMemory,
         See Also:
             :meth:`write`
             :meth:`write_backup`
-        """
-        ...
-
-
-class MutableBytesparse(MutableMemory, abc.ABC):
-    r"""Wrapper for more `bytearray` compatibility.
-
-    This wrapper class can make :class:`Memory` closer to the actual
-    :class:`bytearray` API.
-
-    For instantiation, please refer to :meth:`MutableBytesparse.__init__`.
-
-    With respect to :class:`Memory`, negative addresses are not allowed.
-    Instead, negative addresses are to consider as referred to :attr:`endex`.
-
-    Arguments:
-        source:
-            The optional `source` parameter can be used to initialize the
-            array in a few different ways:
-
-            * If it is a string, you must also give the `encoding` (and
-              optionally, `errors`) parameters; it then converts the string to
-              bytes using :meth:`str.encode`.
-
-            * If it is an integer, the array will have that size and will be
-              initialized with null bytes.
-
-            * If it is an object conforming to the buffer interface, a
-              read-only buffer of the object will be used to initialize the byte
-              array.
-
-            * If it is an iterable, it must be an iterable of integers in the
-              range 0 <= x < 256, which are used as the initial contents of the
-              array.
-
-        encoding (str):
-            Optional string encoding.
-
-        errors (str):
-            Optional string error management.
-
-        start (int):
-            Optional memory start address.
-            Anything before will be bounded away.
-            If `source` is provided, its data start at this address
-            (0 if `start` is ``None``).
-
-        endex (int):
-            Optional memory exclusive end address.
-            Anything at or after it will be bounded away.
-    """
-
-    @abc.abstractmethod
-    def __init__(
-        self,
-        *args: Any,  # see bytearray.__init__()
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ):
-        ...
-
-    @abc.abstractmethod
-    def _rectify_address(
-        self,
-        address: Address,
-    ) -> Address:
-        r"""Rectifies an address.
-
-        In case the provided `address` is negative, it is recomputed as
-        referred to :attr:`endex`.
-
-        In case the rectified address would still be negative, an
-        exception is raised.
-
-        Arguments:
-            address:
-                Address to be rectified.
-
-        Returns:
-            int: Rectified address.
-
-        Raises:
-            IndexError: The rectified address would still be negative.
-        """
-        ...
-
-    @abc.abstractmethod
-    def _rectify_span(
-        self,
-        start: Optional[Address],
-        endex: Optional[Address],
-    ) -> OpenInterval:
-        r"""Rectifies an address span.
-
-        In case a provided address is negative, it is recomputed as
-        referred to :attr:`endex`.
-
-        In case the rectified address would still be negative, it is
-        clamped to address zero.
-
-        Arguments:
-            start (int):
-                Inclusive start address for rectification.
-                If ``None``, :attr:`start` is considered.
-
-            endex (int):
-                Exclusive end address for rectification.
-                If ``None``, :attr:`endex` is considered.
-
-        Returns:
-            pair of int: Rectified address span.
         """
         ...

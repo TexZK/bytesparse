@@ -27,7 +27,6 @@ from itertools import islice
 from typing import Any
 from typing import List
 from typing import Optional
-from typing import Type
 
 import pytest
 
@@ -35,8 +34,6 @@ from bytesparse.base import STR_MAX_CONTENT_SIZE
 from bytesparse.base import Address
 from bytesparse.base import BlockList
 from bytesparse.base import ImmutableMemory
-from bytesparse.base import MutableBytesparse
-from bytesparse.base import MutableMemory
 from bytesparse.base import OpenInterval
 from bytesparse.base import TypeAlias
 from bytesparse.base import Value
@@ -248,7 +245,7 @@ assert issubclass(FakeMemory, ImmutableMemory)
 
 class BaseMemorySuite:
 
-    Memory: Type[MutableMemory] = MutableMemory  # replace by subclassing 'Memory'
+    Memory: Any = None  # replace by subclassing 'Memory'
     ADDR_NEG: bool = True
 
     def test___init___doctest(self):
@@ -2816,13 +2813,6 @@ class BaseMemorySuite:
         bound = memory.bound(0, None)
         assert bound == (11, 44)
 
-    def test_bound_span_none(self):
-        Memory = self.Memory
-        memory = Memory(start=11, endex=44)
-        assert memory.bound_span == (11, 44)
-        memory.bound_span = None
-        assert memory.bound_span == (None, None)
-
     def test_bound_start(self):
         Memory = self.Memory
         memory = Memory(start=11)
@@ -3524,6 +3514,35 @@ class BaseMemorySuite:
                 else:
                     with pytest.raises(ValueError, match=match):
                         memory.view(start, start + size)
+
+    def test_read_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+        assert bytes(memory.read(2, 3)) == b'BCD'
+        assert bytes(memory.read(9, 1)) == b'y'
+        match = 'non-contiguous data within range'
+
+        with pytest.raises(ValueError, match=match):
+            memory.read(4, 3)
+        with pytest.raises(ValueError, match=match):
+            memory.read(0, 6)
+
+    def test_read_template(self):
+        Memory = self.Memory
+        match = 'non-contiguous data within range'
+        for start in range(MAX_START):
+            for size in range(MAX_SIZE):
+                blocks = create_template_blocks()
+                values = blocks_to_values(blocks, MAX_SIZE)
+                memory = Memory.from_blocks(blocks)
+                values_ref = values[start:(start + size)]
+
+                if all(x is not None for x in values_ref):
+                    values_out = list(memory.read(start, size))
+                    assert values_out == values_ref
+                else:
+                    with pytest.raises(ValueError, match=match):
+                        memory.read(start, size)
 
     def test_shift_doctest(self):
         Memory = self.Memory
@@ -4665,7 +4684,7 @@ class BaseMemorySuite:
 
 class BaseBytearraySuite:
 
-    bytesparse: Type[MutableBytesparse] = MutableBytesparse  # replace by subclassing 'bytesparse'
+    bytesparse: Any = None  # replace by subclassing 'bytesparse'
 
     def test___init___empty(self):
         bytesparse = self.bytesparse

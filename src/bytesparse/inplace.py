@@ -56,7 +56,6 @@ from .base import BlockSequence
 from .base import ClosedInterval
 from .base import EllipsisType
 from .base import ImmutableMemory
-from .base import MutableBytesparse
 from .base import MutableMemory
 from .base import OpenInterval
 from .base import Value
@@ -1017,11 +1016,9 @@ class Memory(MutableMemory):
     @bound_span.setter
     def bound_span(
         self,
-        bound_span: Optional[OpenInterval],
+        bound_span: OpenInterval,
     ) -> None:
 
-        if bound_span is None:
-            bound_span = (None, None)
         bound_start, bound_endex = bound_span
         if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
             bound_endex = bound_start
@@ -2329,6 +2326,14 @@ class Memory(MutableMemory):
         else:
             self.insert(address, item)
 
+    def read(
+        self,
+        address: Address,
+        size: Address,
+    ) -> memoryview:
+
+        return self.view(address, address + size)
+
     def remove(
         self,
         item: Union[AnyBytes, Value],
@@ -2945,8 +2950,53 @@ class Memory(MutableMemory):
 
 
 # noinspection PyPep8Naming
-class bytesparse(Memory, MutableBytesparse):
-    __doc__ = MutableBytesparse.__doc__
+class bytesparse(Memory):
+    r"""Wrapper for more `bytearray` compatibility.
+
+    This wrapper class can make :class:`Memory` closer to the actual
+    :class:`bytearray` API.
+
+    For instantiation, please refer to :meth:`bytearray.__init__`.
+
+    With respect to :class:`Memory`, negative addresses are not allowed.
+    Instead, negative addresses are to consider as referred to :attr:`endex`.
+
+    Arguments:
+        source:
+            The optional `source` parameter can be used to initialize the
+            array in a few different ways:
+
+            * If it is a string, you must also give the `encoding` (and
+              optionally, `errors`) parameters; it then converts the string to
+              bytes using :meth:`str.encode`.
+
+            * If it is an integer, the array will have that size and will be
+              initialized with null bytes.
+
+            * If it is an object conforming to the buffer interface, a
+              read-only buffer of the object will be used to initialize the byte
+              array.
+
+            * If it is an iterable, it must be an iterable of integers in the
+              range 0 <= x < 256, which are used as the initial contents of the
+              array.
+
+        encoding (str):
+            Optional string encoding.
+
+        errors (str):
+            Optional string error management.
+
+        start (int):
+            Optional memory start address.
+            Anything before will be bounded away.
+            If `source` is provided, its data start at this address
+            (0 if `start` is ``None``).
+
+        endex (int):
+            Optional memory exclusive end address.
+            Anything at or after it will be bounded away.
+    """
 
     def __delitem__(
         self,
@@ -2976,7 +3026,7 @@ class bytesparse(Memory, MutableBytesparse):
 
     def __init__(
         self,
-        *args: Any,
+        *args: Any,  # see bytearray.__init__()
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ):
@@ -3014,6 +3064,24 @@ class bytesparse(Memory, MutableBytesparse):
         self,
         address: Address,
     ) -> Address:
+        r"""Rectifies an address.
+
+        In case the provided `address` is negative, it is recomputed as
+        referred to :attr:`endex`.
+
+        In case the rectified address would still be negative, an
+        exception is raised.
+
+        Arguments:
+            address:
+                Address to be rectified.
+
+        Returns:
+            int: Rectified address.
+
+        Raises:
+            IndexError: The rectified address would still be negative.
+        """
 
         address = address.__index__()
 
@@ -3029,6 +3097,26 @@ class bytesparse(Memory, MutableBytesparse):
         start: Optional[Address],
         endex: Optional[Address],
     ) -> OpenInterval:
+        r"""Rectifies an address span.
+
+        In case a provided address is negative, it is recomputed as
+        referred to :attr:`endex`.
+
+        In case the rectified address would still be negative, it is
+        clamped to address zero.
+
+        Arguments:
+            start (int):
+                Inclusive start address for rectification.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for rectification.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            pair of int: Rectified address span.
+        """
 
         endex_ = None
 
@@ -3440,6 +3528,15 @@ class bytesparse(Memory, MutableBytesparse):
             address = self._rectify_address(address)
         return super().pop_backup(address=address)
 
+    def read(
+        self,
+        address: Address,
+        size: Address,
+    ) -> memoryview:
+
+        address = self._rectify_address(address)
+        return super().read(address, size)
+
     def remove(
         self,
         item: Union[AnyBytes, Value],
@@ -3605,11 +3702,9 @@ class bytesparse(Memory, MutableBytesparse):
     @bound_span.setter
     def bound_span(
         self,
-        bound_span: Optional[OpenInterval],
+        bound_span: OpenInterval,
     ) -> None:
 
-        if bound_span is None:
-            bound_span = (None, None)
         bound_start, bound_endex = bound_span
         if bound_start is not None and bound_start < 0:
             raise ValueError('negative start')
