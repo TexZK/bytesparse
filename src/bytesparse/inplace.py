@@ -1019,6 +1019,8 @@ class Memory(MutableMemory):
         bound_span: OpenInterval,
     ) -> None:
 
+        if bound_span is None:
+            bound_span = (None, None)
         bound_start, bound_endex = bound_span
         if bound_start is not None and bound_endex is not None and bound_endex < bound_start:
             bound_endex = bound_start
@@ -3705,6 +3707,8 @@ class bytesparse(Memory):
         bound_span: OpenInterval,
     ) -> None:
 
+        if bound_span is None:
+            bound_span = (None, None)
         bound_start, bound_endex = bound_span
         if bound_start is not None and bound_start < 0:
             raise ValueError('negative start')

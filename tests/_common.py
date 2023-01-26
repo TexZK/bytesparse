@@ -27,6 +27,7 @@ from itertools import islice
 from typing import Any
 from typing import List
 from typing import Optional
+from typing import Type
 
 import pytest
 
@@ -34,6 +35,8 @@ from bytesparse.base import STR_MAX_CONTENT_SIZE
 from bytesparse.base import Address
 from bytesparse.base import BlockList
 from bytesparse.base import ImmutableMemory
+from bytesparse.base import MutableBytesparse
+from bytesparse.base import MutableMemory
 from bytesparse.base import OpenInterval
 from bytesparse.base import TypeAlias
 from bytesparse.base import Value
@@ -245,7 +248,7 @@ assert issubclass(FakeMemory, ImmutableMemory)
 
 class BaseMemorySuite:
 
-    Memory: Any = None  # replace by subclassing 'Memory'
+    Memory: Type[MutableMemory] = MutableMemory  # replace by subclassing 'Memory'
     ADDR_NEG: bool = True
 
     def test___init___doctest(self):
@@ -2813,6 +2816,13 @@ class BaseMemorySuite:
         bound = memory.bound(0, None)
         assert bound == (11, 44)
 
+    def test_bound_span_none(self):
+        Memory = self.Memory
+        memory = Memory(start=11, endex=44)
+        assert memory.bound_span == (11, 44)
+        memory.bound_span = None
+        assert memory.bound_span == (None, None)
+
     def test_bound_start(self):
         Memory = self.Memory
         memory = Memory(start=11)
@@ -4684,7 +4694,7 @@ class BaseMemorySuite:
 
 class BaseBytearraySuite:
 
-    bytesparse: Any = None  # replace by subclassing 'bytesparse'
+    bytesparse: Type[MutableBytesparse] = MutableBytesparse  # replace by subclassing 'bytesparse'
 
     def test___init___empty(self):
         bytesparse = self.bytesparse
