@@ -2460,19 +2460,6 @@ class BaseMemorySuite:
         assert memory.content_start > memory.start
         assert memory.content_start == blocks[0][0]
 
-    def test_content_endex_doctest(self):
-        Memory = self.Memory
-
-        assert Memory().content_endex == 0
-        assert Memory(endex=8).content_endex == 0
-        assert Memory(start=1, endex=8).content_endex == 1
-
-        memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
-        assert memory.content_endex == 8
-
-        memory = Memory.from_blocks([[1, b'ABC']], endex=8)
-        assert memory.content_endex == 4
-
     def test_content_blocks_doctest(self):
         Memory = self.Memory
         memory = Memory.from_blocks([[1, b'AB'], [5, b'x'], [7, b'123']])
@@ -2500,6 +2487,19 @@ class BaseMemorySuite:
         ans_out = [[s, bytes(d)] for s, d in memory.content_blocks(block_index_step=2)]
         ans_ref = [[1, b'AB'], [7, b'123']]
         assert ans_out == ans_ref
+
+    def test_content_endex_doctest(self):
+        Memory = self.Memory
+
+        assert Memory().content_endex == 0
+        assert Memory(endex=8).content_endex == 0
+        assert Memory(start=1, endex=8).content_endex == 1
+
+        memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+        assert memory.content_endex == 8
+
+        memory = Memory.from_blocks([[1, b'ABC']], endex=8)
+        assert memory.content_endex == 4
 
     def test_content_endex(self):
         Memory = self.Memory
