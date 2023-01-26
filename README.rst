@@ -232,6 +232,7 @@ b'Ciao..Work!'
 [[0, b'M*******g']]
 >>> # ----------------------------------------------------------------
 >>> v = a.view(1, -1)  # creates a memory view spanning the asterisks
+>>> v = memoryview(v)  # ensure memoryview object
 >>> v[::2] = b'1234'  # replaces even asterisks with numbers
 >>> a.to_blocks()
 [[0, b'M1*2*3*4g']]
