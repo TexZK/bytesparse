@@ -627,9 +627,9 @@ class Memory(MutableMemory):
         data: bytearray,
         shift_after: bool,
     ) -> None:
-        r"""Inserts data.
+        r"""Places data.
 
-        Low-level method to insert data into the underlying data structure.
+        Low-level method to place data into the underlying data structure.
 
         Arguments:
             address (int):
@@ -2855,6 +2855,7 @@ class Memory(MutableMemory):
 
 # noinspection PyPep8Naming
 class bytesparse(Memory, MutableBytesparse):
+    __doc__ = MutableBytesparse.__doc__
 
     def __delitem__(
         self,
@@ -2922,24 +2923,6 @@ class bytesparse(Memory, MutableBytesparse):
         self,
         address: Address,
     ) -> Address:
-        r"""Rectifies an address.
-
-        In case the provided `address` is negative, it is recomputed as
-        referred to :attr:`endex`.
-
-        In case the rectified address would still be negative, an
-        exception is raised.
-
-        Arguments:
-            address:
-                Address to be rectified.
-
-        Returns:
-            int: Rectified address.
-
-        Raises:
-            IndexError: The rectified address would still be negative.
-        """
 
         address = address.__index__()
 
@@ -2955,26 +2938,6 @@ class bytesparse(Memory, MutableBytesparse):
         start: Optional[Address],
         endex: Optional[Address],
     ) -> OpenInterval:
-        r"""Rectifies an address span.
-
-        In case a provided address is negative, it is recomputed as
-        referred to :attr:`endex`.
-
-        In case the rectified address would still be negative, it is
-        clamped to address zero.
-
-        Arguments:
-            start (int):
-                Inclusive start address for rectification.
-                If ``None``, :attr:`start` is considered.
-
-            endex (int):
-                Exclusive end address for rectification.
-                If ``None``, :attr:`endex` is considered.
-
-        Returns:
-            pair of int: Rectified address span.
-        """
 
         endex_ = None
 
