@@ -111,6 +111,29 @@ class ImmutableMemory(collections.abc.Sequence,
         self,
         value: Union[AnyBytes, 'ImmutableMemory'],
     ) -> 'ImmutableMemory':
+        r"""Concatenates items.
+
+        Equivalent to ``self.copy() += items`` of a :obj:`MutableMemory`.
+
+        See Also:
+            :meth:`MutableMemory.__iadd__`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory1 = Memory.from_bytes(b'ABC')
+            >>> memory2 = memory1 + b'xyz'
+            >>> memory2.to_blocks()
+            [[0, b'ABCxyz']]
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = Memory.from_blocks([[5, b'xyz']])
+            >>> memory1.content_endex
+            4
+            >>> memory3 = memory1 + memory2
+            >>> memory3.to_blocks()
+            [[1, b'ABC'], [9, b'xyz']]
+        """
         ...
 
     @abc.abstractmethod
@@ -146,6 +169,29 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory()
+            >>> bytes(memory)
+            b''
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> bytes(memory)
+            b'Hello, World!'
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, start=1, endex=20)
+            >>> bytes(memory)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> bytes(memory)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
         """
         ...
 
@@ -319,6 +365,13 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Value as byte integer, or ``None``.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> list(memory)
+            [65, 66, 67, None, 120, 121, 122]
         """
         ...
 
@@ -334,6 +387,25 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: Memory length.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory()
+            >>> len(memory)
+            0
+
+            >>> memory = Memory(start=3, endex=10)
+            >>> len(memory)
+            7
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [9, b'xyz']])
+            >>> len(memory)
+            11
+
+            >>> memory = Memory.from_blocks([[3, b'ABC'], [9, b'xyz']], start=1, endex=15)
+            >>> len(memory)
+            14
         """
         ...
 
@@ -342,6 +414,26 @@ class ImmutableMemory(collections.abc.Sequence,
         self,
         times: int,
     ) -> 'ImmutableMemory':
+        r"""Concatenates a repeated copy.
+
+        Equivalent to ``self.copy() *= items`` of a :obj:`MutableMemory`.
+
+        See Also:
+            :meth:`MutableMemory.__imul__`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory1 = Memory.from_bytes(b'ABC')
+            >>> memory2 = memory1 * 3
+            >>> memory2.to_blocks()
+            [[0, b'ABCABCABC']]
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = memory1 * 3
+            >>> memory2.to_blocks()
+            [[1, b'ABCABCABC']]
+        """
         ...
 
     @abc.abstractmethod
@@ -361,6 +453,15 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Yields:
             int: Value as byte integer, or ``None``.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> list(memory)
+            [65, 66, 67, None, 120, 121, 122]
+            >>> list(reversed(memory))
+            [122, 121, 120, None, 67, 66, 65]
         """
         ...
 
@@ -675,6 +776,18 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Any data at or after this address is automatically discarded.
         Disabled if ``None``.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> memory.bound_endex = 10
+            >>> memory.to_blocks()
+            [[5, b'Hello']]
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, endex=10)
+            >>> memory.to_blocks()
+            [[5, b'Hello']]
         """
         ...
 
@@ -686,6 +799,18 @@ class ImmutableMemory(collections.abc.Sequence,
         r"""tuple of int: Bounds span addresses.
 
         A :obj:`tuple` holding :attr:`bound_start` and :attr:`bound_endex`.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> memory.bound_span = (7, 13)
+            >>> memory.to_blocks()
+            [[7, b'llo, W']]
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, start=7, endex=13)
+            >>> memory.to_blocks()
+            [[7, b'llo, W']]
         """
         ...
 
@@ -698,6 +823,18 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Any data before this address is automatically discarded.
         Disabled if ``None``.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> memory.bound_start = 10
+            >>> memory.to_blocks()
+            [[10, b', World!']]
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, start=10)
+            >>> memory.to_blocks()
+            [[10, b', World!']]
         """
         ...
 
@@ -1247,7 +1384,26 @@ class ImmutableMemory(collections.abc.Sequence,
         The memory is considered to have contiguous data if there is no empty
         space between blocks.
 
-        If bounds are defined, there must be no empty space also towards it.
+        If bounds are defined, there must be no empty space also towards them.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory()
+            >>> memory.contiguous
+            True
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> memory.contiguous
+            True
+
+            >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, start=1, endex=20)
+            >>> memory.contiguous
+            False
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory.contiguous
+            False
         """
         ...
 
@@ -1259,6 +1415,44 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             :obj:`ImmutableMemory`: Deep copy.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory1 = Memory()
+            >>> memory2 = memory1.copy()
+            >>> memory2.bound_span
+            (None, None)
+            >>> memory2.to_blocks()
+            []
+
+            >>> memory1 = Memory(start=1, endex=20)
+            >>> memory2 = memory1.copy()
+            >>> memory2.bound_span
+            (1, 20)
+            >>> memory2.to_blocks()
+            []
+
+            >>> memory1 = Memory.from_bytes(b'Hello, World!', offset=5)
+            >>> memory2 = memory1.copy()
+            >>> memory2.to_blocks()
+            [[5, b'Hello, World!']]
+
+            >>> memory1 = Memory.from_bytes(b'Hello, World!', offset=5, start=1, endex=20)
+            >>> memory2 = memory1.copy()
+            >>> memory2.bound_span
+            (1, 20)
+            >>> memory2.to_blocks()
+            [[5, b'Hello, World!']]
+            >>> memory2.bound_span = (2, 19)
+            >>> memory1 == memory2
+            True
+
+            >>> memory1 = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> memory2 = memory1.copy()
+            [[5, b'ABC'], [9, b'xyz']]
+            >>> memory1 == memory2
+            True
         """
         ...
 
@@ -2904,6 +3098,29 @@ class MutableMemory(ImmutableMemory,
         self,
         value: Union[AnyBytes, ImmutableMemory],
     ) -> 'MutableMemory':
+        r"""Concatenates items.
+
+        Equivalent to ``self.extend(items)``.
+
+        See Also:
+            :meth:`extend`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_bytes(b'ABC')
+            >>> memory += b'xyz'
+            >>> memory.to_blocks()
+            [[0, b'ABCxyz']]
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = Memory.from_blocks([[5, b'xyz']])
+            >>> memory1.content_endex
+            4
+            >>> memory1 += memory2
+            >>> memory1.to_blocks()
+            [[1, b'ABC'], [9, b'xyz']]
+        """
         ...
 
     @abc.abstractmethod
@@ -2911,6 +3128,26 @@ class MutableMemory(ImmutableMemory,
         self,
         times: int,
     ) -> 'MutableMemory':
+        r"""Concatenates a repeated copy.
+
+        Equivalent to ``self.extend(items)`` repeated `times` times.
+
+        See Also:
+            :meth:`extend`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_bytes(b'ABC')
+            >>> memory *= 3
+            >>> memory.to_blocks()
+            [[0, b'ABCABCABC']]
+
+            >>> memory = Memory.from_blocks([[1, b'ABC']])
+            >>> memory *= 3
+            >>> memory.to_blocks()
+            [[1, b'ABCABCABC']]
+        """
         ...
 
     @abc.abstractmethod
@@ -3359,6 +3596,26 @@ class MutableMemory(ImmutableMemory,
 
         Returns:
             :obj:`Memory`: A copy of the memory from the selected range.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            +---+---+---+---+---+---+---+---+---+
+            | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |   |[B | C]|   |[x]|   |   |   |
+            +---+---+---+---+---+---+---+---+---+
+            |   |[A]|   |   |   |   |[y | z]|   |
+            +---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[5, b'ABC'], [9, b'xyz']])
+            >>> taken = memory.cut(6, 10)
+            >>> taken.to_blocks()
+            [[6, b'BC'], [9, b'x']]
+            >>> memory.to_blocks()
+            [[5, b'A'], [10, b'yz']]
         """
         ...
 
@@ -3452,6 +3709,7 @@ class MutableMemory(ImmutableMemory,
     ) -> None:
         r"""Concatenates items.
 
+        Appends `items` after :attr:`content_endex`.
         Equivalent to ``self += items``.
 
         Arguments:
@@ -3462,8 +3720,32 @@ class MutableMemory(ImmutableMemory,
                 Optional offset w.r.t. :attr:`content_endex`.
 
         See Also:
+            :meth:`__iadd__`
             :meth:`extend_backup`
             :meth:`extend_restore`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.extend(b'123')
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [5, b'xyz123']]
+
+            ~~~
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [5, b'xyz']])
+            >>> memory.extend(range(49, 52), offset=4)
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [5, b'xyz'], [12, b'123']]
+
+            ~~~
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = Memory.from_blocks([[5, b'xyz']])
+            >>> memory1.extend(memory2)
+            >>> memory1.to_blocks()
+            [[1, b'ABC'], [9, b'xyz']]
         """
         ...
 
