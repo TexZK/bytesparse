@@ -68,7 +68,6 @@ bytesparse.inplace.Memory
       ~Memory.intervals
       ~Memory.items
       ~Memory.keys
-      ~Memory.ofind
       ~Memory.peek
       ~Memory.poke
       ~Memory.poke_backup
@@ -89,7 +88,6 @@ bytesparse.inplace.Memory
       ~Memory.reverse
       ~Memory.rfind
       ~Memory.rindex
-      ~Memory.rofind
       ~Memory.rvalues
       ~Memory.setdefault
       ~Memory.setdefault_backup

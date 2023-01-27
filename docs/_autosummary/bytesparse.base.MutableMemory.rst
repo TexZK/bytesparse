@@ -68,7 +68,6 @@ bytesparse.base.MutableMemory
       ~MutableMemory.intervals
       ~MutableMemory.items
       ~MutableMemory.keys
-      ~MutableMemory.ofind
       ~MutableMemory.peek
       ~MutableMemory.poke
       ~MutableMemory.poke_backup
@@ -89,7 +88,6 @@ bytesparse.base.MutableMemory
       ~MutableMemory.reverse
       ~MutableMemory.rfind
       ~MutableMemory.rindex
-      ~MutableMemory.rofind
       ~MutableMemory.rvalues
       ~MutableMemory.setdefault
       ~MutableMemory.setdefault_backup

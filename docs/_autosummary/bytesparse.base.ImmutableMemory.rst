@@ -43,12 +43,10 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.intervals
       ~ImmutableMemory.items
       ~ImmutableMemory.keys
-      ~ImmutableMemory.ofind
       ~ImmutableMemory.peek
       ~ImmutableMemory.read
       ~ImmutableMemory.rfind
       ~ImmutableMemory.rindex
-      ~ImmutableMemory.rofind
       ~ImmutableMemory.rvalues
       ~ImmutableMemory.to_blocks
       ~ImmutableMemory.to_bytes

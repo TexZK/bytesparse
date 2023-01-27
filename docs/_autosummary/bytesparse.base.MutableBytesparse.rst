@@ -68,7 +68,6 @@ bytesparse.base.MutableBytesparse
       ~MutableBytesparse.intervals
       ~MutableBytesparse.items
       ~MutableBytesparse.keys
-      ~MutableBytesparse.ofind
       ~MutableBytesparse.peek
       ~MutableBytesparse.poke
       ~MutableBytesparse.poke_backup
@@ -89,7 +88,6 @@ bytesparse.base.MutableBytesparse
       ~MutableBytesparse.reverse
       ~MutableBytesparse.rfind
       ~MutableBytesparse.rindex
-      ~MutableBytesparse.rofind
       ~MutableBytesparse.rvalues
       ~MutableBytesparse.setdefault
       ~MutableBytesparse.setdefault_backup
