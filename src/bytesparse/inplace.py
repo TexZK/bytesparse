@@ -56,6 +56,7 @@ from .base import BlockSequence
 from .base import ClosedInterval
 from .base import EllipsisType
 from .base import ImmutableMemory
+from .base import MutableBytesparse
 from .base import MutableMemory
 from .base import OpenInterval
 from .base import Value
@@ -1758,13 +1759,7 @@ class Memory(MutableMemory):
         else:
             blocks = []
 
-        return cls.from_blocks(
-            blocks,
-            start=start,
-            endex=endex,
-            copy=False,
-            validate=validate,
-        )
+        return cls.from_blocks(blocks, start=start, endex=endex, copy=False, validate=validate)
 
     @classmethod
     def from_items(
@@ -1802,13 +1797,7 @@ class Memory(MutableMemory):
 
             blocks.append([block_start + offset, block_data])
 
-        return cls.from_blocks(
-            blocks,
-            start=start,
-            endex=endex,
-            copy=False,
-            validate=validate,
-        )
+        return cls.from_blocks(blocks, start=start, endex=endex, copy=False, validate=validate)
 
     @classmethod
     def from_memory(
@@ -1836,13 +1825,7 @@ class Memory(MutableMemory):
             else:
                 blocks = memory._blocks
 
-        return cls.from_blocks(
-            blocks,
-            start=start,
-            endex=endex,
-            copy=False,
-            validate=validate,
-        )
+        return cls.from_blocks(blocks, start=start, endex=endex, copy=False, validate=validate)
 
     @classmethod
     def from_values(
@@ -1879,13 +1862,7 @@ class Memory(MutableMemory):
         if block_data:
             blocks.append([block_start, block_data])
 
-        return cls.from_blocks(
-            blocks,
-            start=start,
-            endex=endex,
-            copy=False,
-            validate=validate,
-        )
+        return cls.from_blocks(blocks, start=start, endex=endex, copy=False, validate=validate)
 
     @classmethod
     def fromhex(
@@ -2889,7 +2866,6 @@ class Memory(MutableMemory):
 
 
 # noinspection PyPep8Naming
-class bytesparse(Memory):
     r"""Wrapper for more `bytearray` compatibility.
 
     This wrapper class can make :class:`Memory` closer to the actual
@@ -2936,6 +2912,7 @@ class bytesparse(Memory):
             Optional memory exclusive end address.
             Anything at or after it will be bounded away.
     """
+class bytesparse(Memory, MutableBytesparse):
 
     def __delitem__(
         self,
@@ -2970,7 +2947,7 @@ class bytesparse(Memory):
         endex: Optional[Address] = None,
     ):
 
-        super().__init__(start, endex)
+        super().__init__(start=start, endex=endex)
 
         data = bytearray(*args)
         if data:
