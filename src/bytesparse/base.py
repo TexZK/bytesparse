@@ -2433,32 +2433,6 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
-    def ofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-        r"""Index of an item.
-
-        Arguments:
-            item (items):
-                Value to find. Can be either some byte string or an integer.
-
-            start (int):
-                Inclusive start of the searched range.
-                If ``None``, :attr:`start` is considered.
-
-            endex (int):
-                Exclusive end of the searched range.
-                If ``None``, :attr:`endex` is considered.
-
-        Returns:
-            int: The index of the first item equal to `value`, or ``None``.
-        """
-        ...
-
-    @abc.abstractmethod
     def peek(
         self,
         address: Address,
@@ -2594,32 +2568,6 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Item not found.
-        """
-        ...
-
-    @abc.abstractmethod
-    def rofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-        r"""Index of an item, reversed search.
-
-        Arguments:
-            item (items):
-                Value to find. Can be either some byte string or an integer.
-
-            start (int):
-                Inclusive start of the searched range.
-                If ``None``, :attr:`start` is considered.
-
-            endex (int):
-                Exclusive end of the searched range.
-                If ``None``, :attr:`endex` is considered.
-
-        Returns:
-            int: The index of the last item equal to `value`, or ``None``.
         """
         ...
 

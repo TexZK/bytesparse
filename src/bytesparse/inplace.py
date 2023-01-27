@@ -2044,18 +2044,6 @@ class Memory(MutableMemory):
                 endex = self.endex
             yield from range(start, endex)
 
-    def ofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-
-        try:
-            return self.index(item, start, endex)
-        except ValueError:
-            return None
-
     def peek(
         self,
         address: Address,
@@ -2379,18 +2367,6 @@ class Memory(MutableMemory):
                 return block_start + offset
         else:
             raise ValueError('subsection not found')
-
-    def rofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-
-        try:
-            return self.rindex(item, start, endex)
-        except ValueError:
-            return None
 
     def rvalues(
         self,
@@ -3295,16 +3271,6 @@ class bytesparse(Memory, MutableBytesparse):
             endex = endex_  # restore
         yield from super().keys(start=start, endex=endex)
 
-    def ofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-
-        start, endex = self._rectify_span(start, endex)
-        return super().ofind(item, start=start, endex=endex)
-
     def peek(
         self,
         address: Address,
@@ -3415,16 +3381,6 @@ class bytesparse(Memory, MutableBytesparse):
 
         start, endex = self._rectify_span(start, endex)
         return super().rindex(item, start=start, endex=endex)
-
-    def rofind(
-        self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Optional[Address]:
-
-        start, endex = self._rectify_span(start, endex)
-        return super().rofind(item, start=start, endex=endex)
 
     def rvalues(
         self,

@@ -1110,32 +1110,6 @@ class BaseMemorySuite:
         assert len(memory) == memory.endex - memory.start
         assert len(memory) == (22 - 2)
 
-    def test_ofind_doctest(self):
-        pass  # no doctest
-
-    def test_ofind(self):
-        Memory = self.Memory
-
-        memory = Memory.from_blocks(create_hello_world_blocks())
-
-        assert memory.ofind(b'X') is None
-        assert memory.ofind(b'W') == 10
-        assert memory.ofind(b'o') == 6
-        assert memory.ofind(b'l') == 4
-
-    def test_rofind_doctest(self):
-        pass  # no doctest
-
-    def test_rofind(self):
-        Memory = self.Memory
-
-        memory = Memory.from_blocks(create_hello_world_blocks())
-
-        assert memory.rofind(b'X') is None
-        assert memory.rofind(b'W') == 10
-        assert memory.rofind(b'o') == 11
-        assert memory.rofind(b'l') == 13
-
     def test_find_doctest(self):
         pass  # no doctest
 
