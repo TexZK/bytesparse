@@ -94,6 +94,13 @@ class ImmutableMemory(collections.abc.Sequence,
         >>> memory.to_blocks()
         []
 
+        >>> memory = Memory(start=3, endex=10)
+        >>> memory.bound_span
+        (3, 10)
+        >>> memory.write(0, b'Hello, World!')
+        >>> memory.to_blocks()
+        [[3, b'lo, Wor']]
+
         >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
         >>> memory.to_blocks()
         [[5, b'Hello, World!']]
@@ -2830,7 +2837,9 @@ class MutableMemory(ImmutableMemory,
 
     See Also:
         :obj:`ImmutableMemory`
+
     """
+    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):]
 
     @abc.abstractmethod
     def __delitem__(
@@ -4651,6 +4660,10 @@ class MutableBytesparse(MutableMemory, abc.ABC):
     With respect to :class:`Memory`, negative addresses are not allowed.
     Instead, negative addresses are to consider as referred to :attr:`endex`.
 
+    See Also:
+        :obj:`ImmutableMemory`
+        :obj:`MutableMemory`
+
     Arguments:
         source:
             The optional `source` parameter can be used to initialize the
@@ -4679,13 +4692,73 @@ class MutableBytesparse(MutableMemory, abc.ABC):
 
         start (int):
             Optional memory start address.
-            Anything before will be bounded away.
+            Anything before will be deleted.
             If `source` is provided, its data start at this address
             (0 if `start` is ``None``).
 
         endex (int):
             Optional memory exclusive end address.
-            Anything at or after it will be bounded away.
+            Anything at or after it will be deleted.
+
+    Examples:
+        >>> from bytesparse import bytesparse
+
+        >>> memory = bytesparse()
+        >>> memory.to_blocks()
+        []
+
+        >>> memory = bytesparse(start=3, endex=10)
+        >>> memory.bound_span
+        (3, 10)
+        >>> memory.write(0, b'Hello, World!')
+        >>> memory.to_blocks()
+        [[3, b'lo, Wor']]
+
+        >>> memory = bytesparse.from_bytes(b'Hello, World!', offset=5)
+        >>> memory.to_blocks()
+        [[5, b'Hello, World!']]
+
+        >>> memory = bytesparse(b'Hello, World!')
+        >>> memory.to_blocks()
+        [[0, b'Hello, World!']]
+
+        >>> memory = bytesparse(3)
+        >>> memory.to_blocks()
+        [[0, b'\x00\x00\x00']]
+
+        >>> memory = bytesparse([65, 66, 67])
+        >>> memory.to_blocks()
+        [[0, b'ABC']]
+
+        >>> memory = bytesparse('ASCII string', 'ascii')
+        >>> memory.to_blocks()
+        [[0, b'ASCII string']]
+
+        >>> memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'backslashreplace')
+        >>> memory.to_blocks()
+        [[0, b'Non-ASCII: \\u2204']]
+
+        >>> memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'xmlcharrefreplace')
+        >>> memory.to_blocks()
+        [[0, b'Non-ASCII: &#8708;']]
+
+        >>> memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'replace')
+        >>> memory.to_blocks()
+        [[0, b'Non-ASCII: ?']]
+
+        >>> memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'ignore')
+        >>> memory.to_blocks()
+        [[0, b'Non-ASCII: ']]
+
+        >>> memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'strict')
+        Traceback (most recent call last):
+            ...
+        UnicodeEncodeError: 'ascii' codec can't encode character '\u2204' in position 11: ordinal not in range(128)
+
+        >>> memory = bytesparse('Missing encoding')
+        Traceback (most recent call last):
+            ...
+        TypeError: string argument without an encoding
     """
 
     @abc.abstractmethod

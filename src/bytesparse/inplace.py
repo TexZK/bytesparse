@@ -132,6 +132,10 @@ class Memory(MutableMemory):
     Please look at examples of each method to get a glimpse of the features of
     this class.
 
+    See Also:
+        :obj:`ImmutableMemory`
+        :obj:`MutableMemory`
+
     Attributes:
         _blocks (list of blocks):
             A sequence of spaced blocks, sorted by address.
@@ -144,24 +148,8 @@ class Memory(MutableMemory):
             Memory bounds exclusive end address. Any data at or after this
             address is automatically discarded; disabled if ``None``.
 
-    Arguments:
-        start (int):
-            Optional memory start address.
-            Anything before will be bounded away.
-
-        endex (int):
-            Optional memory exclusive end address.
-            Anything at or after it will be bounded away.
-
-    Examples:
-        >>> memory = Memory()
-        >>> memory.to_blocks()
-        []
-
-        >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
-        >>> memory.to_blocks()
-        [[5, b'Hello, World!']]
     """
+    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):]
 
     def __add__(
         self,
@@ -2866,52 +2854,6 @@ class Memory(MutableMemory):
 
 
 # noinspection PyPep8Naming
-    r"""Wrapper for more `bytearray` compatibility.
-
-    This wrapper class can make :class:`Memory` closer to the actual
-    :class:`bytearray` API.
-
-    For instantiation, please refer to :meth:`bytearray.__init__`.
-
-    With respect to :class:`Memory`, negative addresses are not allowed.
-    Instead, negative addresses are to consider as referred to :attr:`endex`.
-
-    Arguments:
-        source:
-            The optional `source` parameter can be used to initialize the
-            array in a few different ways:
-
-            * If it is a string, you must also give the `encoding` (and
-              optionally, `errors`) parameters; it then converts the string to
-              bytes using :meth:`str.encode`.
-
-            * If it is an integer, the array will have that size and will be
-              initialized with null bytes.
-
-            * If it is an object conforming to the buffer interface, a
-              read-only buffer of the object will be used to initialize the byte
-              array.
-
-            * If it is an iterable, it must be an iterable of integers in the
-              range 0 <= x < 256, which are used as the initial contents of the
-              array.
-
-        encoding (str):
-            Optional string encoding.
-
-        errors (str):
-            Optional string error management.
-
-        start (int):
-            Optional memory start address.
-            Anything before will be bounded away.
-            If `source` is provided, its data start at this address
-            (0 if `start` is ``None``).
-
-        endex (int):
-            Optional memory exclusive end address.
-            Anything at or after it will be bounded away.
-    """
 class bytesparse(Memory, MutableBytesparse):
 
     def __delitem__(

@@ -391,6 +391,11 @@ class BaseMemorySuite:
         memory = Memory()
         assert memory.to_blocks() == []
 
+        memory = Memory(start=3, endex=10)
+        assert memory.bound_span == (3, 10)
+        memory.write(0, b'Hello, World!')
+        assert memory.to_blocks() == [[3, b'lo, Wor']]
+
         memory = Memory.from_bytes(b'Hello, World!', offset=5)
         assert memory.to_blocks() == [[5, b'Hello, World!']]
 
@@ -4853,6 +4858,50 @@ class BaseMemorySuite:
 class BaseBytearraySuite:
 
     bytesparse: Type[MutableBytesparse] = MutableBytesparse  # replace by subclassing 'bytesparse'
+
+    def test___init___doctest(self):
+        bytesparse = self.bytesparse
+
+        memory = bytesparse()
+        assert memory.to_blocks() == []
+
+        memory = bytesparse(start=3, endex=10)
+        assert memory.bound_span == (3, 10)
+        memory.write(0, b'Hello, World!')
+        assert memory.to_blocks() == [[3, b'lo, Wor']]
+
+        memory = bytesparse.from_bytes(b'Hello, World!', offset=5)
+        assert memory.to_blocks() == [[5, b'Hello, World!']]
+
+        memory = bytesparse(b'Hello, World!')
+        assert memory.to_blocks() == [[0, b'Hello, World!']]
+
+        memory = bytesparse(3)
+        assert memory.to_blocks() == [[0, b'\x00\x00\x00']]
+
+        memory = bytesparse([65, 66, 67])
+        assert memory.to_blocks() == [[0, b'ABC']]
+
+        memory = bytesparse('ASCII string', 'ascii')
+        assert memory.to_blocks() == [[0, b'ASCII string']]
+
+        memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'backslashreplace')
+        assert memory.to_blocks() == [[0, b'Non-ASCII: \\u2204']]
+
+        memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'xmlcharrefreplace')
+        assert memory.to_blocks() == [[0, b'Non-ASCII: &#8708;']]
+
+        memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'replace')
+        assert memory.to_blocks() == [[0, b'Non-ASCII: ?']]
+
+        memory = bytesparse('Non-ASCII: \u2204', 'ascii', 'ignore')
+        assert memory.to_blocks() == [[0, b'Non-ASCII: ']]
+
+        with pytest.raises(UnicodeError, match="'ascii' codec can't encode character"):
+            bytesparse('Non-ASCII: \u2204', 'ascii', 'strict')
+
+        with pytest.raises(TypeError, match='string argument without an encoding'):
+            bytesparse('Missing encoding')
 
     def test___init___empty(self):
         bytesparse = self.bytesparse
