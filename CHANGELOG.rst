@@ -1,11 +1,14 @@
 Changelog
 =========
 
-0.0.6 (TBD)
------------
+0.0.6 (2023-02-??)
+------------------
 
+* Added support to Python 3.11, removed 3.6.
 * Added some minor features.
+* Improved documentation.
 * Improved testing.
+* Improved repository layout (``pyproject.toml``).
 * Minor fixes.
 
 
