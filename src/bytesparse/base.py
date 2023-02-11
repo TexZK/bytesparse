@@ -800,6 +800,11 @@ class ImmutableMemory(collections.abc.Sequence,
 
         A :obj:`tuple` holding :attr:`bound_start` and :attr:`bound_endex`.
 
+        Notes:
+            Assigning ``None`` to :attr:`MutableMemory.bound_span` sets both
+            :attr:`bound_start` and :attr:`bound_endex` to ``None``
+            (equivalent to ``(None, None)``).
+
         Examples:
             >>> from bytesparse import Memory
 
