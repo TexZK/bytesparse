@@ -2517,7 +2517,7 @@ class ImmutableMemory(collections.abc.Sequence,
             Traceback (most recent call last):
                 ...
             ValueError: non-contiguous data within range
-            >>> memory.view(0, 6)
+            >>> memory.read(0, 6)
             Traceback (most recent call last):
                 ...
             ValueError: non-contiguous data within range
