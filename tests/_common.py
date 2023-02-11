@@ -2554,6 +2554,8 @@ class BaseMemorySuite:
         memory = Memory.from_bytes(b'Hello, World!', offset=5)
         memory.bound_span = (7, 13)
         assert memory.to_blocks() == [[7, b'llo, W']]
+        memory.bound_span = None
+        assert memory.bound_span == (None, None)
 
         memory = Memory.from_bytes(b'Hello, World!', offset=5, start=7, endex=13)
         assert memory.to_blocks() == [[7, b'llo, W']]

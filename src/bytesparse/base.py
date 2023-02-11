@@ -812,6 +812,9 @@ class ImmutableMemory(collections.abc.Sequence,
             >>> memory.bound_span = (7, 13)
             >>> memory.to_blocks()
             [[7, b'llo, W']]
+            >>> memory.bound_span = None
+            >>> memory.bound_span
+            (None, None)
 
             >>> memory = Memory.from_bytes(b'Hello, World!', offset=5, start=7, endex=13)
             >>> memory.to_blocks()
