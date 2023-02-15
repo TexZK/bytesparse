@@ -263,7 +263,7 @@ class Memory(MutableMemory):
                 if step >= 1:
                     return self.extract(start=start, endex=endex, step=step)
                 else:
-                    return Memory()  # empty
+                    return self.__class__()  # empty
             else:
                 return self.extract(start=start, endex=endex, pattern=step)
         else:
