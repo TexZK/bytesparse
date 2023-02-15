@@ -455,15 +455,16 @@ class Memory(MutableMemory):
 
         blocks = self._blocks
         if blocks:
-            if address < blocks[0][0]:
+            if address < blocks[0][0]:  # before first block
                 return None
 
             block_start, block_data = blocks[-1]
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after last block
                 return None
         else:
             return None
 
+        # Dichotomic search
         left = 0
         right = len(blocks)
 
@@ -471,11 +472,11 @@ class Memory(MutableMemory):
             center = (left + right) >> 1
             block_start, block_data = blocks[center]
 
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after center block
                 left = center + 1
-            elif address < block_start:
+            elif address < block_start:  # before center block
                 right = center - 1
-            else:
+            else:  # within center block
                 return center
 
         return None
@@ -487,15 +488,16 @@ class Memory(MutableMemory):
 
         blocks = self._blocks
         if blocks:
-            if address < blocks[0][0]:
+            if address < blocks[0][0]:  # before first block
                 return 0
 
             block_start, block_data = blocks[-1]
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after last block
                 return len(blocks)
         else:
             return 0
 
+        # Dichotomic search
         left = 0
         right = len(blocks)
 
@@ -503,11 +505,11 @@ class Memory(MutableMemory):
             center = (left + right) >> 1
             block_start, block_data = blocks[center]
 
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after center block
                 left = center + 1
-            elif address < block_start:
+            elif address < block_start:  # before center block
                 right = center - 1
-            else:
+            else:  # within center block
                 return center + 1
 
         return right + 1
@@ -519,15 +521,16 @@ class Memory(MutableMemory):
 
         blocks = self._blocks
         if blocks:
-            if address <= blocks[0][0]:
+            if address <= blocks[0][0]:  # before first block
                 return 0
 
             block_start, block_data = blocks[-1]
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after last block
                 return len(blocks)
         else:
             return 0
 
+        # Dichotomic search
         left = 0
         right = len(blocks)
 
@@ -535,11 +538,11 @@ class Memory(MutableMemory):
             center = (left + right) >> 1
             block_start, block_data = blocks[center]
 
-            if block_start + len(block_data) <= address:
+            if block_start + len(block_data) <= address:  # after center block
                 left = center + 1
-            elif address < block_start:
+            elif address < block_start:  # before center block
                 right = center - 1
-            else:
+            else:  # within center block
                 return center
 
         return left
