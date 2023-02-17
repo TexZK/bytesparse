@@ -320,7 +320,7 @@ class Memory(MutableMemory):
         self,
     ) -> Iterator[Optional[Value]]:
 
-        yield from self.values(self.start, self.endex)
+        yield from self.values(start=self.start, endex=self.endex)
 
     def __len__(
         self,
@@ -361,7 +361,7 @@ class Memory(MutableMemory):
         self,
     ) -> Iterator[Optional[Value]]:
 
-        yield from self.rvalues(self.start, self.endex)
+        yield from self.rvalues(start=self.start, endex=self.endex)
 
     def __setitem__(
         self,
@@ -920,7 +920,7 @@ class Memory(MutableMemory):
 
         self._bound_endex = bound_endex
         if bound_endex is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     @ImmutableMemory.bound_span.getter
     def bound_span(
@@ -944,7 +944,7 @@ class Memory(MutableMemory):
         self._bound_start = bound_start
         self._bound_endex = bound_endex
         if bound_start is not None or bound_endex is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     @ImmutableMemory.bound_start.getter
     def bound_start(
@@ -965,7 +965,7 @@ class Memory(MutableMemory):
 
         self._bound_start = bound_start
         if bound_start is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     def clear(
         self,
@@ -1533,7 +1533,7 @@ class Memory(MutableMemory):
                     memory._blocks = memory_blocks
 
                 if pattern is not None:
-                    memory.flood(start, endex, pattern)
+                    memory.flood(start=start, endex=endex, pattern=pattern)
         else:
             step = int(step)
             if step > 1:
@@ -1541,8 +1541,9 @@ class Memory(MutableMemory):
                 block_start = None
                 block_data = None
                 offset = start
+                values = self.values(start=start, endex=endex, pattern=pattern)
 
-                for value in _islice(self.values(start, endex, pattern), 0, endex - start, step):
+                for value in _islice(values, 0, endex - start, step):
                     if value is None:
                         if block_start is not None:
                             memory_blocks.append([block_start, block_data])
@@ -1622,7 +1623,7 @@ class Memory(MutableMemory):
     ) -> Address:
 
         try:
-            return self.index(item, start, endex)
+            return self.index(item, start=start, endex=endex)
         except ValueError:
             return -1
 
@@ -1691,7 +1692,7 @@ class Memory(MutableMemory):
         endex: Optional[Address] = None,
     ) -> List[OpenInterval]:
 
-        return list(self.gaps(start, endex))
+        return list(self.gaps(start=start, endex=endex))
 
     def flood_restore(
         self,
@@ -1699,7 +1700,7 @@ class Memory(MutableMemory):
     ) -> None:
 
         for gap_start, gap_endex in gaps:
-            self.clear(gap_start, gap_endex)
+            self.clear(start=gap_start, endex=gap_endex)
 
     @classmethod
     def from_blocks(
@@ -1994,7 +1995,7 @@ class Memory(MutableMemory):
         backup: ImmutableMemory,
     ) -> None:
 
-        self.delete(address, address + len(backup))
+        self.delete(start=address, endex=(address + len(backup)))
         self.write(0, backup, clear=True)
 
     def intervals(
@@ -2029,7 +2030,9 @@ class Memory(MutableMemory):
         if endex is None:
             endex = self.endex
 
-        yield from zip(self.keys(start, endex), self.values(start, endex, pattern))
+        keys = self.keys(start=start, endex=endex)
+        values = self.values(start=start, endex=endex, pattern=pattern)
+        yield from zip(keys, values)
 
     def keys(
         self,
@@ -2123,7 +2126,7 @@ class Memory(MutableMemory):
             self._erase(address, address + 1, False)  # clear
             self._place(address, bytearray((item,)), False)  # write
 
-            self.crop(self._bound_start, self._bound_endex)
+            self.crop(start=self._bound_start, endex=self._bound_endex)
 
     def poke_backup(
         self,
@@ -2227,7 +2230,7 @@ class Memory(MutableMemory):
         size: Address,
     ) -> memoryview:
 
-        return self.view(address, address + size)
+        return self.view(start=address, endex=(address + size))
 
     def readinto(
         self,
@@ -2236,7 +2239,7 @@ class Memory(MutableMemory):
     ) -> int:
 
         size = len(buffer)
-        view = self.view(address, address + size)
+        view = self.view(start=address, endex=(address + size))
         buffer[:] = view
         return size
 
@@ -2247,7 +2250,7 @@ class Memory(MutableMemory):
         endex: Optional[Address] = None,
     ) -> None:
 
-        address = self.index(item, start, endex)
+        address = self.index(item, start=start, endex=endex)
         size = 1 if isinstance(item, Value) else len(item)
         self._erase(address, address + size, True)  # delete
 
@@ -2258,7 +2261,7 @@ class Memory(MutableMemory):
         endex: Optional[Address] = None,
     ) -> ImmutableMemory:
 
-        address = self.index(item, start, endex)
+        address = self.index(item, start=start, endex=endex)
         size = 1 if isinstance(item, Value) else len(item)
         return self.extract(start=address, endex=(address + size))
 
@@ -2340,7 +2343,7 @@ class Memory(MutableMemory):
     ) -> Address:
 
         try:
-            return self.rindex(item, start, endex)
+            return self.rindex(item, start=start, endex=endex)
         except ValueError:
             return -1
 
@@ -2534,7 +2537,7 @@ class Memory(MutableMemory):
     ) -> BlockList:
 
         blocks = [[block_start, bytes(block_data)]
-                  for block_start, block_data in self.blocks(start, endex)]
+                  for block_start, block_data in self.blocks(start=start, endex=endex)]
         return blocks
 
     def to_bytes(
@@ -2543,7 +2546,7 @@ class Memory(MutableMemory):
         endex: Optional[Address] = None,
     ) -> bytes:
 
-        return bytes(self.view(start, endex))
+        return bytes(self.view(start=start, endex=endex))
 
     def update(
         self,
@@ -2677,7 +2680,8 @@ class Memory(MutableMemory):
             if start is None:
                 start = self.start
             if start < endex:
-                yield from _islice(self.values(start, Ellipsis, pattern), (endex - start))
+                values = self.values(start=start, endex=Ellipsis, pattern=pattern)
+                yield from _islice(values, (endex - start))
 
     def view(
         self,
@@ -3489,7 +3493,7 @@ class bytesparse(Memory, MutableBytesparse):
 
         self._bound_endex = bound_endex
         if bound_endex is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     @ImmutableMemory.bound_span.getter
     def bound_span(
@@ -3521,7 +3525,7 @@ class bytesparse(Memory, MutableBytesparse):
         self._bound_start = bound_start
         self._bound_endex = bound_endex
         if bound_start is not None or bound_endex is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     @ImmutableMemory.bound_start.getter
     def bound_start(
@@ -3547,7 +3551,7 @@ class bytesparse(Memory, MutableBytesparse):
 
         self._bound_start = bound_start
         if bound_start is not None:
-            self.crop(bound_start, bound_endex)
+            self.crop(start=bound_start, endex=bound_endex)
 
     def validate(
         self,
