@@ -2525,6 +2525,63 @@ class ImmutableMemory(collections.abc.Sequence,
         ...
 
     @abc.abstractmethod
+    def readinto(
+        self,
+        address: Address,
+        buffer: AnyBytes,
+    ) -> int:
+        r"""Reads data into a pre-allocated buffer.
+
+        Provided a pre-allocated writable buffer (*e.g.* a :obj:`bytearray`
+        or a :obj:`memoryview` slice of it), this method reads a chunk of data
+        from an address, with the size of the target buffer.
+        Data within the range is required to be contiguous.
+
+        Arguments:
+            address (int):
+                Start address of the chunk to read.
+
+            buffer (writable):
+                Pre-allocated buffer to fill with data.
+
+        Returns:
+            int: Number of bytes read.
+
+        Raises:
+            :obj:`ValueError`: Data not contiguous (see :attr:`contiguous`).
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+            +===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C | D]|   |[$]|   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABCD'], [6, b'$'], [8, b'xyz']])
+            >>> buffer = bytearray(3)
+            >>> memory.readinto(2, buffer)
+            3
+            >>> buffer
+            bytearray(b'BCD')
+            >>> view = memoryview(buffer)
+            >>> memory.readinto(9, view[1:2])
+            1
+            >>> buffer
+            bytearray(b'ByD')
+            >>> memory.readinto(4, buffer)
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+            >>> memory.readinto(0, bytearray(6))
+            Traceback (most recent call last):
+                ...
+            ValueError: non-contiguous data within range
+        """
+        ...
+
+    @abc.abstractmethod
     def rfind(
         self,
         item: Union[AnyBytes, Value],

@@ -2229,6 +2229,17 @@ class Memory(MutableMemory):
 
         return self.view(address, address + size)
 
+    def readinto(
+        self,
+        address: Address,
+        buffer: AnyBytes,
+    ) -> int:
+
+        size = len(buffer)
+        view = self.view(address, address + size)
+        buffer[:] = view
+        return size
+
     def remove(
         self,
         item: Union[AnyBytes, Value],
@@ -3326,6 +3337,15 @@ class bytesparse(Memory, MutableBytesparse):
 
         address = self._rectify_address(address)
         return super().read(address, size)
+
+    def readinto(
+        self,
+        address: Address,
+        buffer: AnyBytes,
+    ) -> int:
+
+        address = self._rectify_address(address)
+        return super().readinto(address, buffer)
 
     def remove(
         self,
