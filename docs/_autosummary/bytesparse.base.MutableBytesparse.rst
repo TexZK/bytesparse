@@ -79,6 +79,7 @@ bytesparse.base.MutableBytesparse
       ~MutableBytesparse.popitem_backup
       ~MutableBytesparse.popitem_restore
       ~MutableBytesparse.read
+      ~MutableBytesparse.readinto
       ~MutableBytesparse.remove
       ~MutableBytesparse.remove_backup
       ~MutableBytesparse.remove_restore

@@ -79,6 +79,7 @@ bytesparse.inplace.Memory
       ~Memory.popitem_backup
       ~Memory.popitem_restore
       ~Memory.read
+      ~Memory.readinto
       ~Memory.remove
       ~Memory.remove_backup
       ~Memory.remove_restore

@@ -45,6 +45,7 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.keys
       ~ImmutableMemory.peek
       ~ImmutableMemory.read
+      ~ImmutableMemory.readinto
       ~ImmutableMemory.rfind
       ~ImmutableMemory.rindex
       ~ImmutableMemory.rvalues
