@@ -29,6 +29,8 @@ This implementation in pure Python uses the basic :obj:``bytearray`` data type
 to hold block data, which allows mutable in-place operations.
 """
 
+import io
+import sys
 from itertools import count as _count
 from itertools import islice as _islice
 from itertools import repeat as _repeat
@@ -44,6 +46,7 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
+from .base import HUMAN_ASCII
 from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
 from .base import AddressValueMapping
@@ -1932,6 +1935,85 @@ class Memory(MutableMemory):
 
         data = self._blocks[0][1]
         return data.hex(*args)
+
+    def hexdump(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        columns: int = 16,
+        addrfmt: str = '{:08X} ',
+        bytefmt: str = ' {:02X}',
+        headfmt: Optional[Union[str, EllipsisType]] = None,
+        charmap: Optional[Mapping[int, str]] = HUMAN_ASCII,
+        emptystr: str = ' --',
+        beforestr: str = ' >>',
+        afterstr: str = ' <<',
+        charsep: str = '  |',
+        charend: str = '|',
+        stream: Optional[Union[io.TextIOBase, EllipsisType]] = Ellipsis,
+    ) -> Optional[str]:
+
+        if columns < 1:
+            raise ValueError('invalid columns')
+        if start is None:
+            start = self.start
+        if endex is None:
+            endex = self.endex
+        if endex < start + columns:
+            endex = start + columns
+        if stream is Ellipsis:
+            stream = sys.stdout
+
+        addrfmt_format = addrfmt.format
+        bytefmt_format = bytefmt.format
+        bytemap = [bytefmt_format(i) for i in range(0x100)]
+        tokens = []
+        append = tokens.append if stream is None else stream.write
+        self_values = self.values(start=start, endex=...)
+        bound_start = self._bound_start
+        bound_endex = self._bound_endex
+        values = [0x100] * columns
+        address = int(start)
+
+        if headfmt:
+            if headfmt is Ellipsis:
+                headfmt = bytefmt
+            append(' ' * len(addrfmt_format(address)))
+            if (columns - 1) & columns == 0:  # power of 2
+                for i in range(columns):
+                    append(headfmt.format((address + i) % columns))
+            else:  # header value offset makes no sense
+                for i in range(columns):
+                    append(headfmt.format(i))
+            append('\n')
+
+        while address < endex:
+            append(addrfmt_format(address))
+
+            for i in range(columns):
+                byteval = next(self_values)
+                if byteval is not None:
+                    append(bytemap[byteval])
+                elif bound_start is not None and address < bound_start:
+                    append(beforestr)
+                    byteval = 0x101
+                elif bound_endex is not None and address >= bound_endex:
+                    append(afterstr)
+                    byteval = 0x102
+                else:
+                    append(emptystr)
+                    byteval = 0x100
+                values[i] = byteval
+                address += 1
+
+            if charmap is not None:
+                append(charsep)
+                for byteval in values:
+                    append(charmap[byteval])
+                append(charend)
+
+            append('\n')
+        return ''.join(tokens) if stream is None else None
 
     def index(
         self,

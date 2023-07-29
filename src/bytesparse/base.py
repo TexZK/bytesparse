@@ -27,6 +27,7 @@ r"""Common stuff, shared across modules."""
 
 import abc
 import collections.abc
+import io
 from typing import Any
 from typing import ByteString
 from typing import Iterable
@@ -63,6 +64,25 @@ EllipsisType: TypeAlias = Type['Ellipsis']
 
 STR_MAX_CONTENT_SIZE: Address = 1000
 r"""Maximum memory content size for string representation."""
+
+HUMAN_ASCII = (r'................'
+               r'................'
+               r' !"#$%&' r"'()*+,-./"
+               r'0123456789:;<=>?'
+               r'@ABCDEFGHIJKLMNO'
+               r'PQRSTUVWXYZ[\]^_'
+               r'`abcdefghijklmno'
+               r'pqrstuvwxyz{|}~.'
+               r'................'
+               r'................'
+               r'................'
+               r'................'
+               r'................'
+               r'................'
+               r'................'
+               r'................'
+               r' ><')
+r"""Mapping from byte to human-readable ASCII characters."""
 
 
 class ImmutableMemory(collections.abc.Sequence,
@@ -2245,6 +2265,121 @@ class ImmutableMemory(collections.abc.Sequence,
             48.65.6c.6c.6f.2c.20.57.6f.72.6c.64.21
             >>> memory.hex('.', 4)
             48.656c6c6f.2c20576f.726c6421
+        """
+        ...
+
+    @abc.abstractmethod
+    def hexdump(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        columns: int = 16,
+        addrfmt: str = '{:08X} ',
+        bytefmt: str = ' {:02X}',
+        headfmt: Optional[Union[str, EllipsisType]] = None,
+        charmap: Optional[Mapping[int, str]] = HUMAN_ASCII,
+        emptystr: str = ' --',
+        beforestr: str = ' >>',
+        afterstr: str = ' <<',
+        charsep: str = '  |',
+        charend: str = '|',
+        stream: Optional[Union[io.TextIOBase, EllipsisType]] = Ellipsis,
+    ) -> Optional[str]:
+        r"""Textual hex dump.
+
+        This function generates a hex dump of the bytes within the specified
+        range.
+
+        If `stream` is not ``None``, the hex dump is written on it, otherwise
+        it is returned as a :obj:`str`.
+
+        The default output is similar to that of ``hexdump`` or ``xxd``
+        commands, with some degree of tweaking.
+        In case more customized formatting is desired, a dedicated custom
+        function can be written by carefully looping over :meth:`values`.
+
+        Arguments:
+            start (int):
+                Inclusive start of the searched range.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end of the searched range.
+                If ``None``, :attr:`endex` is considered.
+
+            columns (int):
+                Number of byte columns per row.
+
+            addrfmt (str):
+                Address formatting string.
+
+            bytefmt (str):
+                Byte formatting string.
+
+            headfmt (str):
+                Header offset formatting string.
+                If ``Ellipsis``, it applies that of `bytefmt`.
+                If ``None``, no header row is generated.
+
+            charmap (mapping):
+                Mapping to convert a byte integer into a string character.
+                If ``None``, no character data are appended to each row.
+
+                The table is structured this way:
+
+                * The initial 256 bytes map actual byte values.
+                * Index ``0x100`` represents an empty byte (``None``).
+                * Index ``0x101`` represents a byte before :attr:`start`.
+                * Index ``0x102`` represents a byte after :attr:`endex`.
+
+            emptystr (str):
+                Placeholder for an empty byte (``None`` value).
+
+            beforestr (str):
+                Placeholder for a byte before :attr:`bound_start`.
+
+            afterstr (str):
+                Placeholder for a byte after :attr:`bound_endex`.
+
+            charsep (str):
+                Separator between byte data and character data.
+
+            charend (str):
+                Separator after character data.
+
+            stream (IO stream):
+                Stream to write text onto.
+                If ``Ellipsis``, it uses ``sys.stdout``.
+                If not ``None``, the function returns ``None``.
+
+        Returns:
+            str: Textual hex dump, if `stream` is ``None``.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']], offset=0xDA7A)
+            >>> memory.hexdump()
+            0000DA7B  41 42 43 -- -- 78 79 7A -- -- -- -- -- -- -- --  |ABC  xyz        |
+            >>> memory.hexdump(start=0xDA7A, charmap=None)
+            0000DA7A  -- 41 42 43 -- -- 78 79 7A -- -- -- -- -- -- --
+            >>> memory.hexdump(start=0xDA7A)
+            0000DA7A  -- 41 42 43 -- -- 78 79 7A -- -- -- -- -- -- --  | ABC  xyz       |
+            >>> memory.hexdump(start=0xDA70)
+            0000DA70  -- -- -- -- -- -- -- -- -- -- -- 41 42 43 -- --  |           ABC  |
+            0000DA80  78 79 7A -- -- -- -- -- -- -- -- -- -- -- -- --  |xyz             |
+            >>> memory.bound_span = (0xDA78, 0xDA88)
+            >>> memory.hexdump(start=0xDA70)
+            0000DA70  >> >> >> >> >> >> >> >> -- -- -- 41 42 43 -- --  |>>>>>>>>   ABC  |
+            0000DA80  78 79 7A -- -- -- -- -- << << << << << << << <<  |xyz     <<<<<<<<|
+            >>> memory.hexdump(start=0xDA70, headfmt=...)
+                      00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
+            0000DA70  >> >> >> >> >> >> >> >> -- -- -- 41 42 43 -- --  |>>>>>>>>   ABC  |
+            0000DA80  78 79 7A -- -- -- -- -- << << << << << << << <<  |xyz     <<<<<<<<|
+            >>> memory.hexdump(start=0xDA78, columns=4)
+            0000DA78  -- -- -- 41  |   A|
+            0000DA7C  42 43 -- --  |BC  |
+            0000DA80  78 79 7A --  |xyz |
         """
         ...
 
