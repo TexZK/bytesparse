@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.0.7 (TBD)
+------------------
+
+* Added support for Python 3.12.
+* Added ``hexdump`` method.
+
+
 0.0.6 (2023-02-18)
 ------------------
 
