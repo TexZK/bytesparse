@@ -1959,7 +1959,9 @@ class Memory(MutableMemory):
             start = self.start
         if endex is None:
             endex = self.endex
-        if endex < start + columns:
+        if endex <= start:
+            endex = start
+        elif endex < start + columns:
             endex = start + columns
         if stream is Ellipsis:
             stream = sys.stdout
@@ -1979,7 +1981,7 @@ class Memory(MutableMemory):
             if headfmt is Ellipsis:
                 headfmt = bytefmt
             append(' ' * len(addrfmt_format(address)))
-            if (columns - 1) & columns == 0:  # power of 2
+            if ((columns - 1) & columns) == 0:  # power of 2
                 for i in range(columns):
                     append(headfmt.format((address + i) % columns))
             else:  # header value offset makes no sense
@@ -3304,6 +3306,40 @@ class bytesparse(Memory, MutableBytesparse):
 
         address = self._rectify_address(address)
         return super().get(address, default=default)
+
+    def hexdump(
+        self,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        columns: int = 16,
+        addrfmt: str = '{:08X} ',
+        bytefmt: str = ' {:02X}',
+        headfmt: Optional[Union[str, EllipsisType]] = None,
+        charmap: Optional[Mapping[int, str]] = HUMAN_ASCII,
+        emptystr: str = ' --',
+        beforestr: str = ' >>',
+        afterstr: str = ' <<',
+        charsep: str = '  |',
+        charend: str = '|',
+        stream: Optional[Union[io.TextIOBase, EllipsisType]] = Ellipsis,
+    ) -> Optional[str]:
+
+        start, endex = self._rectify_span(start, endex)
+        return super().hexdump(
+            start=start,
+            endex=endex,
+            columns=columns,
+            addrfmt=addrfmt,
+            bytefmt=bytefmt,
+            headfmt=headfmt,
+            charmap=charmap,
+            emptystr=emptystr,
+            beforestr=beforestr,
+            afterstr=afterstr,
+            charsep=charsep,
+            charend=charend,
+            stream=stream,
+        )
 
     def index(
         self,

@@ -22,7 +22,9 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+import io
 import sys
+from contextlib import redirect_stdout
 from itertools import islice
 from typing import Any
 from typing import List
@@ -4985,6 +4987,113 @@ class BaseMemorySuite:
 
             assert value is None
             assert (start, endex) in gaps
+
+    def test_hexdump_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']], offset=0xDA7A)
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump()
+            assert ans_out is None
+            ans_ref = '0000DA7B  41 42 43 -- -- 78 79 7A -- -- -- -- -- -- -- --  |ABC  xyz        |\n'
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(stream=None)
+            ans_ref = '0000DA7B  41 42 43 -- -- 78 79 7A -- -- -- -- -- -- -- --  |ABC  xyz        |\n'
+            assert ans_out == ans_ref
+            ans_out = stdout.getvalue()
+            assert ans_out == ''
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA7A, charmap=None)
+            assert ans_out is None
+            ans_ref = '0000DA7A  -- 41 42 43 -- -- 78 79 7A -- -- -- -- -- -- --\n'
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA7A)
+            assert ans_out is None
+            ans_ref = '0000DA7A  -- 41 42 43 -- -- 78 79 7A -- -- -- -- -- -- --  | ABC  xyz       |\n'
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA70)
+            assert ans_out is None
+            ans_ref = ('0000DA70  -- -- -- -- -- -- -- -- -- -- -- 41 42 43 -- --  |           ABC  |\n'
+                       '0000DA80  78 79 7A -- -- -- -- -- -- -- -- -- -- -- -- --  |xyz             |\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        memory.bound_span = (0xDA78, 0xDA88)
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA70)
+            assert ans_out is None
+            ans_ref = ('0000DA70  >> >> >> >> >> >> >> >> -- -- -- 41 42 43 -- --  |>>>>>>>>   ABC  |\n'
+                       '0000DA80  78 79 7A -- -- -- -- -- << << << << << << << <<  |xyz     <<<<<<<<|\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA70, headfmt=...)
+            assert ans_out is None
+            ans_ref = ('          00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n'
+                       '0000DA70  >> >> >> >> >> >> >> >> -- -- -- 41 42 43 -- --  |>>>>>>>>   ABC  |\n'
+                       '0000DA80  78 79 7A -- -- -- -- -- << << << << << << << <<  |xyz     <<<<<<<<|\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA78, endex=0xDA84, columns=4)
+            assert ans_out is None
+            ans_ref = ('0000DA78  -- -- -- 41  |   A|\n'
+                       '0000DA7C  42 43 -- --  |BC  |\n'
+                       '0000DA80  78 79 7A --  |xyz |\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+    def test_hexdump(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']], offset=0xDA7A)
+
+        ans_out = memory.hexdump(start=0xDA70, endex=0xDA71, charmap=None, stream=None)
+        ans_ref = '0000DA70  -- -- -- -- -- -- -- -- -- -- -- 41 42 43 -- --\n'
+        assert ans_out == ans_ref     ,(ans_out,ans_ref)#FIXME
+
+        ans_out = memory.hexdump(start=0xDA70, endex=0xDA70, charmap=None, stream=None)
+        ans_ref = ''
+        assert ans_out == ans_ref     ,(ans_out,ans_ref)#FIXME
+
+        ans_out = memory.hexdump(start=0xDA70, endex=0xDA6F, charmap=None, stream=None)
+        ans_ref = ''
+        assert ans_out == ans_ref     ,(ans_out,ans_ref)#FIXME
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA7B, endex=0xDA7E, columns=3, headfmt=...)
+            assert ans_out is None
+            ans_ref = ('          00 01 02\n'
+                       '0000DA7B  41 42 43  |ABC|\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref      ,(ans_out, ans_ref)#FIXME
+
+        with redirect_stdout(io.StringIO()) as stdout:
+            ans_out = memory.hexdump(start=0xDA70, headfmt=' {:2d}')
+            assert ans_out is None
+            ans_ref = ('           0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15\n'
+                       '0000DA70  -- -- -- -- -- -- -- -- -- -- -- 41 42 43 -- --  |           ABC  |\n'
+                       '0000DA80  78 79 7A -- -- -- -- -- -- -- -- -- -- -- -- --  |xyz             |\n')
+            ans_out = stdout.getvalue()
+            assert ans_out == ans_ref
+
+        with pytest.raises(ValueError, match='invalid columns'):
+            memory.hexdump(columns=0)
+
+        with pytest.raises(ValueError, match='invalid columns'):
+            memory.hexdump(columns=-1)
 
 
 class BaseBytearraySuite:

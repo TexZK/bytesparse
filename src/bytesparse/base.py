@@ -2361,6 +2361,8 @@ class ImmutableMemory(collections.abc.Sequence,
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']], offset=0xDA7A)
             >>> memory.hexdump()
             0000DA7B  41 42 43 -- -- 78 79 7A -- -- -- -- -- -- -- --  |ABC  xyz        |
+            >>> memory.hexdump(stream=None)
+            '0000DA7B  41 42 43 -- -- 78 79 7A -- -- -- -- -- -- -- --  |ABC  xyz        |'
             >>> memory.hexdump(start=0xDA7A, charmap=None)
             0000DA7A  -- 41 42 43 -- -- 78 79 7A -- -- -- -- -- -- --
             >>> memory.hexdump(start=0xDA7A)
@@ -2376,7 +2378,7 @@ class ImmutableMemory(collections.abc.Sequence,
                       00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
             0000DA70  >> >> >> >> >> >> >> >> -- -- -- 41 42 43 -- --  |>>>>>>>>   ABC  |
             0000DA80  78 79 7A -- -- -- -- -- << << << << << << << <<  |xyz     <<<<<<<<|
-            >>> memory.hexdump(start=0xDA78, columns=4)
+            >>> memory.hexdump(start=0xDA78, endex=0xDA84, columns=4)
             0000DA78  -- -- -- 41  |   A|
             0000DA7C  42 43 -- --  |BC  |
             0000DA80  78 79 7A --  |xyz |
