@@ -39,6 +39,7 @@ bytesparse.base.ImmutableMemory
       ~ImmutableMemory.gaps
       ~ImmutableMemory.get
       ~ImmutableMemory.hex
+      ~ImmutableMemory.hexdump
       ~ImmutableMemory.index
       ~ImmutableMemory.intervals
       ~ImmutableMemory.items

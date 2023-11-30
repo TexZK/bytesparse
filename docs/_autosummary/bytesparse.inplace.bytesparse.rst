@@ -1,4 +1,4 @@
-bytesparse.inplace.bytesparse
+﻿bytesparse.inplace.bytesparse
 =============================
 
 .. currentmodule:: bytesparse.inplace
@@ -61,6 +61,7 @@ bytesparse.inplace.bytesparse
       ~bytesparse.gaps
       ~bytesparse.get
       ~bytesparse.hex
+      ~bytesparse.hexdump
       ~bytesparse.index
       ~bytesparse.insert
       ~bytesparse.insert_backup

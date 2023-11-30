@@ -1,4 +1,4 @@
-bytesparse.base
+﻿bytesparse.base
 ===============
 
 .. automodule:: bytesparse.base
@@ -11,6 +11,7 @@ bytesparse.base
       :toctree:
    
       STR_MAX_CONTENT_SIZE
+      HUMAN_ASCII
    
    
 

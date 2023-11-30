@@ -61,6 +61,7 @@ bytesparse.base.MutableBytesparse
       ~MutableBytesparse.gaps
       ~MutableBytesparse.get
       ~MutableBytesparse.hex
+      ~MutableBytesparse.hexdump
       ~MutableBytesparse.index
       ~MutableBytesparse.insert
       ~MutableBytesparse.insert_backup

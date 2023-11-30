@@ -1,4 +1,4 @@
-bytesparse.inplace.Memory
+﻿bytesparse.inplace.Memory
 =========================
 
 .. currentmodule:: bytesparse.inplace
@@ -61,6 +61,7 @@ bytesparse.inplace.Memory
       ~Memory.gaps
       ~Memory.get
       ~Memory.hex
+      ~Memory.hexdump
       ~Memory.index
       ~Memory.insert
       ~Memory.insert_backup

@@ -61,6 +61,7 @@ bytesparse.base.MutableMemory
       ~MutableMemory.gaps
       ~MutableMemory.get
       ~MutableMemory.hex
+      ~MutableMemory.hexdump
       ~MutableMemory.index
       ~MutableMemory.insert
       ~MutableMemory.insert_backup
