@@ -2111,7 +2111,7 @@ class Memory(MutableMemory):
         other: ImmutableMemory,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Iterator[Address, AnyBytes]:
+    ) -> Iterator[Tuple[Address, AnyBytes]]:
 
         walker = self._walk_blocks(other, _op_and_, start=start, endex=endex)
 
@@ -2146,14 +2146,15 @@ class Memory(MutableMemory):
 
     def _walk_intervals(  # TODO TBV
         self,
-        other: ImmutableMemory,
+        other: 'Memory',  # FIXME: ImmutableMemory,
         condition: Callable[[bool, bool], bool],
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
+        tolerance: int = 0,
     ) -> Iterator[ClosedInterval]:
 
         endex2 = marker2 = 0
-        intervals2 = other.intervals(start=start, endex=endex)
+        intervals2 = other._broad_intervals(start=start, endex=endex, tolerance=tolerance)
         try:
             start2, endex2 = next(intervals2)
             marker2 = start2
@@ -2161,7 +2162,7 @@ class Memory(MutableMemory):
             intervals2 = None
 
         endex1 = marker1 = 0
-        intervals1 = self.intervals(start=start, endex=endex)
+        intervals1 = self._broad_intervals(start=start, endex=endex, tolerance=tolerance)
         try:
             start1, endex1 = next(intervals1)
             marker1 = start1
@@ -2227,7 +2228,7 @@ class Memory(MutableMemory):
 
     def intersect_intervals(  # TODO TBV
         self,
-        other: ImmutableMemory,
+        other: 'Memory',  # FIXME: ImmutableMemory,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
     ) -> Iterator[ClosedInterval]:
@@ -2240,135 +2241,38 @@ class Memory(MutableMemory):
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
         tolerance: Address = 64,
-    ) -> Iterator[Address, Address, Address]:
-
-        if tolerance < 0:
-            raise ValueError('invalid tolerance')
+    ) -> Iterator[ClosedInterval]:
 
         intervals = self.intervals(start=start, endex=endex)
+        if tolerance < 0:
+            raise ValueError('invalid tolerance')
+        if not tolerance:  # faster
+            yield from intervals
+
         span_start = None
         span_endex = None
         tolerance_endex = None
-        holes = 0
 
         for block_start, block_endex in intervals:
             if span_start is None:
-                holes = 0
                 span_start = block_start
                 span_endex = block_endex
                 tolerance_endex = span_endex + tolerance
 
             elif block_start <= tolerance_endex:
-                holes += tolerance_endex - block_start
                 span_endex = block_endex
                 tolerance_endex = span_endex + tolerance
 
             else:
-                yield span_start, span_endex, holes
-
-                holes = 0
+                yield span_start, span_endex
                 span_start = block_start
                 span_endex = block_endex
                 tolerance_endex = span_endex + tolerance
 
         if span_start is not None:
-            yield span_start, span_endex, holes
+            yield span_start, span_endex
 
-    def _walk_broad_intervals(  # TODO TBV
-        self,
-        other: 'Memory',  # FIXME: ImmutableMemory,
-        condition: Callable[[bool, bool], bool],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        tolerance: Address = 64,
-    ) -> Iterator[Address, Address, Address]:
-
-        endex2 = marker2 = holes2 = 0
-        intervals2 = other._broad_intervals(start=start, endex=endex, tolerance=tolerance)
-        try:
-            start2, endex2, holes2 = next(intervals2)
-            marker2 = start2
-        except StopIteration:
-            intervals2 = None
-
-        endex1 = marker1 = holes1 = 0
-        intervals1 = self._broad_intervals(start=start, endex=endex, tolerance=tolerance)
-        try:
-            start1, endex1, holes1 = next(intervals1)
-            marker1 = start1
-        except StopIteration:
-            intervals1 = None
-
-        if intervals1 is None and intervals2 is None:
-            return
-        elif intervals1 is None:
-            address = marker2
-        elif intervals2 is None:
-            address = marker1
-        else:
-            if marker1 < marker2:
-                address = marker1
-                holes2 += marker2 - marker1
-            else:
-                address = marker2
-                holes1 += marker1 - marker2
-
-        span_start = address
-        inside1 = (marker1 <= marker2)
-        inside2 = (marker2 <= marker1)
-        valid_prev = condition(inside1, inside2)
-
-        while 1:
-            if intervals1 is not None and address == marker1:
-                if inside1:
-                    inside1 = False
-                    marker1 = endex1
-                else:
-                    try:
-                        start1, endex1, holes1 = next(intervals1)
-                        inside1 = True
-                        marker1 = start1
-                    except StopIteration:
-                        intervals1 = None
-
-            if intervals2 is not None and address == marker2:
-                if inside2:
-                    inside2 = False
-                    marker2 = endex2
-                else:
-                    try:
-                        start2, endex2, holes2 = next(intervals2)
-                        inside2 = True
-                        marker2 = start2
-                    except StopIteration:
-                        intervals2 = None
-
-            if intervals1 is None and intervals2 is None:
-                return
-            elif intervals1 is None:
-                holes2 += marker2 - address
-                address = marker2
-            elif intervals2 is None:
-                holes1 += marker1 - address
-                address = marker1
-            else:
-                if marker1 < marker2:
-                    address = marker1
-                    holes2 += marker2 - marker1
-                else:
-                    address = marker2
-                    holes1 += marker1 - marker2
-
-            valid_curr = condition(inside1, inside2)
-
-            if valid_prev > valid_curr:
-                span_endex = address
-                yield span_start, span_endex, holes1 + holes2
-
-            elif valid_prev < valid_curr:
-                span_start = address
-
-    def _diff_blocks(  # TODO
+    def _diffcmp_blocks(  # TODO
         self,
         other: 'Memory',  # FIXME: ImmutableMemory,
         start: Optional[Address] = None,
@@ -2376,7 +2280,7 @@ class Memory(MutableMemory):
         tolerance: Address = 64,
     ):  # -> TODO
 
-        broad_intervals = self._walk_broad_intervals(other, _op_or_, start=start, endex=endex, tolerance=tolerance)
+        broad_intervals = self._walk_intervals(other, _op_or_, start=start, endex=endex, tolerance=tolerance)
         pattern = None
 
         for span_start, span_endex, holes in broad_intervals:
