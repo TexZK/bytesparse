@@ -19,4 +19,10 @@ include pyproject.toml
 include setup.cfg
 include tox.ini
 
+exclude build
+exclude dist
+exclude htmlcov
+exclude .tox
+exclude .pytest_cache
+
 global-exclude *.py[cod] __pycache__ *.so *.dylib

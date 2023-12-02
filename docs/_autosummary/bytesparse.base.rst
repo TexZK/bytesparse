@@ -1,4 +1,4 @@
-﻿bytesparse.base
+bytesparse.base
 ===============
 
 .. automodule:: bytesparse.base

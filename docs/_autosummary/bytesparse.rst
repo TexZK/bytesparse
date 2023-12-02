@@ -28,4 +28,5 @@
 
    bytesparse.base
    bytesparse.inplace
+   bytesparse.io
 

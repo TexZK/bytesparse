@@ -114,5 +114,6 @@ True
 
 __version__ = '0.0.7'
 
-from .inplace import Memory  # noqa F401
-from .inplace import bytesparse  # noqa F401
+from .inplace import Memory
+from .inplace import bytesparse
+from .io import MemoryIO

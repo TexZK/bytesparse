@@ -1757,6 +1757,14 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The index of the first item equal to `value`, or -1.
+
+        Warnings:
+            If the memory allows negative addresses, :meth:`index` is more
+            appropriate, because it raises :obj:`ValueError` if the item is
+            not found.
+
+        See Also:
+            :meth:`index`
         """
         ...
 
@@ -2411,6 +2419,9 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Item not found.
+
+        See Also:
+            :meth:`find`
         """
         ...
 
@@ -2741,6 +2752,14 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Returns:
             int: The index of the last item equal to `value`, or -1.
+
+        Warnings:
+            If the memory allows negative addresses, :meth:`rindex` is more
+            appropriate, because it raises :obj:`ValueError` if the item is
+            not found.
+
+        See Also:
+            :meth:`rindex`
         """
         ...
 
@@ -2770,6 +2789,14 @@ class ImmutableMemory(collections.abc.Sequence,
 
         Raises:
             :obj:`ValueError`: Item not found.
+
+        Warnings:
+            If the memory allows negative addresses, :meth:`index` is more
+            appropriate, because it raises :obj:`ValueError` if the item is
+            not found.
+
+        See Also:
+            :meth:`rfind`
         """
         ...
 

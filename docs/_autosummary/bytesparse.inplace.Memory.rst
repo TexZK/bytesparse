@@ -1,4 +1,4 @@
-﻿bytesparse.inplace.Memory
+bytesparse.inplace.Memory
 =========================
 
 .. currentmodule:: bytesparse.inplace

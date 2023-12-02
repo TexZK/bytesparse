@@ -1,4 +1,4 @@
-﻿bytesparse.inplace.bytesparse
+bytesparse.inplace.bytesparse
 =============================
 
 .. currentmodule:: bytesparse.inplace
