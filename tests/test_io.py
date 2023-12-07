@@ -434,3 +434,10 @@ class TestMemoryIO:
         with MemoryIO(memory) as stream:
             with pytest.raises(io.UnsupportedOperation, match='not writable'):
                 stream.write(b'')
+
+    def test_writelines_doctest(self):
+        lines = [3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!']
+        stream = MemoryIO()
+        assert stream.writelines(lines) is None
+        ref = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        assert stream.memory.to_blocks() == ref

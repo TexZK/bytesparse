@@ -26,6 +26,7 @@
 r"""Streaming utilities."""
 
 import io
+from typing import Iterable
 from typing import Iterator
 from typing import List
 from typing import Optional
@@ -86,10 +87,14 @@ class MemoryIO(io.BufferedIOBase):
             The current stream position.
             It always refers to absolute address 0.
 
+        _writable (bool):
+            The stream is writable on creation.
+
     See Also:
-        :class:`ImmutableMemory`
-        :class:`MutableMemory`
+        :class:`bytesparse.base.ImmutableMemory`
+        :class:`bytesparse.base.MutableMemory`
         :meth:`seek`
+        :meth:`writable`
 
     Examples:
         >>> from bytesparse import Memory, MemoryIO
@@ -1359,20 +1364,20 @@ class MemoryIO(io.BufferedIOBase):
         The behaviour depends on the nature of `buffer`: byte-like or integer.
 
         Byte-like data are written into the underlying memory object via its
-        :meth:`MutableMemory.write` method, at the current stream position
+        :meth:`bytesparse.base.MutableMemory.write` method, at the current stream position
         (i.e. :meth:`tell`).
         The stream position is always incremented by the size of `buffer`,
         regardless of the actual number of bytes written into the
         underlying memory object (e.g. when cropped by existing
-        :attr:`MutableMemory.bounds_span` settings).
+        :attr:`bytesparse.base.MutableMemory.bounds_span` settings).
 
         If `buffer` is a positive integer, that is the amount of bytes to
-        :meth:`MutableMemory.clear` from the current stream position onwards.
+        :meth:`bytesparse.base.MutableMemory.clear` from the current stream position onwards.
         The stream position is incremented by `buffer` bytes.
         It returns `buffer` as a positive number.
 
         If `buffer` is a negative integer, that is the amount of bytes to
-        :meth:`MutableMemory.delete` from the current stream position onwards.
+        :meth:`bytesparse.base.MutableMemory.delete` from the current stream position onwards.
         The stream position is not changed.
         It returns `buffer` as a positive number.
 
@@ -1391,9 +1396,9 @@ class MemoryIO(io.BufferedIOBase):
             :exc:`io.UnsupportedOperation`: Stream not writable.
 
         See Also:
-            :meth:`MutableMemory.clear`
-            :meth:`MutableMemory.delete`
-            :meth:`MutableMemory.write`
+            :meth:`bytesparse.base.MutableMemory.clear`
+            :meth:`bytesparse.base.MutableMemory.delete`
+            :meth:`bytesparse.base.MutableMemory.write`
 
         Examples:
             >>> from bytesparse import Memory, MemoryIO
@@ -1454,3 +1459,36 @@ class MemoryIO(io.BufferedIOBase):
             return size
         else:
             raise io.UnsupportedOperation('not writable')
+
+    def writelines(
+        self,
+        lines: Iterable[Union[AnyBytes, int]],
+    ) -> None:
+        r""" Writes lines to the stream.
+
+        Line separators are not added, so it is usual for each of the lines
+        provided to have a line separator at the end.
+
+        If a `line` is an integer, its behavior is as per :meth:`write`
+        (positive: clear, negative: delete).
+
+        Arguments:
+            lines (list of bytes):
+                List of byte strings to write.
+
+        See Also:
+            :meth:`bytesparse.base.MutableMemory.clear`
+            :meth:`bytesparse.base.MutableMemory.delete`
+            :meth:`write`
+
+        Examples:
+            >>> from bytesparse import Memory, MemoryIO
+            >>> lines = [3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!']
+            >>> stream = MemoryIO()
+            >>> stream.writelines(lines)
+            >>> stream.memory.to_blocks()
+            [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        """
+
+        for line in lines:
+            self.write(line)
