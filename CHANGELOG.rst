@@ -1,11 +1,13 @@
 Changelog
 =========
 
-0.0.7 (TBD)
+0.0.7 (2023-12-10)
 ------------------
 
 * Added support for Python 3.12.
 * Added ``hexdump`` method.
+* Added ``bytesparse.io`` package.
+* Added ``bytesparse.MemoryIO`` as a stream wrapper for ``bytesparse.Memory``.
 
 
 0.0.6 (2023-02-18)
