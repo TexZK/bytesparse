@@ -319,6 +319,14 @@ class Memory(MutableMemory):
         self._bound_start: Optional[Address] = start
         self._bound_endex: Optional[Address] = endex
 
+    def __ior__(
+        self,
+        value: Union[AnyBytes, ImmutableMemory],
+    ) -> 'Memory':
+
+        self.write(0, value)
+        return self
+
     def __iter__(
         self,
     ) -> Iterator[Optional[Value]]:
@@ -353,6 +361,15 @@ class Memory(MutableMemory):
             return memory
         else:
             return self.__class__()
+
+    def __or__(
+        self,
+        value: Union[AnyBytes, ImmutableMemory],
+    ) -> 'Memory':
+
+        memory = self.from_memory(self, validate=False)
+        memory.write(0, value)
+        return memory
 
     def __repr__(
         self,

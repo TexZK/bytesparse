@@ -444,7 +444,7 @@ class ImmutableMemory(collections.abc.Sequence,
         Examples:
             >>> from bytesparse import Memory
 
-            >>> memory1 = Memory.from_bytes(b'ABC')
+            >>> memory1 = Memory.from_bytes(b'ABC', offset=2)
             >>> memory2 = memory1 * 3
             >>> memory2.to_blocks()
             [[0, b'ABCABCABC']]
@@ -453,6 +453,34 @@ class ImmutableMemory(collections.abc.Sequence,
             >>> memory2 = memory1 * 3
             >>> memory2.to_blocks()
             [[1, b'ABCABCABC']]
+        """
+        ...
+
+    @abc.abstractmethod
+    def __or__(
+        self,
+        value: Union[AnyBytes, 'ImmutableMemory'],
+    ) -> 'ImmutableMemory':
+        r"""Merges memories.
+
+        Equivalent to ``self.copy() |= items`` of a :obj:`MutableMemory`.
+
+        See Also:
+            :meth:`MutableMemory.__ior__`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = Memory.from_blocks([[5, b'xyz']])
+            >>> memory3 = memory1 | memory2
+            >>> memory3.to_blocks()
+            [[1, b'ABC'], [5, b'xyz']]
+
+            >>> memory1 = Memory.from_bytes(b'ABC', offset=2)
+            >>> memory2 = memory1 | b'xyz'
+            >>> memory2.to_blocks()
+            [[0, b'xyzBC']]
         """
         ...
 
@@ -3277,7 +3305,7 @@ class MutableMemory(ImmutableMemory,
     ) -> 'MutableMemory':
         r"""Concatenates items.
 
-        Equivalent to ``self.extend(items)``.
+        Equivalent to ``self.extend(value)``.
 
         See Also:
             :meth:`extend`
@@ -3324,6 +3352,37 @@ class MutableMemory(ImmutableMemory,
             >>> memory *= 3
             >>> memory.to_blocks()
             [[1, b'ABCABCABC']]
+        """
+        ...
+
+    @abc.abstractmethod
+    def __ior__(
+        self,
+        value: Union[AnyBytes, 'ImmutableMemory'],
+    ) -> 'MutableMemory':
+        r"""Merges memories.
+
+        Equivalent to ``self.write(0, value)``.
+
+        See Also:
+            :meth:`extend`
+
+        See Also:
+            :meth:`MutableMemory.__ior__`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            >>> memory1 = Memory.from_blocks([[1, b'ABC']])
+            >>> memory2 = Memory.from_blocks([[5, b'xyz']])
+            >>> memory1 |= memory2
+            >>> memory1.to_blocks()
+            [[1, b'ABC'], [5, b'xyz']]
+
+            >>> memory1 = Memory.from_bytes(b'ABC', offset=2)
+            >>> memory1 |= b'xyz'
+            >>> memory2.to_blocks()
+            [[0, b'xyzBC']]
         """
         ...
 

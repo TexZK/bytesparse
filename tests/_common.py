@@ -1050,6 +1050,30 @@ class BaseMemorySuite:
             blocks_ref = values_to_blocks(values)
             assert blocks_out == blocks_ref
 
+    def test___or___doctest(self):
+        Memory = self.Memory
+
+        memory1 = Memory.from_blocks([[1, b'ABC']])
+        memory2 = Memory.from_blocks([[5, b'xyz']])
+        memory3 = memory1 | memory2
+        assert memory3.to_blocks() == [[1, b'ABC'], [5, b'xyz']]
+
+        memory1 = Memory.from_bytes(b'ABC', offset=2)
+        memory2 = memory1 | b'xyz'
+        assert memory2.to_blocks() == [[0, b'xyzBC']]
+
+    def test___ior___doctest(self):
+        Memory = self.Memory
+
+        memory1 = Memory.from_blocks([[1, b'ABC']])
+        memory2 = Memory.from_blocks([[5, b'xyz']])
+        memory1 |= memory2
+        assert memory1.to_blocks() == [[1, b'ABC'], [5, b'xyz']]
+
+        memory = Memory.from_bytes(b'ABC', offset=2)
+        memory |= b'xyz'
+        assert memory.to_blocks() == [[0, b'xyzBC']]
+
     def test___len___doctest(self):
         Memory = self.Memory
 
