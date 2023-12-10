@@ -123,7 +123,7 @@ Here's a quick usage example of ``bytesparse`` objects:
 
 >>> from bytesparse import Memory
 >>> from bytesparse import bytesparse
->>> # ----------------------------------------------------------------
+
 >>> m = bytesparse(b'Hello, World!')  # creates from bytes
 >>> len(m)  # total length
 13
@@ -133,44 +133,44 @@ Here's a quick usage example of ``bytesparse`` objects:
 b'Hello, World!'
 >>> m.to_bytes()  # exports the whole range as bytes
 b'Hello, World!'
->>> # ----------------------------------------------------------------
+
 >>> m.extend(b'!!')  # more emphasis!!!
 >>> bytes(m)
 b'Hello, World!!!'
->>> # ----------------------------------------------------------------
+
 >>> i = m.index(b',')  # gets the address of the comma
 >>> m[:i] = b'Ciao'  # replaces 'Hello' with 'Ciao'
 >>> bytes(m)
 b'Ciao, World!!!'
->>> # ----------------------------------------------------------------
+
 >>> i = m.index(b',')  # gets the address of the comma
 >>> m.insert(i, b'ne')  # inserts 'ne' to make 'Ciaone' ("big ciao")
 >>> bytes(m)
 b'Ciaone, World!!!'
->>> # ----------------------------------------------------------------
+
 >>> i = m.index(b',')  # gets the address of the comma
 >>> m[(i - 2):i] = b' ciao'  # makes 'Ciaone' --> 'Ciao ciao'
 >>> bytes(m)
 b'Ciao ciao, World!!!'
->>> # ----------------------------------------------------------------
+
 >>> m.pop()  # less emphasis --> 33 == ord('!')
 33
 >>> bytes(m)
 b'Ciao ciao, World!!'
->>> # ----------------------------------------------------------------
+
 >>> del m[m.index(b'l')]  # makes 'World' --> 'Word'
 >>> bytes(m)
 b'Ciao ciao, Word!!'
->>> # ----------------------------------------------------------------
+
 >>> m.popitem()  # less emphasis --> pops 33 (== '!') at address 16
 (16, 33)
 >>> bytes(m)
 b'Ciao ciao, Word!'
->>> # ----------------------------------------------------------------
+
 >>> m.remove(b' ciao')  # self-explanatory
 >>> bytes(m)
 b'Ciao, Word!'
->>> # ----------------------------------------------------------------
+
 >>> i = m.index(b',')  # gets the address of the comma
 >>> m.clear(start=i, endex=(i + 2))  # makes empty space between the words
 >>> m.to_blocks()  # exports as data block list
@@ -183,19 +183,19 @@ False
 9
 >>> len(m)  # including emptiness
 11
->>> # ----------------------------------------------------------------
+
 >>> m.flood(pattern=b'.')  # replaces emptiness with dots
 >>> bytes(m)
 b'Ciao..Word!'
 >>> m[-2]  # 100 == ord('d')
 100
->>> # ----------------------------------------------------------------
+
 >>> m.peek(-2)  # 100 == ord('d')
 100
 >>> m.poke(-2, b'k')  # makes 'Word' --> 'Work'
 >>> bytes(m)
 b'Ciao..Work!'
->>> # ----------------------------------------------------------------
+
 >>> m.crop(start=m.index(b'W'))  # keeps 'Work!'
 >>> m.to_blocks()
 [[6, b'Work!']]
@@ -203,44 +203,44 @@ b'Ciao..Work!'
 (6, 11)
 >>> m.start, m.endex  # same as above
 (6, 11)
->>> # ----------------------------------------------------------------
+
 >>> m.bound_span = (2, 10)  # sets memory address bounds
 >>> str(m)
 "<2, [[6, b'Work']], 10>"
 >>> m.to_blocks()
 [[6, b'Work']]
->>> # ----------------------------------------------------------------
+
 >>> m.shift(-6)  # shifts to the left; NOTE: address bounds will cut 2 bytes!
 >>> m.to_blocks()
 [[2, b'rk']]
 >>> str(m)
 "<2, [[2, b'rk']], 10>"
->>> # ----------------------------------------------------------------
+
 >>> a = bytesparse(b'Ma')
 >>> a.write(0, m)  # writes [2, b'rk'] --> 'Mark'
 >>> a.to_blocks()
 [[0, b'Mark']]
->>> # ----------------------------------------------------------------
+
 >>> b = Memory.from_bytes(b'ing', offset=4)
 >>> b.to_blocks()
 [[4, b'ing']]
->>> # ----------------------------------------------------------------
+
 >>> a.write(0, b)  # writes [4, b'ing'] --> 'Marking'
 >>> a.to_blocks()
 [[0, b'Marking']]
->>> # ----------------------------------------------------------------
+
 >>> a.reserve(4, 2)  # inserts 2 empty bytes after 'Mark'
 >>> a.to_blocks()
 [[0, b'Mark'], [6, b'ing']]
->>> # ----------------------------------------------------------------
+
 >>> a.write(4, b'et')  # --> 'Marketing'
 >>> a.to_blocks()
 [[0, b'Marketing']]
->>> # ----------------------------------------------------------------
+
 >>> a.fill(1, -1, b'*')  # fills asterisks between the first and last letters
 >>> a.to_blocks()
 [[0, b'M*******g']]
->>> # ----------------------------------------------------------------
+
 >>> v = a.view(1, -1)  # creates a memory view spanning the asterisks
 >>> v[::2] = b'1234'  # replaces even asterisks with numbers
 >>> a.to_blocks()
@@ -248,17 +248,17 @@ b'Ciao..Work!'
 >>> a.count(b'*')  # counts all the asterisks
 3
 >>> v.release()  # release memory view
->>> # ----------------------------------------------------------------
+
 >>> c = a.copy()  # creates a (deep) copy
 >>> c == a
 True
 >>> c is a
 False
->>> # ----------------------------------------------------------------
+
 >>> del a[a.index(b'*')::2]  # deletes every other byte from the first asterisk
 >>> a.to_blocks()
 [[0, b'M1234']]
->>> # ----------------------------------------------------------------
+
 >>> a.shift(3)  # moves away from the trivial 0 index
 >>> a.to_blocks()
 [[3, b'M1234']]
@@ -268,7 +268,7 @@ False
 [77, 49, 50, 51, 52]
 >>> list(a.items())
 [(3, 77), (4, 49), (5, 50), (6, 51), (7, 52)]
->>> # ----------------------------------------------------------------
+
 >>> c.to_blocks()  # reminder
 [[0, b'M1*2*3*4g']]
 >>> c[2::2] = None  # clears (empties) every other byte from the first asterisk
@@ -278,11 +278,11 @@ False
 [(0, 2), (3, 4), (5, 6), (7, 8)]
 >>> list(c.gaps())  # lists all the empty ranges
 [(None, 0), (2, 3), (4, 5), (6, 7), (8, None)]
->>> # ----------------------------------------------------------------
+
 >>> c.flood(pattern=b'xy')  # fills empty spaces
 >>> c.to_blocks()
 [[0, b'M1x2x3x4']]
->>> # ----------------------------------------------------------------
+
 >>> t = c.cut(c.index(b'1'), c.index(b'3'))  # cuts an inner slice
 >>> t.to_blocks()
 [[1, b'1x2x']]
@@ -290,7 +290,7 @@ False
 [[0, b'M'], [5, b'3x4']]
 >>> t.bound_span  # address bounds of the slice (automatically activated)
 (1, 5)
->>> # ----------------------------------------------------------------
+
 >>> k = bytesparse.from_blocks([[4, b'ABC'], [9, b'xy']], start=2, endex=15)  # bounded
 >>> str(k)  # shows summary
 "<2, [[4, b'ABC'], [9, b'xy']], 15>"
@@ -304,7 +304,7 @@ False
 13
 >>> k.content_size  # actual content size
 5
->>> # ----------------------------------------------------------------
+
 >>> k.flood(pattern=b'.')  # floods between span
 >>> k.to_blocks()
 [[2, b'..ABC..xy....']]
@@ -314,9 +314,9 @@ Background
 ==========
 
 This library started as a spin-off of ``hexrec.blocks.Memory``.
-That is based on a simple Python implementation using immutable objects (i.e.
+That was based on a simple Python implementation using immutable objects (i.e.
 ``tuple`` and ``bytes``). While good enough to handle common hexadecimal files,
-it is totally unsuited for dynamic/interactive environments, such as emulators,
+it was totally unsuited for dynamic/interactive environments, such as emulators,
 IDEs, data editors, and so on.
 Instead, ``bytesparse`` should be more flexible and faster, hopefully
 suitable for generic usage.

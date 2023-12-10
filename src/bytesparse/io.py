@@ -41,11 +41,21 @@ from .base import MutableMemory
 
 # Not all the platforms support sparse files natively, thus they do not provide
 # os.SEEK_DATA and os.SEEK_HOLE by themselves; we do it here!
+
 SEEK_SET: int = 0
+r"""Seek from the beginning of the stream (position 0)."""
+
 SEEK_CUR: int = 1
+r"""Seek from the current stream position (:meth:`MemoryIO.tell`)."""
+
 SEEK_END: int = 2
+r"""Seek from the end of the underlying memory object (:meth:`ImmutableMemory.endex`)."""
+
 SEEK_DATA: int = 3
+r"""Seek to the next data block."""
+
 SEEK_HOLE: int = 4
+r"""Seek to the next memory hole."""
 
 
 class MemoryIO(io.BufferedIOBase):
