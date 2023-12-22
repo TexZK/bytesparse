@@ -987,6 +987,34 @@ class Memory(MutableMemory):
         if bound_start is not None:
             self.crop(start=bound_start, endex=bound_endex)
 
+    def chop(
+        self,
+        width: Address,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        align: bool = False,
+    ) -> Iterator[Block]:
+
+        if width < 1:
+            raise ValueError('invalid width')
+
+        for block_start, block_view in self.blocks(start=start, endex=endex):
+            block_size = len(block_view)
+            chunk_offset = 0
+
+            if align:
+                chunk_offset = block_start % width
+                if chunk_offset:
+                    chunk_offset = width - chunk_offset
+                    chunk_view = block_view[:chunk_offset]
+                    yield block_start, chunk_view
+
+            while chunk_offset < block_size:
+                chunk_after = chunk_offset + width
+                chunk_view = block_view[chunk_offset:chunk_after]
+                yield block_start + chunk_offset, chunk_view
+                chunk_offset = chunk_after
+
     def clear(
         self,
         start: Optional[Address] = None,

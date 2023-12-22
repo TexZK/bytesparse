@@ -1309,6 +1309,28 @@ class BaseMemorySuite:
     def test_remove_restore_doctest(self):
         pass  # no doctest
 
+    def test_chop_doctest(self):
+        Memory = self.Memory
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+
+        chopping = memory.chop(2, align=False)
+        ans_out = [(address, bytes(view)) for address, view in chopping]
+        ans_ref = [(1, b'AB'), (3, b'C'), (6, b'xy'), (8, b'z')]
+        assert ans_out == ans_ref
+
+        chopping = memory.chop(2, align=True)
+        ans_out = [(address, bytes(view)) for address, view in chopping]
+        ans_ref = [(1, b'A'), (2, b'BC'), (6, b'xy'), (8, b'z')]
+        assert ans_out == ans_ref
+
+    def test_chop(self):
+        Memory = self.Memory
+        memory = Memory()
+        with pytest.raises(ValueError, match='invalid width'):
+            next(memory.chop(0))
+        with pytest.raises(ValueError, match='invalid width'):
+            next(memory.chop(-1))
+
     def test_collapse_blocks___doctest__(self):
         Memory = self.Memory
 

@@ -1,4 +1,4 @@
-bytesparse.base.MutableBytesparse
+﻿bytesparse.base.MutableBytesparse
 =================================
 
 .. currentmodule:: bytesparse.base
@@ -23,6 +23,7 @@ bytesparse.base.MutableBytesparse
       ~MutableBytesparse.block_span
       ~MutableBytesparse.blocks
       ~MutableBytesparse.bound
+      ~MutableBytesparse.chop
       ~MutableBytesparse.clear
       ~MutableBytesparse.clear_backup
       ~MutableBytesparse.clear_restore

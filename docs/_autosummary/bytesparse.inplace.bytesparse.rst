@@ -1,4 +1,4 @@
-bytesparse.inplace.bytesparse
+﻿bytesparse.inplace.bytesparse
 =============================
 
 .. currentmodule:: bytesparse.inplace
@@ -23,6 +23,7 @@ bytesparse.inplace.bytesparse
       ~bytesparse.block_span
       ~bytesparse.blocks
       ~bytesparse.bound
+      ~bytesparse.chop
       ~bytesparse.clear
       ~bytesparse.clear_backup
       ~bytesparse.clear_restore

@@ -894,6 +894,57 @@ class ImmutableMemory(collections.abc.Sequence,
         """
         ...
 
+    @abc.abstractmethod
+    def chop(
+        self,
+        width: Address,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        align: bool = False,
+    ) -> Iterator[Tuple[Address, memoryview]]:
+        r"""Iterates over chopped blocks.
+
+        The provided range is split into sub-ranges of a fixed width.
+        For each sub-range, it yields views of the contained block chunks.
+
+        Arguments:
+            width (int):
+                Sub-range width.
+
+            start (int):
+                Inclusive start address.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address.
+                If ``None``, :attr:`endex` is considered.
+
+            align (bool):
+                Sub-ranges are aligned to `width`.
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A | B]|[C]|   |   |[x | y]|[z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+            |   |[A]|[B | C]|   |   |[x | y]|[z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> chopping = memory.chop(2, align=False)
+            >>> [(address, bytes(view)) for address, view in chopping]
+            [(1, b'AB'), (3, b'C'), (6, b'xy'), (8, b'z')]
+            >>> chopping = memory.chop(2, align=True)
+            >>> [(address, bytes(view)) for address, view in chopping]
+            [(1, b'A'), (2, b'BC'), (6, b'xy'), (8, b'z')]
+        """
+        ...
+
     @classmethod
     @abc.abstractmethod
     def collapse_blocks(
