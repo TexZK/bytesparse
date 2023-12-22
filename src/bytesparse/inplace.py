@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2023, Andrea Zoppi.
+# Copyright (c) 2020-2024, Andrea Zoppi.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -856,12 +856,13 @@ class Memory(MutableMemory):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Iterator[Tuple[Address, Union[memoryview, bytearray]]]:
+    ) -> Iterator[Block]:
 
         blocks = self._blocks
         if blocks:
             if start is None and endex is None:  # faster
-                yield from blocks
+                for block_start, block_data in blocks:
+                    yield [block_start, memoryview(block_data)]
             else:
                 block_index_start = 0 if start is None else self._block_index_start(start)
                 block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
@@ -875,7 +876,7 @@ class Memory(MutableMemory):
                     if slice_start < slice_endex:
                         slice_view = memoryview(block_data)
                         slice_view = slice_view[(slice_start - block_start):(slice_endex - block_start)]
-                        yield slice_start, slice_view
+                        yield [slice_start, slice_view]
 
     def bound(
         self,
@@ -993,7 +994,7 @@ class Memory(MutableMemory):
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
         align: bool = False,
-    ) -> Iterator[Block]:
+    ) -> Iterator[Tuple[Address, memoryview]]:
 
         if width < 1:
             raise ValueError('invalid width')
@@ -3091,7 +3092,7 @@ class bytesparse(Memory, MutableBytesparse):
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Iterator[Tuple[Address, memoryview]]:
+    ) -> Iterator[Block]:
 
         start, endex = self._rectify_span(start, endex)
         yield from super().blocks(start=start, endex=endex)

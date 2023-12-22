@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2023, Andrea Zoppi.
+# Copyright (c) 2020-2024, Andrea Zoppi.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -703,7 +703,7 @@ class ImmutableMemory(collections.abc.Sequence,
         self,
         start: Optional[Address] = None,
         endex: Optional[Address] = None,
-    ) -> Iterator[Tuple[Address, memoryview]]:
+    ) -> Iterator[Block]:
         r"""Iterates over blocks.
 
         Iterates over data blocks within an address range.

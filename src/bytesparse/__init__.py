@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2023, Andrea Zoppi.
+# Copyright (c) 2020-2024, Andrea Zoppi.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ True
 
 """
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 from .inplace import Memory
 from .inplace import bytesparse
