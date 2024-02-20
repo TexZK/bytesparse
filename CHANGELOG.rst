@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.1.0 (2024-02-22)
+------------------
+
+* Improved documentation.
+* Version number deserved something more stable.
+
+
 0.0.8 (2024-01-21)
 ------------------
 

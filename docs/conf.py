@@ -31,7 +31,7 @@ if os.getenv('SPELLCHECK'):
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'bytesparse'
-year = '2020-2023'
+year = '2020-2024'
 author = 'Andrea Zoppi'
 copyright = f'{year}, {author}'
 version = release = read_version()
@@ -44,7 +44,7 @@ extlinks = {
 }
 
 # on_rtd is whether we are on readthedocs.org
-#on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+# on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 html_theme = 'furo'
 
@@ -67,6 +67,8 @@ html_static_path = ['_static']
 autosummary_generate = True
 autosummary_generate_overwrite = True
 
+toc_object_entries_show_parents = 'hide'
+
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
 napoleon_include_init_with_doc = False
@@ -75,5 +77,6 @@ napoleon_use_rtype = False
 napoleon_use_param = True
 napoleon_include_private_with_doc = True
 napoleon_include_special_with_doc = True
+napoleon_custom_sections = [('Method Groups', 'params_style')]
 
 typehints_document_rtype = False

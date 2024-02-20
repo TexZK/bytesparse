@@ -1,5 +1,5 @@
-bytesparse.io.SEEK\_END
-=======================
+SEEK\_END
+=========
 
 .. currentmodule:: bytesparse.io
 

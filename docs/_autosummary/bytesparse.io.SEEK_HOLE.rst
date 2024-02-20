@@ -1,5 +1,5 @@
-bytesparse.io.SEEK\_HOLE
-========================
+SEEK\_HOLE
+==========
 
 .. currentmodule:: bytesparse.io
 

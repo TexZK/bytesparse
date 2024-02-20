@@ -112,7 +112,7 @@ True
 
 """
 
-__version__ = '0.0.8'
+__version__ = '0.1.0'
 
 from .inplace import Memory
 from .inplace import bytesparse

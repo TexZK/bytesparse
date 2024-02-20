@@ -25,7 +25,7 @@
 
 r"""In-place implementation.
 
-This implementation in pure Python uses the basic :obj:``bytearray`` data type
+This implementation in pure Python uses the basic :class:`bytearray` data type
 to hold block data, which allows mutable in-place operations.
 """
 

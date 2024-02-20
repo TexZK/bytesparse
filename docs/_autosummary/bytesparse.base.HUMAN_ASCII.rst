@@ -1,5 +1,5 @@
-bytesparse.base.HUMAN\_ASCII
-============================
+HUMAN\_ASCII
+============
 
 .. currentmodule:: bytesparse.base
 

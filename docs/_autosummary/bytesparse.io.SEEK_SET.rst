@@ -1,5 +1,5 @@
-bytesparse.io.SEEK\_SET
-=======================
+SEEK\_SET
+=========
 
 .. currentmodule:: bytesparse.io
 

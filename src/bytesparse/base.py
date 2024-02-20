@@ -124,6 +124,96 @@ class ImmutableMemory(collections.abc.Sequence,
         >>> memory = Memory.from_bytes(b'Hello, World!', offset=5)
         >>> memory.to_blocks()
         [[5, b'Hello, World!']]
+
+    Method Groups:
+
+        Addressing:
+            :meth:`__len__`
+            :meth:`_block_index_at`
+            :meth:`_block_index_endex`
+            :meth:`_block_index_start`
+            :meth:`block_span`
+            :meth:`bound`
+            :attr:`bound_endex`
+            :attr:`bound_span`
+            :attr:`bound_start`
+            :attr:`content_endex`
+            :attr:`content_endin`
+            :attr:`content_parts`
+            :attr:`content_size`
+            :attr:`content_span`
+            :attr:`content_start`
+            :attr:`count`
+            :attr:`endex`
+            :attr:`endin`
+            :attr:`span`
+            :attr:`start`
+
+        Comparison:
+            :meth:`__bool__`
+            :meth:`__eq__`
+            :attr:`contiguous`
+            :meth:`validate`
+
+        Creation:
+            :meth:`__copy__`
+            :meth:`__deepcopy__`
+            :meth:`__init__`
+            :meth:`copy`
+            :meth:`extract`
+            :meth:`from_blocks`
+            :meth:`from_bytes`
+            :meth:`from_items`
+            :meth:`from_memory`
+            :meth:`from_values`
+            :meth:`fromhex`
+
+        Export:
+            :meth:`__bytes__`
+            :meth:`__repr__`
+            :meth:`__str__`
+            :meth:`hex`
+            :meth:`hexdump`
+            :meth:`read`
+            :meth:`readinto`
+            :meth:`to_blocks`
+            :meth:`to_bytes`
+            :meth:`view`
+
+        Iteration:
+            :meth:`__iter__`
+            :meth:`__reversed__`
+            :meth:`blocks`
+            :meth:`chop`
+            :meth:`content_blocks`
+            :meth:`content_items`
+            :meth:`content_keys`
+            :meth:`content_values`
+            :meth:`equal_span`
+            :meth:`gaps`
+            :meth:`intervals`
+            :meth:`items`
+            :meth:`keys`
+            :meth:`rvalues`
+
+        Search:
+            :meth:`__contains__`
+            :meth:`__getitem__`
+            :meth:`count`
+            :meth:`equal_span`
+            :meth:`find`
+            :meth:`index`
+            :meth:`rfind`
+            :meth:`rindex`
+
+        Vector:
+            :meth:`__add__`
+            :meth:`__mul__`
+            :meth:`__or__`
+            :meth:`collapse_blocks`
+            :meth:`extract`
+            :meth:`get`
+            :meth:`peek`
     """
 
     @abc.abstractmethod
@@ -3288,8 +3378,89 @@ class MutableMemory(ImmutableMemory,
     See Also:
         :obj:`ImmutableMemory`
 
+    Method Groups:
+
+        Setting:
+            :meth:`__setitem__`
+            :attr:`bound_endex`
+            :attr:`bound_span`
+            :attr:`bound_start`
+            :meth:`poke`
+            :meth:`reverse`
+            :meth:`setdefault`
+            :meth:`shift`
+
+        Merging:
+            :meth:`__ior__`
+            :meth:`fill`
+            :meth:`flood`
+            :meth:`update`
+
+        Extension:
+            :meth:`__iadd__`
+            :meth:`__imul__`
+            :meth:`append`
+            :meth:`extend`
+            :meth:`insert`
+            :meth:`reserve`
+            :meth:`write`
+
+        Deletion:
+            :meth:`__delitem__`
+            :meth:`clear`
+            :meth:`crop`
+            :meth:`cut`
+            :meth:`delete`
+            :meth:`pop`
+            :meth:`popitem`
+            :meth:`remove`
+
+        Backup:
+            :meth:`append_backup`
+            :meth:`clear_backup`
+            :meth:`crop_backup`
+            :meth:`delete_backup`
+            :meth:`extend_backup`
+            :meth:`fill_backup`
+            :meth:`flood_backup`
+            :meth:`insert_backup`
+            :meth:`poke_backup`
+            :meth:`pop_backup`
+            :meth:`popitem_backup`
+            :meth:`remove_backup`
+            :meth:`reserve_backup`
+            :meth:`setdefault_backup`
+            :meth:`shift_backup`
+            :meth:`update_backup`
+            :meth:`write_backup`
+
+        Restore:
+            :meth:`append_restore`
+            :meth:`clear_restore`
+            :meth:`crop_restore`
+            :meth:`delete_restore`
+            :meth:`extend_restore`
+            :meth:`fill_restore`
+            :meth:`flood_restore`
+            :meth:`insert_restore`
+            :meth:`poke_restore`
+            :meth:`pop_restore`
+            :meth:`popitem_restore`
+            :meth:`remove_restore`
+            :meth:`reserve_restore`
+            :meth:`setdefault_restore`
+            :meth:`shift_restore`
+            :meth:`update_restore`
+            :meth:`write_restore`
+
+        Internal:
+            :meth:`_prebound_endex`
+            :meth:`_prebound_endex_backup`
+            :meth:`_prebound_start`
+            :meth:`_prebound_start_backup`
     """
-    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):]
+    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):
+                                       ImmutableMemory.__doc__.index('Method Groups:')]
 
     @abc.abstractmethod
     def __delitem__(
@@ -5328,6 +5499,15 @@ class MutableBytesparse(MutableMemory, abc.ABC):
         Traceback (most recent call last):
             ...
         TypeError: string argument without an encoding
+
+    Method Groups:
+
+        Creation:
+            :meth:`__init__`
+
+        Addressing:
+            :meth:`_rectify_address`
+            :meth:`_rectify_span`
     """
 
     @abc.abstractmethod

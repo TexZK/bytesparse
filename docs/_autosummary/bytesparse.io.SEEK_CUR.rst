@@ -1,5 +1,5 @@
-bytesparse.io.SEEK\_CUR
-=======================
+SEEK\_CUR
+=========
 
 .. currentmodule:: bytesparse.io
 

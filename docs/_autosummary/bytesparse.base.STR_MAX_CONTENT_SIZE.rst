@@ -1,5 +1,5 @@
-bytesparse.base.STR\_MAX\_CONTENT\_SIZE
-=======================================
+STR\_MAX\_CONTENT\_SIZE
+=======================
 
 .. currentmodule:: bytesparse.base
 
