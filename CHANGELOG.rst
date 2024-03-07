@@ -1,9 +1,10 @@
 Changelog
 =========
 
-0.1.1 (2024-03-07)
+1.0.0 (2024-03-07)
 ------------------
 
+* Following the ``major.minor.patch`` semantic versioning.
 * Added ``align`` methods.
 
 
