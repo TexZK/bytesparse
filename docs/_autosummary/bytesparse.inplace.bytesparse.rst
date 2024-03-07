@@ -42,6 +42,9 @@ bytesparse
         :nosignatures:
 
         ~bytesparse.__init__
+        ~bytesparse.align
+        ~bytesparse.align_backup
+        ~bytesparse.align_restore
         ~bytesparse.append
         ~bytesparse.append_backup
         ~bytesparse.append_restore

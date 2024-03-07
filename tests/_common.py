@@ -4551,7 +4551,7 @@ class BaseMemorySuite:
         assert memory.to_blocks() == [[1, b'ABC12xyz']]
 
         memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
-        memory.flood(3, 7, b'123')
+        memory.flood(start=3, endex=7, pattern=b'123')
         assert memory.to_blocks() == [[1, b'ABC23xyz']]
 
     def test_flood_template(self):
@@ -4602,6 +4602,125 @@ class BaseMemorySuite:
 
     def test_flood_restore_doctest(self):
         pass  # no doctest
+
+    def test_align_doctest(self):
+        Memory = self.Memory
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        memory.align(4, pattern=b'0123')
+        assert memory.to_blocks() == [[0, b'0ABC01xyz123']]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [7, b'0123']])
+        memory.align(2, pattern=b'xyz')
+        assert memory.to_blocks() == [[0, b'xABC'], [6, b'x0123z']]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        memory.align(2, start=3, endex=7, pattern=b'.@')
+        assert memory.to_blocks() == [[1, b'ABC'], [6, b'xyz']]
+
+    def test_align(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        memory.align(4)
+        assert memory.to_blocks() == []
+
+        blocks = [[0, b'ABCD'], [8, b'xyz!']]
+        memory = Memory.from_blocks(blocks)
+        memory.align(4)
+        assert memory.to_blocks() == blocks
+
+        blocks = [[1, b'ABC'], [6, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        memory.align(1)
+        assert memory.to_blocks() == blocks
+
+    def test_align_invalid_modulo(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        with pytest.raises(ValueError, match='invalid modulo'):
+            memory.align(0)
+
+        with pytest.raises(ValueError, match='invalid modulo'):
+            memory.align(-1)
+
+    def test_align_backup_doctest(self):
+        pass  # no doctest
+
+    def test_align_backup(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        backup = memory.align_backup(4)
+        assert backup == [(None, None)]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        backup = memory.align_backup(4)
+        assert backup == [(0, 1), (4, 6), (9, 12)]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [7, b'0123']])
+        backup = memory.align_backup(2)
+        assert backup == [(0, 1), (4, 7), (11, 12)]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        backup = memory.align_backup(2, start=3, endex=7)
+        assert backup == [(4, 6)]
+
+        blocks = [[0, b'ABCD'], [8, b'xyz!']]
+        memory = Memory.from_blocks(blocks)
+        backup = memory.align_backup(4)
+        assert backup == [(4, 8)]
+
+        blocks = [[1, b'ABC'], [6, b'xyz']]
+        memory = Memory.from_blocks(blocks)
+        backup = memory.align_backup(1)
+        assert backup == [(4, 6)]
+
+    def test_align_backup_invalid_modulo(self):
+        Memory = self.Memory
+        memory = Memory()
+
+        with pytest.raises(ValueError, match='invalid modulo'):
+            memory.align_backup(0)
+
+        with pytest.raises(ValueError, match='invalid modulo'):
+            memory.align_backup(-1)
+
+    def test_align_restore_doctest(self):
+        pass  # no doctest
+
+    def test_align_restore(self):
+        Memory = self.Memory
+
+        memory = Memory()
+        memory.align_restore([])
+        assert memory.to_blocks() == []
+
+        memory = Memory.from_blocks([[0, b'0ABC01xyz123']])
+        backup = [(0, 1), (4, 6), (9, 12)]
+        memory.align_restore(backup)
+        assert memory.to_blocks() == [[1, b'ABC'], [6, b'xyz']]
+
+        memory = Memory.from_blocks([[0, b'xABC'], [6, b'x0123z']])
+        backup = [(0, 1), (4, 7), (11, 12)]
+        memory.align_restore(backup)
+        assert memory.to_blocks() == [[1, b'ABC'], [7, b'0123']]
+
+        memory = Memory.from_blocks([[1, b'ABC.@xyz']])
+        backup = [(4, 6)]
+        memory.align_restore(backup)
+        assert memory.to_blocks() == [[1, b'ABC'], [6, b'xyz']]
+
+        memory = Memory.from_blocks([[0, b'ABCD'], [8, b'xyz!']])
+        backup = [(4, 8)]
+        memory.align_restore(backup)
+        assert memory.to_blocks() == [[0, b'ABCD'], [8, b'xyz!']]
+
+        memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+        backup = [(4, 6)]
+        memory.align_restore(backup)
+        assert memory.to_blocks() == [[1, b'ABC'], [6, b'xyz']]
 
     def test_keys_doctest(self):
         Memory = self.Memory

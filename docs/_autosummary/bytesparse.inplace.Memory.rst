@@ -42,6 +42,9 @@ Memory
         :nosignatures:
 
         ~Memory.__init__
+        ~Memory.align
+        ~Memory.align_backup
+        ~Memory.align_restore
         ~Memory.append
         ~Memory.append_backup
         ~Memory.append_restore

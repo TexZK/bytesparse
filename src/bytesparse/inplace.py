@@ -785,6 +785,63 @@ class Memory(MutableMemory):
         else:
             return self.__class__()
 
+    def align(
+        self,
+        modulo: int,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        pattern: Union[AnyBytes, Value] = 0,
+    ) -> None:
+
+        modulo = modulo.__index__()
+        if modulo < 1:
+            raise ValueError('invalid modulo')
+        if modulo == 1:
+            return
+
+        for start, endex in self.intervals(start=start, endex=endex):
+            start_offset = start % modulo
+            if start_offset:
+                start -= start_offset
+
+            endex_offset = endex % modulo
+            if endex_offset:
+                endex += modulo - endex_offset
+
+            if start_offset or endex_offset:
+                self.flood(start=start, endex=endex, pattern=pattern)
+
+    def align_backup(
+        self,
+        modulo: int,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> List[OpenInterval]:
+
+        modulo = modulo.__index__()
+        if modulo < 1:
+            raise ValueError('invalid modulo')
+
+        start, endex = self.bound(start, endex)
+
+        if modulo != 1:
+            start_offset = start % modulo
+            if start_offset:
+                start -= start_offset
+
+            endex_offset = endex % modulo
+            if endex_offset:
+                endex += modulo - endex_offset
+
+        return self.flood_backup(start=start, endex=endex)
+
+    def align_restore(
+        self,
+        gaps: List[OpenInterval],
+    ) -> None:
+
+        self.flood_restore(gaps)
+
     def append(
         self,
         item: Union[AnyBytes, Value],

@@ -42,6 +42,9 @@ MutableMemory
         :nosignatures:
 
         ~MutableMemory.__init__
+        ~MutableMemory.align
+        ~MutableMemory.align_backup
+        ~MutableMemory.align_restore
         ~MutableMemory.append
         ~MutableMemory.append_backup
         ~MutableMemory.append_restore

@@ -42,6 +42,9 @@ MutableBytesparse
         :nosignatures:
 
         ~MutableBytesparse.__init__
+        ~MutableBytesparse.align
+        ~MutableBytesparse.align_backup
+        ~MutableBytesparse.align_restore
         ~MutableBytesparse.append
         ~MutableBytesparse.append_backup
         ~MutableBytesparse.append_restore

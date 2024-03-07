@@ -3778,6 +3778,129 @@ class MutableMemory(ImmutableMemory,
         ...
 
     @abc.abstractmethod
+    def align(
+        self,
+        modulo: int,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+        pattern: Union[AnyBytes, Value] = 0,
+    ) -> None:
+        r"""Floods blocks to align their boundaries.
+
+        Arguments:
+            modulo (int):
+                Alignment modulo.
+
+            start (int):
+                Inclusive start address for flooding.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for flooding.
+                If ``None``, :attr:`endex` is considered.
+
+            pattern (items):
+                Pattern of items to fill the range.
+
+        See Also:
+            :meth:`align_backup`
+            :meth:`align_restore`
+            :meth:`flood`
+
+        Examples:
+            >>> from bytesparse import Memory
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |   |   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+            |[0 | A | B | C | 0 | 1 | x | y | z | 1 | 2 | 3]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.align(4, pattern=b'0123')
+            >>> memory.to_blocks()
+            [[0, b'0ABC01xyz123']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12|
+            +===+===+===+===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |   |[0 | 1 | 2 | 3]|   |   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+            |[x | A | B | C]|   |   |[x | 0 | 1 | 2 | 3 | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [7, b'0123']])
+            >>> memory.align(2, pattern=b'xyz')
+            >>> memory.to_blocks()
+            [[0, b'xABC'], [6, b'x0123z']]
+
+            ~~~
+
+            +---+---+---+---+---+---+---+---+---+---+
+            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+            +===+===+===+===+===+===+===+===+===+===+
+            |   |[A | B | C]|   |   |[x | y | z]|   |
+            +---+---+---+---+---+---+---+---+---+---+
+
+            >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
+            >>> memory.align(2, start=3, endex=7, pattern=b'.@')
+            >>> memory.to_blocks()
+            [[1, b'ABC'], [6, b'xyz']]
+        """
+        ...
+
+    @abc.abstractmethod
+    def align_backup(
+        self,
+        modulo: int,
+        start: Optional[Address] = None,
+        endex: Optional[Address] = None,
+    ) -> List[OpenInterval]:
+        r"""Backups an `align()` operation.
+
+        Arguments:
+            modulo (int):
+                Alignment modulo.
+
+            start (int):
+                Inclusive start address for filling.
+                If ``None``, :attr:`start` is considered.
+
+            endex (int):
+                Exclusive end address for filling.
+                If ``None``, :attr:`endex` is considered.
+
+        Returns:
+            list of open intervals: Backup memory gaps.
+
+        See Also:
+            :meth:`align`
+            :meth:`align_restore`
+        """
+        ...
+
+    @abc.abstractmethod
+    def align_restore(
+        self,
+        gaps: List[OpenInterval],
+    ) -> None:
+        r"""Restores an `align()` operation.
+
+        Arguments:
+            gaps (list of open intervals):
+                Backup memory gaps to restore.
+
+        See Also:
+            :meth:`align`
+            :meth:`align_backup`
+        """
+        ...
+
+    @abc.abstractmethod
     def append(
         self,
         item: Union[AnyBytes, Value],
@@ -4397,7 +4520,7 @@ class MutableMemory(ImmutableMemory,
             +---+---+---+---+---+---+---+---+---+---+
 
             >>> memory = Memory.from_blocks([[1, b'ABC'], [6, b'xyz']])
-            >>> memory.flood(3, 7, b'123')
+            >>> memory.flood(start=3, endex=7, pattern=b'123')
             >>> memory.to_blocks()
             [[1, b'ABC23xyz']]
         """
