@@ -3392,6 +3392,7 @@ class MutableMemory(ImmutableMemory,
 
         Merging:
             :meth:`__ior__`
+            :meth:`align`
             :meth:`fill`
             :meth:`flood`
             :meth:`update`
@@ -3416,6 +3417,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`remove`
 
         Backup:
+            :meth:`align_backup`
             :meth:`append_backup`
             :meth:`clear_backup`
             :meth:`crop_backup`
@@ -3435,6 +3437,7 @@ class MutableMemory(ImmutableMemory,
             :meth:`write_backup`
 
         Restore:
+            :meth:`align_restore`
             :meth:`append_restore`
             :meth:`clear_restore`
             :meth:`crop_restore`

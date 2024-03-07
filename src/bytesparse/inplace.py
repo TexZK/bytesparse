@@ -152,7 +152,8 @@ class Memory(MutableMemory):
             address is automatically discarded; disabled if ``None``.
 
     """
-    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):]
+    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):
+                                       ImmutableMemory.__doc__.index('Method Groups:')]
 
     def __add__(
         self,
