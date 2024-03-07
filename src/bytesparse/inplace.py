@@ -800,7 +800,9 @@ class Memory(MutableMemory):
         if modulo == 1:
             return
 
-        for start, endex in self.intervals(start=start, endex=endex):
+        intervals = list(self.intervals(start=start, endex=endex))
+
+        for start, endex in intervals:
             start_offset = start % modulo
             if start_offset:
                 start -= start_offset
