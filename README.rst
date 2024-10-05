@@ -27,7 +27,7 @@ Overview
 
 .. |codecov| image:: https://codecov.io/gh/TexZK/bytesparse/branch/main/graphs/badge.svg?branch=main
     :alt: Coverage Status
-    :target: https://codecov.io/github/TexZK/bytesparse
+    :target: https://app.codecov.io/github/TexZK/bytesparse
 
 .. |version| image:: https://img.shields.io/pypi/v/bytesparse.svg
     :alt: PyPI Package latest release

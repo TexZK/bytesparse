@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - rc
 
   pull_request:
 
@@ -20,19 +21,17 @@ jobs:
           - windows-latest
 
         python-version:
-          - '3.7'
-          - '3.8'
           - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
-          - pypy-3.10
+          - pypy3.10
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -43,16 +42,19 @@ jobs:
         run: tox
 
       - name: Upload coverage
-        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.11' }}
-        uses: actions/upload-artifact@v3
+        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12' }}
+        uses: actions/upload-artifact@v4
         with:
           name: bytesparse-coverage
           path: coverage.xml
           if-no-files-found: error
 
       - name: Upload to codecov
-        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.11' }}
-        uses: codecov/codecov-action@v3
+        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12' }}
+        uses: codecov/codecov-action@v4
         with:
+          fail_ci_if_error: true
           files: coverage.xml
           flags: unittests
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
