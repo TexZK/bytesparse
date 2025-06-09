@@ -338,7 +338,7 @@ Documentation
 
 For the full documentation, please refer to:
 
-https://bytesparse.readthedocs.io/
+https://bytesparse.readthedocs.io/en/latest/
 
 
 Installation
