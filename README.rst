@@ -17,8 +17,8 @@ Overview
         | |supported-versions|
         | |supported-implementations|
 
-.. |docs| image:: https://readthedocs.org/projects/bytesparse/badge/?style=flat
-    :target: https://readthedocs.org/projects/bytesparse
+.. |docs| image:: https://app.readthedocs.org/projects/bytesparse/badge/?style=flat
+    :target: https://app.readthedocs.org/projects/bytesparse
     :alt: Documentation Status
 
 .. |gh_actions| image:: https://github.com/TexZK/bytesparse/workflows/CI/badge.svg
