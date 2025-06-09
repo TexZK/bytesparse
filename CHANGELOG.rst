@@ -1,6 +1,13 @@
 Changelog
 =========
 
+1.0.2 (2025-06-09)
+------------------
+
+* Added support for Python 3.13.
+* Added support for Python 3.14.
+
+
 1.0.1 (2024-10-05)
 ------------------
 

@@ -31,7 +31,7 @@ if os.getenv('SPELLCHECK'):
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'bytesparse'
-year = '2020-2024'
+year = '2020-2025'
 author = 'Andrea Zoppi'
 copyright = f'{year}, {author}'
 version = release = read_version()
