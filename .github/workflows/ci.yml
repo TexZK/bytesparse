@@ -25,6 +25,7 @@ jobs:
           - '3.10'
           - '3.11'
           - '3.12'
+          - '3.13'
           - pypy3.10
 
     steps:
@@ -51,7 +52,7 @@ jobs:
 
       - name: Upload to codecov
         if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.12' }}
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           files: coverage.xml
