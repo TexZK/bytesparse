@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools >= 61"]
+requires = ["setuptools >= 77.0.3"]
 
 [project]
 authors = [{name = "Andrea Zoppi", email = "texzk@email.it"}]
@@ -9,7 +9,6 @@ classifiers = [
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -31,7 +30,7 @@ classifiers = [
 ]
 description = "Library to handle sparse bytes within a virtual memory space"
 dynamic = ["version"]
-license = {text = "BSD-2-Clause"}
+license = "BSD-2-Clause"
 name = "bytesparse"
 readme = "README.rst"
 requires-python = ">= 3.7"

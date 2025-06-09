@@ -6,6 +6,7 @@ Changelog
 
 * Added support for Python 3.13.
 * Added support for Python 3.14.
+* Building with ``setuptools >= 77.0.3``
 
 
 1.0.1 (2024-10-05)
