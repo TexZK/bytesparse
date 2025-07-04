@@ -31,44 +31,45 @@ to hold block data, which allows mutable in-place operations.
 
 import io
 import sys
+from collections.abc import Mapping
+from collections.abc import Sequence
 from itertools import count as _count
 from itertools import islice as _islice
 from itertools import repeat as _repeat
 from itertools import zip_longest as _zip_longest
 from typing import Any
-from typing import ByteString
-from typing import Iterable
-from typing import Iterator
-from typing import List
-from typing import Mapping
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
-from typing import Union
+from typing import Union  # NOTE: type | operator unsupported for Python < 3.10
+from typing import cast as _cast
 
 from .base import HUMAN_ASCII
 from .base import STR_MAX_CONTENT_SIZE
 from .base import Address
 from .base import AddressValueMapping
 from .base import AnyBytes
+from .base import AnyItems
 from .base import Block
 from .base import BlockIndex
 from .base import BlockIterable
 from .base import BlockList
 from .base import BlockSequence
+from .base import ByteString
 from .base import ClosedInterval
 from .base import EllipsisType
 from .base import ImmutableMemory
+from .base import Iterable
+from .base import Iterator
 from .base import MutableBytesparse
 from .base import MutableMemory
 from .base import OpenInterval
+from .base import OptionalAddress
+from .base import OptionalValue
 from .base import Value
 
 
 def _repeat2(
-    pattern: Optional[ByteString],
+    pattern: Union[ByteString, None],
     offset: Address,
-    size: Optional[Address],
+    size: OptionalAddress,
 ) -> Iterator[Value]:
     r"""Pattern repetition.
 
@@ -88,10 +89,10 @@ def _repeat2(
 
     if pattern is None:
         if size is None:
-            yield from _repeat(None)
+            yield from _repeat(None)  # type: ignore
 
         elif 0 < size:
-            yield from _repeat(None, size)
+            yield from _repeat(None, size)  # type: ignore
 
     else:
         pattern_size = len(pattern)
@@ -152,8 +153,10 @@ class Memory(MutableMemory):
             address is automatically discarded; disabled if ``None``.
 
     """
-    __doc__ += ImmutableMemory.__doc__[ImmutableMemory.__doc__.index('Arguments:'):
-                                       ImmutableMemory.__doc__.index('Method Groups:')]
+    __doc__ += ImmutableMemory.__doc__[  # type: ignore __doc__
+        ImmutableMemory.__doc__.index('Arguments:'):  # type: ignore __doc__
+        ImmutableMemory.__doc__.index('Method Groups:')  # type: ignore __doc__
+    ]
 
     def __add__(
         self,
@@ -178,7 +181,7 @@ class Memory(MutableMemory):
 
     def __contains__(
         self,
-        item: Union[AnyBytes, Value],
+        item: Any,
     ) -> bool:
 
         return any(item in block_data for _, block_data in self._blocks)
@@ -305,8 +308,8 @@ class Memory(MutableMemory):
 
     def __init__(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ):
 
         if start is not None:
@@ -317,8 +320,8 @@ class Memory(MutableMemory):
                 endex = start
 
         self._blocks: BlockList = []
-        self._bound_start: Optional[Address] = start
-        self._bound_endex: Optional[Address] = endex
+        self._bound_start: OptionalAddress = start
+        self._bound_endex: OptionalAddress = endex
 
     def __ior__(
         self,
@@ -330,7 +333,7 @@ class Memory(MutableMemory):
 
     def __iter__(
         self,
-    ) -> Iterator[Optional[Value]]:
+    ) -> Iterator[OptionalValue]:
 
         yield from self.values(start=self.start, endex=self.endex)
 
@@ -380,14 +383,14 @@ class Memory(MutableMemory):
 
     def __reversed__(
         self,
-    ) -> Iterator[Optional[Value]]:
+    ) -> Iterator[OptionalValue]:
 
         yield from self.rvalues(start=self.start, endex=self.endex)
 
     def __setitem__(
         self,
         key: Union[Address, slice],
-        value: Optional[Union[AnyBytes, Value]],
+        value: Union[AnyBytes, Value, None],
     ) -> None:
 
         if isinstance(key, slice):
@@ -424,6 +427,7 @@ class Memory(MutableMemory):
             if isinstance(value, Value):
                 value = bytearray((value,))
                 value *= slice_size
+            value = _cast(AnyBytes, value)
             value_size = len(value)
 
             if value_size < slice_size:
@@ -462,7 +466,7 @@ class Memory(MutableMemory):
             bound_start = '' if self._bound_start is None else f'{self._bound_start}, '
             bound_endex = '' if self._bound_endex is None else f', {self._bound_endex}'
 
-            inner = ', '.join(f'[{block_start}, b{block_data.decode()!r}]'
+            inner = ', '.join(f'({block_start}, b{block_data.decode()!r})'
                               for block_start, block_data in self._blocks)
 
             return f'<{bound_start}[{inner}]{bound_endex}>'
@@ -472,11 +476,12 @@ class Memory(MutableMemory):
     def _block_index_at(
         self,
         address: Address,
-    ) -> Optional[BlockIndex]:
+    ) -> Union[BlockIndex, None]:
 
         blocks = self._blocks
         if blocks:
-            if address < blocks[0][0]:  # before first block
+            block_start, _ = blocks[0]
+            if address < block_start:  # before first block
                 return None
 
             block_start, block_data = blocks[-1]
@@ -509,7 +514,8 @@ class Memory(MutableMemory):
 
         blocks = self._blocks
         if blocks:
-            if address < blocks[0][0]:  # before first block
+            block_start, _ = blocks[0]
+            if address < block_start:  # before first block
                 return 0
 
             block_start, block_data = blocks[-1]
@@ -542,7 +548,8 @@ class Memory(MutableMemory):
 
         blocks = self._blocks
         if blocks:
-            if address <= blocks[0][0]:  # before first block
+            block_start, _ = blocks[0]
+            if address <= block_start:  # before first block
                 return 0
 
             block_start, block_data = blocks[-1]
@@ -605,7 +612,7 @@ class Memory(MutableMemory):
                         del block_data[(start - block_start):(endex - block_start)]
                     else:
                         block_data = block_data[:(start - block_start)]
-                        blocks.insert(block_index, [block_start, block_data])
+                        blocks.insert(block_index, (block_start, block_data))
                     block_index += 1  # skip this from inner part
 
             # Delete initial part of deletion end block
@@ -619,7 +626,8 @@ class Memory(MutableMemory):
                 if endex < block_endex:
                     offset = endex - block_start
                     del block_data[:offset]
-                    blocks[block_index][0] += offset  # update address
+                    block_start += offset  # update address
+                    blocks[block_index] = (block_start, block_data)
                     break  # inner ends before here
             else:
                 block_index = len(blocks)
@@ -639,7 +647,9 @@ class Memory(MutableMemory):
 
                 # Shift blocks after deletion
                 for block_index in range(block_index, len(blocks)):
-                    blocks[block_index][0] -= size  # update address
+                    block_start, block_data = blocks[block_index]
+                    block_start -= size  # update address
+                    blocks[block_index] = (block_start, block_data)
 
             # Delete inner full blocks
             if inner_start < inner_endex:
@@ -683,7 +693,9 @@ class Memory(MutableMemory):
                     # Shift blocks after
                     if shift_after:
                         for block_index in range(block_index, len(blocks)):
-                            blocks[block_index][0] += size
+                            block_start, block_data = blocks[block_index]
+                            block_start += size
+                            blocks[block_index] = (block_start, block_data)
                     else:
                         if block_index < len(blocks):
                             block_endex += size
@@ -701,15 +713,15 @@ class Memory(MutableMemory):
                 if address < block_start:
                     if shift_after:
                         # Insert a standalone block before
-                        blocks.insert(block_index, [address, data])
+                        blocks.insert(block_index, (address, data))
                     else:
                         if address + len(data) == block_start:
                             # Merge with next block
-                            blocks[block_index][0] = address
+                            blocks[block_index] = (address, block_data)
                             block_data[0:0] = data
                         else:
                             # Insert a standalone block before
-                            blocks.insert(block_index, [address, data])
+                            blocks.insert(block_index, (address, data))
                 else:
                     # Insert data into the current block
                     offset = address - block_start
@@ -718,15 +730,17 @@ class Memory(MutableMemory):
                 # Shift blocks after
                 if shift_after:
                     for block_index in range(block_index + 1, len(blocks)):
-                        blocks[block_index][0] += size
+                        block_start, block_data = blocks[block_index]
+                        block_start += size
+                        blocks[block_index] = (block_start, block_data)
 
             else:
                 # Append a standalone block after
-                blocks.append([address, data[:]])
+                blocks.append((address, data[:]))
 
     def _prebound_endex(
         self,
-        start_min: Optional[Address],
+        start_min: OptionalAddress,
         size: Address,
     ) -> None:
 
@@ -741,7 +755,7 @@ class Memory(MutableMemory):
 
     def _prebound_endex_backup(
         self,
-        start_min: Optional[Address],
+        start_min: OptionalAddress,
         size: Address,
     ) -> ImmutableMemory:
 
@@ -756,7 +770,7 @@ class Memory(MutableMemory):
 
     def _prebound_start(
         self,
-        endex_max: Optional[Address],
+        endex_max: OptionalAddress,
         size: Address,
     ) -> None:
 
@@ -771,7 +785,7 @@ class Memory(MutableMemory):
 
     def _prebound_start_backup(
         self,
-        endex_max: Optional[Address],
+        endex_max: OptionalAddress,
         size: Address,
     ) -> ImmutableMemory:
 
@@ -789,9 +803,9 @@ class Memory(MutableMemory):
     def align(
         self,
         modulo: int,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Union[AnyBytes, Value] = 0,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: AnyItems = 0,
     ) -> None:
 
         modulo = modulo.__index__()
@@ -817,9 +831,9 @@ class Memory(MutableMemory):
     def align_backup(
         self,
         modulo: int,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> List[OpenInterval]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> list[OpenInterval]:
 
         modulo = modulo.__index__()
         if modulo < 1:
@@ -840,17 +854,18 @@ class Memory(MutableMemory):
 
     def align_restore(
         self,
-        gaps: List[OpenInterval],
+        gaps: list[OpenInterval],
     ) -> None:
 
         self.flood_restore(gaps)
 
     def append(
         self,
-        item: Union[AnyBytes, Value],
+        item: AnyItems,
     ) -> None:
 
         if not isinstance(item, Value):
+            item = _cast(AnyBytes, item)
             if len(item) != 1:
                 raise ValueError('expecting single item')
             item = item[0]
@@ -859,7 +874,7 @@ class Memory(MutableMemory):
         if blocks:
             blocks[-1][1].append(item)
         else:
-            blocks.append([0, bytearray((item,))])
+            blocks.append((0, bytearray((item,))))
 
     # noinspection PyMethodMayBeStatic
     def append_backup(
@@ -877,7 +892,7 @@ class Memory(MutableMemory):
     def block_span(
         self,
         address: Address,
-    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+    ) -> tuple[OptionalAddress, OptionalAddress, OptionalValue]:
 
         block_index = self._block_index_start(address)
         blocks = self._blocks
@@ -914,15 +929,19 @@ class Memory(MutableMemory):
 
     def blocks(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Iterator[Block]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> Iterator[tuple[Address, memoryview]]:
 
         blocks = self._blocks
         if blocks:
             if start is None and endex is None:  # faster
                 for block_start, block_data in blocks:
-                    yield [block_start, memoryview(block_data)]
+                    block_view = memoryview(block_data)
+
+                    yield (block_start, block_view)
+
+                    block_view.release()
             else:
                 block_index_start = 0 if start is None else self._block_index_start(start)
                 block_index_endex = len(blocks) if endex is None else self._block_index_endex(endex)
@@ -933,15 +952,20 @@ class Memory(MutableMemory):
                     block_endex = block_start + len(block_data)
                     slice_start = block_start if start < block_start else start
                     slice_endex = endex if endex < block_endex else block_endex
+
                     if slice_start < slice_endex:
                         slice_view = memoryview(block_data)
-                        slice_view = slice_view[(slice_start - block_start):(slice_endex - block_start)]
-                        yield [slice_start, slice_view]
+                        slice_view2 = slice_view[(slice_start - block_start):(slice_endex - block_start)]
+
+                        yield (slice_start, slice_view2)
+
+                        slice_view2.release()
+                        slice_view.release()
 
     def bound(
         self,
-        start: Optional[Address],
-        endex: Optional[Address],
+        start: OptionalAddress,
+        endex: OptionalAddress,
     ) -> ClosedInterval:
 
         blocks = self._blocks
@@ -951,7 +975,7 @@ class Memory(MutableMemory):
         if start is None:
             if bound_start is None:
                 if blocks:
-                    start = blocks[0][0]
+                    start, _ = blocks[0]
                 else:
                     start = 0
             else:
@@ -985,14 +1009,14 @@ class Memory(MutableMemory):
     @ImmutableMemory.bound_endex.getter
     def bound_endex(
         self,
-    ) -> Optional[Address]:
+    ) -> OptionalAddress:
 
         return self._bound_endex
 
     @bound_endex.setter
     def bound_endex(
         self,
-        bound_endex: Optional[Address],
+        bound_endex: OptionalAddress,
     ) -> None:
 
         bound_start = self._bound_start
@@ -1011,7 +1035,7 @@ class Memory(MutableMemory):
         return self._bound_start, self._bound_endex
 
     @bound_span.setter
-    def bound_span(
+    def bound_span(  # type: ignore override
         self,
         bound_span: OpenInterval,
     ) -> None:
@@ -1030,14 +1054,14 @@ class Memory(MutableMemory):
     @ImmutableMemory.bound_start.getter
     def bound_start(
         self,
-    ) -> Optional[Address]:
+    ) -> OptionalAddress:
 
         return self._bound_start
 
     @bound_start.setter
     def bound_start(
         self,
-        bound_start: Optional[Address],
+        bound_start: OptionalAddress,
     ) -> None:
 
         bound_endex = self._bound_endex
@@ -1051,10 +1075,10 @@ class Memory(MutableMemory):
     def chop(
         self,
         width: Address,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         align: bool = False,
-    ) -> Iterator[Tuple[Address, memoryview]]:
+    ) -> Iterator[tuple[Address, memoryview]]:
 
         if width < 1:
             raise ValueError('invalid width')
@@ -1068,18 +1092,21 @@ class Memory(MutableMemory):
                 if chunk_offset:
                     chunk_offset = width - chunk_offset
                     chunk_view = block_view[:chunk_offset]
+
                     yield block_start, chunk_view
 
             while chunk_offset < block_size:
                 chunk_after = chunk_offset + width
                 chunk_view = block_view[chunk_offset:chunk_after]
+
                 yield block_start + chunk_offset, chunk_view
+
                 chunk_offset = chunk_after
 
     def clear(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         if start is None:
@@ -1092,8 +1119,8 @@ class Memory(MutableMemory):
 
     def clear_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         return self.extract(start=start, endex=endex)
@@ -1120,10 +1147,10 @@ class Memory(MutableMemory):
 
     def content_blocks(
         self,
-        block_index_start: Optional[BlockIndex] = None,
-        block_index_endex: Optional[BlockIndex] = None,
-        block_index_step: Optional[BlockIndex] = None,
-    ) -> Iterator[Union[Tuple[Address, Union[memoryview, bytearray]], Block]]:
+        block_index_start: Union[BlockIndex, None] = None,
+        block_index_endex: Union[BlockIndex, None] = None,
+        block_index_step: Union[BlockIndex, None] = None,
+    ) -> Iterator[Union[tuple[Address, (Union[memoryview, bytearray])], Block]]:
 
         blocks = self._blocks
 
@@ -1165,9 +1192,9 @@ class Memory(MutableMemory):
 
     def content_items(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Iterator[Tuple[Address, Value]]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> Iterator[tuple[Address, Value]]:
 
         blocks = self._blocks
         if blocks:
@@ -1196,8 +1223,8 @@ class Memory(MutableMemory):
 
     def content_keys(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[Address]:
 
         blocks = self._blocks
@@ -1254,8 +1281,8 @@ class Memory(MutableMemory):
 
     def content_values(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[Value]:
 
         blocks = self._blocks
@@ -1298,14 +1325,15 @@ class Memory(MutableMemory):
         else:
             return True
 
-    def count(
+    def count(  # type: ignore override
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> int:
 
         # Faster code for unbounded slice
+        item = _cast(Value, item)
         if start is None and endex is None:
             return sum(block_data.count(item) for _, block_data in self._blocks)
 
@@ -1336,8 +1364,8 @@ class Memory(MutableMemory):
 
     def crop(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         blocks = self._blocks  # may change during execution
@@ -1359,9 +1387,9 @@ class Memory(MutableMemory):
 
     def crop_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> tuple[Union[ImmutableMemory, None], Union[ImmutableMemory, None]]:
 
         backup_start = None
         backup_endex = None
@@ -1383,8 +1411,8 @@ class Memory(MutableMemory):
 
     def crop_restore(
         self,
-        backup_start: Optional[ImmutableMemory],
-        backup_endex: Optional[ImmutableMemory],
+        backup_start: Union[ImmutableMemory, None],
+        backup_endex: Union[ImmutableMemory, None],
     ) -> None:
 
         if backup_start is not None:
@@ -1394,8 +1422,8 @@ class Memory(MutableMemory):
 
     def cut(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         bound: bool = True,
     ) -> 'Memory':
 
@@ -1417,21 +1445,21 @@ class Memory(MutableMemory):
             block_index_endex = len(blocks) if endex_ is None else self._block_index_endex(endex)
 
             if block_index_start < block_index_endex:
-                memory_blocks = _islice(blocks, block_index_start, block_index_endex)
-                memory_blocks = [[block_start, block_data]
-                                 for block_start, block_data in memory_blocks]
+                memory_block_iter = _islice(blocks, block_index_start, block_index_endex)
+                memory_blocks = [(block_start, block_data)
+                                 for block_start, block_data in memory_block_iter]
 
                 # Bound cloned data before the selection start address
                 block_start, block_data = memory_blocks[0]
                 if block_start < start:
-                    memory_blocks[0] = [start, block_data[(start - block_start):]]
+                    memory_blocks[0] = (start, block_data[(start - block_start):])
 
                 # Bound cloned data after the selection end address
                 block_start, block_data = memory_blocks[-1]
                 block_endex = block_start + len(block_data)
                 if endex < block_endex:
                     if block_start < endex:
-                        memory_blocks[-1] = [block_start, block_data[:(endex - block_start)]]
+                        memory_blocks[-1] = (block_start, block_data[:(endex - block_start)])
                     else:
                         memory_blocks.pop()
 
@@ -1446,8 +1474,8 @@ class Memory(MutableMemory):
 
     def delete(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         if start is None:
@@ -1460,8 +1488,8 @@ class Memory(MutableMemory):
 
     def delete_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         return self.extract(start=start, endex=endex)
@@ -1511,7 +1539,7 @@ class Memory(MutableMemory):
     def equal_span(
         self,
         address: Address,
-    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+    ) -> tuple[OptionalAddress, OptionalAddress, OptionalValue]:
 
         block_index = self._block_index_start(address)
         blocks = self._blocks
@@ -1593,10 +1621,10 @@ class Memory(MutableMemory):
 
     def extract(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-        step: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: Union[ByteString, Value, None] = None,
+        step: OptionalAddress = None,
         bound: bool = True,
     ) -> 'Memory':
 
@@ -1619,15 +1647,15 @@ class Memory(MutableMemory):
                 block_index_endex = len(blocks) if endex_ is None else self._block_index_endex(endex)
 
                 if block_index_start < block_index_endex:
-                    memory_blocks = _islice(blocks, block_index_start, block_index_endex)
-                    memory_blocks = [[block_start, bytearray(block_data)]
-                                     for block_start, block_data in memory_blocks]
+                    memory_block_iter = _islice(blocks, block_index_start, block_index_endex)
+                    memory_blocks: BlockList = [(block_start, bytearray(block_data))
+                                                for block_start, block_data in memory_block_iter]
 
                     # Bound cloned data before the selection start address
                     block_start, block_data = memory_blocks[0]
                     if block_start < start:
                         del block_data[:(start - block_start)]
-                        memory_blocks[0] = [start, block_data]
+                        memory_blocks[0] = (start, block_data)
 
                     # Bound cloned data after the selection end address
                     block_start, block_data = memory_blocks[-1]
@@ -1635,7 +1663,7 @@ class Memory(MutableMemory):
                     if endex < block_endex:
                         if block_start < endex:
                             del block_data[(endex - block_start):]
-                            memory_blocks[-1] = [block_start, block_data]
+                            memory_blocks[-1] = (block_start, block_data)
                         else:
                             memory_blocks.pop()
 
@@ -1646,26 +1674,29 @@ class Memory(MutableMemory):
         else:
             step = int(step)
             if step > 1:
-                memory_blocks = []
-                block_start = None
-                block_data = None
+                memory_blocks: BlockList = []
+                empty = True
+                block_start = 0  # dummy
+                block_data = bytearray()  # dummy
                 offset = start
                 values = self.values(start=start, endex=endex, pattern=pattern)
 
                 for value in _islice(values, 0, endex - start, step):
                     if value is None:
-                        if block_start is not None:
-                            memory_blocks.append([block_start, block_data])
-                            block_start = None
+                        if not empty:
+                            memory_blocks.append((block_start, block_data))
+                            empty = True
                     else:
-                        if block_start is None:
+                        if empty:
+                            empty = False
                             block_start = offset
                             block_data = bytearray()
+                        assert block_data is not None
                         block_data.append(value)
                     offset += 1
 
-                if block_start is not None:
-                    memory_blocks.append([block_start, block_data])
+                if not empty:
+                    memory_blocks.append((block_start, block_data))
 
                 memory._blocks = memory_blocks
                 if bound:
@@ -1679,9 +1710,9 @@ class Memory(MutableMemory):
 
     def fill(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Union[AnyBytes, Value] = 0,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: AnyItems = 0,
     ) -> None:
 
         start_ = start
@@ -1711,8 +1742,8 @@ class Memory(MutableMemory):
 
     def fill_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         return self.extract(start=start, endex=endex)
@@ -1726,9 +1757,9 @@ class Memory(MutableMemory):
 
     def find(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         try:
@@ -1738,9 +1769,9 @@ class Memory(MutableMemory):
 
     def flood(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Union[AnyBytes, Value] = 0,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: AnyItems = 0,
     ) -> None:
 
         start, endex = self.bound(start, endex)
@@ -1789,7 +1820,7 @@ class Memory(MutableMemory):
             del pattern[size:]
 
             blocks_inner = blocks[block_index_start:block_index_endex]
-            blocks[block_index_start:block_index_endex] = [[start, pattern]]
+            blocks[block_index_start:block_index_endex] = [(start, pattern)]
 
             for block_start, block_data in blocks_inner:
                 block_endex = block_start + len(block_data)
@@ -1797,15 +1828,15 @@ class Memory(MutableMemory):
 
     def flood_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> List[OpenInterval]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> list[OpenInterval]:
 
         return list(self.gaps(start=start, endex=endex))
 
     def flood_restore(
         self,
-        gaps: List[OpenInterval],
+        gaps: list[OpenInterval],
     ) -> None:
 
         for gap_start, gap_endex in gaps:
@@ -1816,8 +1847,8 @@ class Memory(MutableMemory):
         cls,
         blocks: BlockSequence,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'Memory':
@@ -1825,14 +1856,16 @@ class Memory(MutableMemory):
         offset = Address(offset)
 
         if copy:
-            blocks = [[block_start + offset, bytearray(block_data)]
-                      for block_start, block_data in blocks]
+            blocks2 = [(block_start + offset, bytearray(block_data))
+                       for block_start, block_data in blocks]
         elif offset:
-            blocks = [[block_start + offset, block_data]
-                      for block_start, block_data in blocks]
+            blocks2 = [(block_start + offset, _cast(bytearray, block_data))
+                       for block_start, block_data in blocks]
+        else:
+            blocks2 = _cast(BlockList, blocks)
 
         memory = cls(start=start, endex=endex)
-        memory._blocks = blocks
+        memory._blocks = blocks2
 
         if start is not None or endex is not None:
             memory.crop(start, endex)
@@ -1847,16 +1880,18 @@ class Memory(MutableMemory):
         cls,
         data: AnyBytes,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'Memory':
 
+        blocks: BlockList
         if data:
             if copy:
                 data = bytearray(data)
-            blocks = [[offset, data]]
+            data = _cast(bytearray, data)
+            blocks = [(offset, data)]
         else:
             blocks = []
 
@@ -1865,18 +1900,15 @@ class Memory(MutableMemory):
     @classmethod
     def from_items(
         cls,
-        items: Union[AddressValueMapping,
-                     Iterable[Tuple[Address, Optional[Value]]],
-                     Mapping[Address, Optional[Union[Value, AnyBytes]]],
-                     ImmutableMemory],
+        items: object,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         validate: bool = True,
     ) -> 'Memory':
 
         blocks = []
-        items = dict(items)
+        items = dict(_cast(AddressValueMapping, items))
         keys = [key for key, value in items.items() if value is not None]
 
         if keys:
@@ -1887,13 +1919,13 @@ class Memory(MutableMemory):
 
             for key in keys:
                 if key == key_seq:
-                    block_data.append(items[key])
+                    block_data.append(items[key])  # type: ignore Sequence[Value]
                     key_seq = key_seq + 1
                 else:
                     blocks.append([block_start + offset, block_data])
                     block_start = key
                     block_data = bytearray()
-                    block_data.append(items[key])
+                    block_data.append(items[key])  # type: ignore Sequence[Value]
                     key_seq = key + 1
 
             blocks.append([block_start + offset, block_data])
@@ -1903,10 +1935,10 @@ class Memory(MutableMemory):
     @classmethod
     def from_memory(
         cls,
-        memory: Union[ImmutableMemory, 'Memory'],
+        memory: 'Union[ImmutableMemory, Memory]',
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'Memory':
@@ -1917,24 +1949,24 @@ class Memory(MutableMemory):
         if copy or not is_memory:
             memory_blocks = memory._blocks if is_memory else memory.blocks()
 
-            blocks = [[block_start + offset, bytearray(block_data)]
-                      for block_start, block_data in memory_blocks]
+            blocks2 = [(block_start + offset, bytearray(block_data))
+                       for block_start, block_data in memory_blocks]
         else:
             if offset:
-                blocks = [[block_start + offset, block_data]
-                          for block_start, block_data in memory._blocks]
+                blocks2 = [(block_start + offset, block_data)
+                           for block_start, block_data in memory._blocks]
             else:
-                blocks = memory._blocks
+                blocks2 = memory._blocks
 
-        return cls.from_blocks(blocks, start=start, endex=endex, copy=False, validate=validate)
+        return cls.from_blocks(blocks2, start=start, endex=endex, copy=False, validate=validate)
 
     @classmethod
     def from_values(
         cls,
-        values: Iterable[Optional[Value]],
+        values: Iterable[OptionalValue],
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         validate: bool = True,
     ) -> 'Memory':
 
@@ -1974,13 +2006,13 @@ class Memory(MutableMemory):
         data = bytearray.fromhex(string)
         obj = cls()
         if data:
-            obj._blocks.append([0, data])
+            obj._blocks.append((0, data))
         return obj
 
     def gaps(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[OpenInterval]:
 
         blocks = self._blocks
@@ -1990,7 +2022,7 @@ class Memory(MutableMemory):
             start, endex = self.bound(start, endex)
 
             if start_ is None:
-                start = blocks[0][0]  # override bound start
+                start, _ = blocks[0]  # override bound start
                 yield None, start
                 block_index_start = 0
             else:
@@ -2018,8 +2050,8 @@ class Memory(MutableMemory):
     def get(
         self,
         address: Address,
-        default: Optional[Value] = None,
-    ) -> Optional[Value]:
+        default: OptionalValue = None,
+    ) -> OptionalValue:
 
         block_index = self._block_index_at(address)
         if block_index is None:
@@ -2039,25 +2071,25 @@ class Memory(MutableMemory):
         if block_count > 1:
             raise ValueError('non-contiguous data within range')
 
-        data = self._blocks[0][1]
+        _, data = self._blocks[0]
         return data.hex(*args)
 
     def hexdump(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         columns: int = 16,
         addrfmt: str = '{:08X} ',
         bytefmt: str = ' {:02X}',
-        headfmt: Optional[Union[str, EllipsisType]] = None,
-        charmap: Optional[Mapping[int, str]] = HUMAN_ASCII,
+        headfmt: Union[str, EllipsisType, None] = None,
+        charmap: Union[Mapping[int, str], None] = HUMAN_ASCII,
         emptystr: str = ' --',
         beforestr: str = ' >>',
         afterstr: str = ' <<',
         charsep: str = '  |',
         charend: str = '|',
-        stream: Optional[Union[io.TextIOBase, EllipsisType]] = Ellipsis,
-    ) -> Optional[str]:
+        stream: Union[io.TextIOBase, EllipsisType, None] = Ellipsis,
+    ) -> Union[str, None]:
 
         if columns < 1:
             raise ValueError('invalid columns')
@@ -2070,13 +2102,13 @@ class Memory(MutableMemory):
         elif endex < start + columns:
             endex = start + columns
         if stream is Ellipsis:
-            stream = sys.stdout
+            stream = _cast(io.TextIOBase, sys.stdout)
 
         addrfmt_format = addrfmt.format
         bytefmt_format = bytefmt.format
         bytemap = [bytefmt_format(i) for i in range(0x100)]
         tokens = []
-        append = tokens.append if stream is None else stream.write
+        append = tokens.append if stream is None else _cast(io.TextIOBase, stream).write
         self_values = self.values(start=start, endex=...)
         bound_start = self._bound_start
         bound_endex = self._bound_endex
@@ -2086,6 +2118,7 @@ class Memory(MutableMemory):
         if headfmt:
             if headfmt is Ellipsis:
                 headfmt = bytefmt
+            headfmt = _cast(str, headfmt)
             append(' ' * len(addrfmt_format(address)))
             if ((columns - 1) & columns) == 0:  # power of 2
                 for i in range(columns):
@@ -2125,16 +2158,16 @@ class Memory(MutableMemory):
 
     def index(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         # Faster code for unbounded slice
         if start is None and endex is None:
             for block_start, block_data in self._blocks:
                 try:
-                    offset = block_data.index(item)
+                    offset = block_data.index(item)  # type: ignore SupportsIndex
                 except ValueError:
                     continue
                 else:
@@ -2151,7 +2184,7 @@ class Memory(MutableMemory):
             slice_start = 0 if start < block_start else start - block_start
             slice_endex = endex - block_start
             try:
-                offset = block_data.index(item, slice_start, slice_endex)
+                offset = block_data.index(item, slice_start, slice_endex)  # type: ignore SupportsIndex
             except ValueError:
                 pass
             else:
@@ -2162,7 +2195,7 @@ class Memory(MutableMemory):
     def insert(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyItems, ImmutableMemory],
     ) -> None:
 
         size = 1 if isinstance(data, Value) else len(data)
@@ -2172,8 +2205,8 @@ class Memory(MutableMemory):
     def insert_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> Tuple[Address, ImmutableMemory]:
+        data: Union[AnyItems, ImmutableMemory],
+    ) -> tuple[Address, ImmutableMemory]:
 
         size = 1 if isinstance(data, Value) else len(data)
         backup = self._prebound_endex_backup(address, size)
@@ -2190,8 +2223,8 @@ class Memory(MutableMemory):
 
     def intervals(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[ClosedInterval]:
 
         blocks = self._blocks
@@ -2210,10 +2243,10 @@ class Memory(MutableMemory):
 
     def items(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Tuple[Address, Optional[Value]]]:
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
+        pattern: Union[ByteString, Value, None] = None,
+    ) -> Iterator[tuple[Address, OptionalValue]]:
 
         if start is None:
             start = self.start
@@ -2226,8 +2259,8 @@ class Memory(MutableMemory):
 
     def keys(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
     ) -> Iterator[Address]:
 
         if start is None:
@@ -2238,12 +2271,13 @@ class Memory(MutableMemory):
         else:
             if endex is None:
                 endex = self.endex
+            endex = _cast(Address, endex)
             yield from range(start, endex)
 
     def peek(
         self,
         address: Address,
-    ) -> Optional[Value]:
+    ) -> OptionalValue:
 
         block_index = self._block_index_at(address)
         if block_index is None:
@@ -2255,7 +2289,7 @@ class Memory(MutableMemory):
     def poke(
         self,
         address: Address,
-        item: Optional[Union[AnyBytes, Value]],
+        item: Union[AnyBytes, Value, None],
     ) -> None:
 
         if self._bound_start is not None and address < self._bound_start:
@@ -2269,6 +2303,7 @@ class Memory(MutableMemory):
 
         else:
             if not isinstance(item, Value):
+                item = _cast(AnyBytes, item)
                 if len(item) != 1:
                     raise ValueError('expecting single item')
                 item = item[0]
@@ -2303,13 +2338,13 @@ class Memory(MutableMemory):
                 else:
                     block_index += 1
                     if block_index < len(blocks):
-                        block = blocks[block_index]
-                        block_start, block_data = block
+                        block_start, block_data = blocks[block_index]
 
                         if address + 1 == block_start:
                             # Prepend to the next block
                             block_data.insert(0, item)
-                            block[0] -= 1  # update address
+                            block_start -= 1  # update address
+                            blocks[block_index] = (block_start, block_data)
                             return
 
             # There is no faster way than the standard block writing method
@@ -2321,28 +2356,28 @@ class Memory(MutableMemory):
     def poke_backup(
         self,
         address: Address,
-    ) -> Tuple[Address, Optional[Value]]:
+    ) -> tuple[Address, OptionalValue]:
 
         return address, self.peek(address)
 
     def poke_restore(
         self,
         address: Address,
-        item: Optional[Value],
+        item: OptionalValue,
     ) -> None:
 
         self.poke(address, item)
 
     def pop(
         self,
-        address: Optional[Address] = None,
-        default: Optional[Value] = None,
-    ) -> Optional[Value]:
+        address: OptionalAddress = None,
+        default: OptionalValue = None,
+    ) -> OptionalValue:
 
         if address is None:
             blocks = self._blocks
             if blocks:
-                block_data = blocks[-1][1]
+                _, block_data = blocks[-1]
                 backup = block_data.pop()
                 if not block_data:
                     blocks.pop()
@@ -2356,8 +2391,8 @@ class Memory(MutableMemory):
 
     def pop_backup(
         self,
-        address: Optional[Address] = None,
-    ) -> Tuple[Address, Optional[Value]]:
+        address: OptionalAddress = None,
+    ) -> tuple[Address, OptionalValue]:
 
         if address is None:
             address = self.endex - 1
@@ -2366,7 +2401,7 @@ class Memory(MutableMemory):
     def pop_restore(
         self,
         address: Address,
-        item: Optional[Value],
+        item: OptionalValue,
     ) -> None:
 
         if item is None:
@@ -2379,7 +2414,7 @@ class Memory(MutableMemory):
 
     def popitem(
         self,
-    ) -> Tuple[Address, Value]:
+    ) -> tuple[Address, Value]:
 
         blocks = self._blocks
         if blocks:
@@ -2393,7 +2428,7 @@ class Memory(MutableMemory):
 
     def popitem_backup(
         self,
-    ) -> Tuple[Address, Value]:
+    ) -> tuple[Address, Value]:
 
         blocks = self._blocks
         if blocks:
@@ -2425,7 +2460,7 @@ class Memory(MutableMemory):
     def readinto(
         self,
         address: Address,
-        buffer: AnyBytes,
+        buffer: Union[bytearray, memoryview],
     ) -> int:
 
         size = len(buffer)
@@ -2435,9 +2470,9 @@ class Memory(MutableMemory):
 
     def remove(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         address = self.index(item, start=start, endex=endex)
@@ -2446,9 +2481,9 @@ class Memory(MutableMemory):
 
     def remove_backup(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         address = self.index(item, start=start, endex=endex)
@@ -2486,17 +2521,19 @@ class Memory(MutableMemory):
                     del block_data[offset:]
                     block_index += 1
 
-                    blocks.insert(block_index, [address + size, data_after])
+                    blocks.insert(block_index, (address + size, data_after))
                     block_index += 1
 
                 for block_index in range(block_index, len(blocks)):
-                    blocks[block_index][0] += size
+                    block_start, block_data = blocks[block_index]
+                    block_start += size
+                    blocks[block_index] = (block_start, block_data)
 
     def reserve_backup(
         self,
         address: Address,
         size: Address,
-    ) -> Tuple[Address, ImmutableMemory]:
+    ) -> tuple[Address, ImmutableMemory]:
 
         backup = self._prebound_endex_backup(address, size)
         return address, backup
@@ -2518,18 +2555,19 @@ class Memory(MutableMemory):
         if blocks:
             start, endex = self.span
 
-            for block in blocks:
-                block_start, block_data = block
+            for block_index in range(len(blocks)):
+                block_start, block_data = blocks[block_index]
                 block_data.reverse()
-                block[0] = endex - block_start - len(block_data) + start
+                block_start = endex - block_start - len(block_data) + start
+                blocks[block_index] = block_start, block_data
 
             blocks.reverse()
 
     def rfind(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         try:
@@ -2539,16 +2577,16 @@ class Memory(MutableMemory):
 
     def rindex(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         # Faster code for unbounded slice
         if start is None and endex is None:
             for block_start, block_data in reversed(self._blocks):
                 try:
-                    offset = block_data.index(item)
+                    offset = block_data.index(item)  # type: ignore SupportsIndex
                 except ValueError:
                     continue
                 else:
@@ -2567,7 +2605,7 @@ class Memory(MutableMemory):
             slice_start = 0 if start < block_start else start - block_start
             slice_endex = endex - block_start
             try:
-                offset = block_data.rindex(item, slice_start, slice_endex)
+                offset = block_data.rindex(item, slice_start, slice_endex)  # type: ignore SupportsIndex
             except ValueError:
                 pass
             else:
@@ -2577,10 +2615,10 @@ class Memory(MutableMemory):
 
     def rvalues(
         self,
-        start: Optional[Union[Address, EllipsisType]] = None,
-        endex: Optional[Address] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Optional[Value]]:
+        start: Union[Address, EllipsisType, None] = None,
+        endex: OptionalAddress = None,
+        pattern: Union[AnyBytes, Value, None] = None,
+    ) -> Iterator[OptionalValue]:
 
         if pattern is None:
             pattern_size = 0
@@ -2596,6 +2634,7 @@ class Memory(MutableMemory):
         start_ = start
         if start is None or start is Ellipsis:
             start = self.start
+        start = _cast(Address, start)
 
         blocks = self._blocks
         if endex is None:
@@ -2603,6 +2642,7 @@ class Memory(MutableMemory):
             block_index = len(blocks)
         else:
             block_index = self._block_index_endex(endex)
+        endex = _cast(Address, endex)
 
         if 0 < block_index:
             block_start, block_data = blocks[block_index - 1]
@@ -2632,13 +2672,14 @@ class Memory(MutableMemory):
     def setdefault(
         self,
         address: Address,
-        default: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Optional[Value]:
+        default: Union[AnyBytes, Value, None] = None,
+    ) -> OptionalValue:
 
         backup = self.peek(address)
         if backup is None:
             if default is not None:
                 if not isinstance(default, Value):
+                    default = _cast(AnyBytes, default)
                     if len(default) != 1:
                         raise ValueError('expecting single item')
                     default = default[0]
@@ -2650,7 +2691,7 @@ class Memory(MutableMemory):
     def setdefault_backup(
         self,
         address: Address,
-    ) -> Tuple[Address, Optional[Value]]:
+    ) -> tuple[Address, OptionalValue]:
 
         backup = self.peek(address)
         return address, backup
@@ -2658,7 +2699,7 @@ class Memory(MutableMemory):
     def setdefault_restore(
         self,
         address: Address,
-        item: Optional[Value],
+        item: OptionalValue,
     ) -> None:
 
         self.poke(address, item)
@@ -2668,19 +2709,22 @@ class Memory(MutableMemory):
         offset: Address,
     ) -> None:
 
-        if offset and self._blocks:
+        blocks = self._blocks
+        if offset and blocks:
             if offset < 0:
                 self._prebound_start(None, -offset)
             else:
                 self._prebound_endex(None, +offset)
 
-            for block in self._blocks:
-                block[0] += offset
+            for block_index in range(len(blocks)):
+                block_start, block_data = blocks[block_index]
+                block_start += offset
+                blocks[block_index] = (block_start, block_data)
 
     def shift_backup(
         self,
         offset: Address,
-    ) -> Tuple[Address, ImmutableMemory]:
+    ) -> tuple[Address, ImmutableMemory]:
 
         if offset < 0:
             backup = self._prebound_start_backup(None, -offset)
@@ -2722,28 +2766,25 @@ class Memory(MutableMemory):
 
     def to_blocks(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> BlockList:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> list[tuple[Address, bytes]]:
 
-        blocks = [[block_start, bytes(block_data)]
+        blocks = [(block_start, bytes(block_data))
                   for block_start, block_data in self.blocks(start=start, endex=endex)]
         return blocks
 
     def to_bytes(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> bytes:
 
         return bytes(self.view(start=start, endex=endex))
 
     def update(
         self,
-        data: Union[AddressValueMapping,
-                    Iterable[Tuple[Address, Optional[Value]]],
-                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
-                    ImmutableMemory],
+        data: object,
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
     ) -> None:
@@ -2754,21 +2795,21 @@ class Memory(MutableMemory):
         if isinstance(data, ImmutableMemory):
             self.write(0, data, clear=clear)
         else:
-            if isinstance(data, Mapping):
-                data = data.items()
+            if hasattr(data, 'items') and callable(getattr(data, 'items')):
+                data = _cast(Mapping[Address, OptionalValue], data)
+                data_iter = data.items()
+            else:
+                data_iter = _cast(Iterable[tuple[Address, OptionalValue]], data)
             poke = self.poke
-            for address, value in data:
+            for address, value in data_iter:
                 poke(address, value)
 
     def update_backup(
         self,
-        data: Union[AddressValueMapping,
-                    Iterable[Tuple[Address, Optional[Value]]],
-                    Mapping[Address, Optional[Union[Value, AnyBytes]]],
-                    ImmutableMemory],
+        data: object,
         clear: bool = False,
         **kwargs: Any,  # string keys cannot become addresses
-    ) -> Union[AddressValueMapping, List[ImmutableMemory]]:
+    ) -> Union[AddressValueMapping, list[ImmutableMemory]]:
 
         if kwargs:
             raise KeyError('cannot convert kwargs.keys() into addresses')
@@ -2776,16 +2817,19 @@ class Memory(MutableMemory):
         if isinstance(data, ImmutableMemory):
             return self.write_backup(0, data, clear=clear)
         else:
+            backups: AddressValueMapping
             peek = self.peek
-            if isinstance(data, Mapping):
-                backups = {address: peek(address) for address in data.keys()}
+            if hasattr(data, 'keys') and callable(getattr(data, 'keys')):
+                data = _cast(AddressValueMapping, data)
+                backups = {address: _cast(Value, peek(address)) for address in data.keys()}
             else:
-                backups = {address: peek(address) for address, _ in data}
+                data = _cast(Iterable[tuple[Address, Value]], data)
+                backups = {address: _cast(Value, peek(address)) for address, _ in data}
             return backups
 
     def update_restore(
         self,
-        backups: Union[AddressValueMapping, List[ImmutableMemory]],
+        backups: Union[AddressValueMapping, list[ImmutableMemory]],
     ) -> None:
 
         if isinstance(backups, list):
@@ -2805,7 +2849,8 @@ class Memory(MutableMemory):
             if endex <= start:
                 raise ValueError('invalid bounds')
 
-            previous_endex = blocks[0][0] - 1  # before first start
+            block_start, _ = blocks[0]
+            previous_endex = block_start - 1  # before first start
 
             for block_start, block_data in blocks:
                 block_endex = block_start + len(block_data)
@@ -2827,16 +2872,15 @@ class Memory(MutableMemory):
 
     def values(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Optional[Value]]:
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
+        pattern: Union[ByteString, Value, None] = None,
+    ) -> Iterator[OptionalValue]:
 
         if endex is None or endex is Ellipsis:
             if pattern is not None:
                 if isinstance(pattern, Value):
-                    pattern = (pattern,)
-                    pattern = bytearray(pattern)
+                    pattern = bytearray((_cast(Value, pattern),))
                 if not pattern:
                     raise ValueError('non-empty pattern required')
 
@@ -2869,14 +2913,15 @@ class Memory(MutableMemory):
         else:
             if start is None:
                 start = self.start
+            endex = _cast(Address, endex)
             if start < endex:
                 values = self.values(start=start, endex=Ellipsis, pattern=pattern)
                 yield from _islice(values, (endex - start))
 
     def view(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> memoryview:
 
         if start is None:
@@ -2934,6 +2979,7 @@ class Memory(MutableMemory):
             return
 
         if data_is_immutable_memory:
+            data = _cast(ImmutableMemory, data)
             data_is_memory = isinstance(data, Memory)
             if clear:
                 # Clear anything between source data boundaries
@@ -2972,6 +3018,8 @@ class Memory(MutableMemory):
 
                 self._place(block_start, block_data, False)  # write
         else:
+            data = _cast(bytearray, data)
+
             # Bound before memory
             if bound_start is not None and start < bound_start:
                 offset = bound_start - start
@@ -3002,10 +3050,11 @@ class Memory(MutableMemory):
     def write_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyItems, ImmutableMemory],
         clear: bool = False,
-    ) -> List[ImmutableMemory]:
+    ) -> list[ImmutableMemory]:
 
+        backups: list[ImmutableMemory]
         if isinstance(data, ImmutableMemory):
             start = data.start + address
             endex = data.endex + address
@@ -3070,8 +3119,8 @@ class bytesparse(Memory, MutableBytesparse):
     def __init__(
         self,
         *args: Any,  # see bytearray.__init__()
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ):
 
         super().__init__(start=start, endex=endex)
@@ -3087,12 +3136,12 @@ class bytesparse(Memory, MutableBytesparse):
 
                 del data[(endex - start):]
 
-            self._blocks.append([start, data])
+            self._blocks.append((start, data))
 
     def __setitem__(
         self,
         key: Union[Address, slice],
-        value: Optional[Union[AnyBytes, Value]],
+        value: Union[AnyBytes, Value, None],
     ) -> None:
 
         if isinstance(key, slice):
@@ -3119,8 +3168,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def _rectify_span(
         self,
-        start: Optional[Address],
-        endex: Optional[Address],
+        start: OptionalAddress,
+        endex: OptionalAddress,
     ) -> OpenInterval:
 
         endex_ = None
@@ -3143,24 +3192,24 @@ class bytesparse(Memory, MutableBytesparse):
     def block_span(
         self,
         address: Address,
-    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+    ) -> tuple[OptionalAddress, OptionalAddress, OptionalValue]:
 
         address = self._rectify_address(address)
         return super().block_span(address)
 
     def blocks(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Iterator[Block]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> Iterator[tuple[Address, memoryview]]:
 
         start, endex = self._rectify_span(start, endex)
         yield from super().blocks(start=start, endex=endex)
 
     def bound(
         self,
-        start: Optional[Address],
-        endex: Optional[Address],
+        start: OptionalAddress,
+        endex: OptionalAddress,
     ) -> ClosedInterval:
 
         start, endex = self._rectify_span(start, endex)
@@ -3168,8 +3217,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def clear(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3177,18 +3226,18 @@ class bytesparse(Memory, MutableBytesparse):
 
     def clear_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
         return super().clear_backup(start=start, endex=endex)
 
-    def count(
+    def count(  # type: ignore override
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> int:
 
         start, endex = self._rectify_span(start, endex)
@@ -3196,8 +3245,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def crop(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3205,17 +3254,17 @@ class bytesparse(Memory, MutableBytesparse):
 
     def crop_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> Tuple[Optional[ImmutableMemory], Optional[ImmutableMemory]]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> tuple[Union[ImmutableMemory, None], Union[ImmutableMemory, None]]:
 
         start, endex = self._rectify_span(start, endex)
         return super().crop_backup(start=start, endex=endex)
 
-    def cut(
+    def cut(  # type: ignore override
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         bound: bool = True,
     ) -> ImmutableMemory:
 
@@ -3224,8 +3273,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def delete(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3233,8 +3282,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def delete_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
@@ -3243,28 +3292,28 @@ class bytesparse(Memory, MutableBytesparse):
     def equal_span(
         self,
         address: Address,
-    ) -> Tuple[Optional[Address], Optional[Address], Optional[Value]]:
+    ) -> tuple[OptionalAddress, OptionalAddress, OptionalValue]:
 
         address = self._rectify_address(address)
         return super().equal_span(address)
 
     def extract(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-        step: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: Union[ByteString, Value, None] = None,
+        step: OptionalAddress = None,
         bound: bool = True,
-    ) -> ImmutableMemory:
+    ) -> Memory:
 
         start, endex = self._rectify_span(start, endex)
         return super().extract(start=start, endex=endex, pattern=pattern, step=step, bound=bound)
 
     def fill(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Union[AnyBytes, Value] = 0,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: AnyItems = 0,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3272,8 +3321,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def fill_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
@@ -3281,9 +3330,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def find(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
@@ -3291,9 +3340,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def flood(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-        pattern: Union[AnyBytes, Value] = 0,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+        pattern: AnyItems = 0,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3301,9 +3350,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def flood_backup(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
-    ) -> List[OpenInterval]:
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
+    ) -> list[OpenInterval]:
 
         start, endex = self._rectify_span(start, endex)
         return super().flood_backup(start=start, endex=endex)
@@ -3313,8 +3362,8 @@ class bytesparse(Memory, MutableBytesparse):
         cls,
         blocks: BlockSequence,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'bytesparse':
@@ -3341,8 +3390,8 @@ class bytesparse(Memory, MutableBytesparse):
         cls,
         data: AnyBytes,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'bytesparse':
@@ -3366,8 +3415,8 @@ class bytesparse(Memory, MutableBytesparse):
         cls,
         memory: ImmutableMemory,
         offset: Address = 0,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         copy: bool = True,
         validate: bool = True,
     ) -> 'bytesparse':
@@ -3397,8 +3446,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def gaps(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[OpenInterval]:
 
         start, endex = self._rectify_span(start, endex)
@@ -3407,28 +3456,28 @@ class bytesparse(Memory, MutableBytesparse):
     def get(
         self,
         address: Address,
-        default: Optional[Value] = None,
-    ) -> Optional[Value]:
+        default: OptionalValue = None,
+    ) -> OptionalValue:
 
         address = self._rectify_address(address)
         return super().get(address, default=default)
 
     def hexdump(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
         columns: int = 16,
         addrfmt: str = '{:08X} ',
         bytefmt: str = ' {:02X}',
-        headfmt: Optional[Union[str, EllipsisType]] = None,
-        charmap: Optional[Mapping[int, str]] = HUMAN_ASCII,
+        headfmt: Union[str, EllipsisType, None] = None,
+        charmap: Union[Mapping[int, str], None] = HUMAN_ASCII,
         emptystr: str = ' --',
         beforestr: str = ' >>',
         afterstr: str = ' <<',
         charsep: str = '  |',
         charend: str = '|',
-        stream: Optional[Union[io.TextIOBase, EllipsisType]] = Ellipsis,
-    ) -> Optional[str]:
+        stream: Union[io.TextIOBase, EllipsisType, None] = Ellipsis,
+    ) -> Union[str, None]:
 
         start, endex = self._rectify_span(start, endex)
         return super().hexdump(
@@ -3449,9 +3498,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def index(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
@@ -3460,7 +3509,7 @@ class bytesparse(Memory, MutableBytesparse):
     def insert(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyItems, ImmutableMemory],
     ) -> None:
 
         address = self._rectify_address(address)
@@ -3469,16 +3518,16 @@ class bytesparse(Memory, MutableBytesparse):
     def insert_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
-    ) -> Tuple[Address, ImmutableMemory]:
+        data: Union[AnyItems, ImmutableMemory],
+    ) -> tuple[Address, ImmutableMemory]:
 
         address = self._rectify_address(address)
         return super().insert_backup(address, data)
 
     def intervals(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Iterator[ClosedInterval]:
 
         start, endex = self._rectify_span(start, endex)
@@ -3486,14 +3535,15 @@ class bytesparse(Memory, MutableBytesparse):
 
     def items(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Tuple[Address, Optional[Value]]]:
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
+        pattern: Union[ByteString, Value, None] = None,
+    ) -> Iterator[tuple[Address, OptionalValue]]:
 
         endex_ = endex  # backup
         if endex is Ellipsis:
             endex = None
+        endex = _cast(OptionalAddress, endex)
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
@@ -3501,13 +3551,14 @@ class bytesparse(Memory, MutableBytesparse):
 
     def keys(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
     ) -> Iterator[Address]:
 
         endex_ = endex  # backup
         if endex is Ellipsis:
             endex = None
+        endex = _cast(OptionalAddress, endex)
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
@@ -3516,7 +3567,7 @@ class bytesparse(Memory, MutableBytesparse):
     def peek(
         self,
         address: Address,
-    ) -> Optional[Value]:
+    ) -> OptionalValue:
 
         address = self._rectify_address(address)
         return super().peek(address)
@@ -3524,7 +3575,7 @@ class bytesparse(Memory, MutableBytesparse):
     def poke(
         self,
         address: Address,
-        item: Optional[Union[AnyBytes, Value]],
+        item: Union[AnyBytes, Value, None],
     ) -> None:
 
         address = self._rectify_address(address)
@@ -3533,16 +3584,16 @@ class bytesparse(Memory, MutableBytesparse):
     def poke_backup(
         self,
         address: Address,
-    ) -> Tuple[Address, Optional[Value]]:
+    ) -> tuple[Address, OptionalValue]:
 
         address = self._rectify_address(address)
         return super().poke_backup(address)
 
     def pop(
         self,
-        address: Optional[Address] = None,
-        default: Optional[Value] = None,
-    ) -> Optional[Value]:
+        address: OptionalAddress = None,
+        default: OptionalValue = None,
+    ) -> OptionalValue:
 
         if address is not None:
             address = self._rectify_address(address)
@@ -3550,8 +3601,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def pop_backup(
         self,
-        address: Optional[Address] = None,
-    ) -> Tuple[Address, Optional[Value]]:
+        address: OptionalAddress = None,
+    ) -> tuple[Address, OptionalValue]:
 
         if address is not None:
             address = self._rectify_address(address)
@@ -3569,7 +3620,7 @@ class bytesparse(Memory, MutableBytesparse):
     def readinto(
         self,
         address: Address,
-        buffer: AnyBytes,
+        buffer: Union[bytearray, memoryview],
     ) -> int:
 
         address = self._rectify_address(address)
@@ -3577,9 +3628,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def remove(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> None:
 
         start, endex = self._rectify_span(start, endex)
@@ -3587,9 +3638,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def remove_backup(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> ImmutableMemory:
 
         start, endex = self._rectify_span(start, endex)
@@ -3608,16 +3659,16 @@ class bytesparse(Memory, MutableBytesparse):
         self,
         address: Address,
         size: Address,
-    ) -> Tuple[Address, ImmutableMemory]:
+    ) -> tuple[Address, ImmutableMemory]:
 
         address = self._rectify_address(address)
         return super().reserve_backup(address, size)
 
     def rfind(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
@@ -3625,9 +3676,9 @@ class bytesparse(Memory, MutableBytesparse):
 
     def rindex(
         self,
-        item: Union[AnyBytes, Value],
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        item: AnyItems,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> Address:
 
         start, endex = self._rectify_span(start, endex)
@@ -3635,24 +3686,25 @@ class bytesparse(Memory, MutableBytesparse):
 
     def rvalues(
         self,
-        start: Optional[Union[Address, EllipsisType]] = None,
-        endex: Optional[Address] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Optional[Value]]:
+        start: Union[Address, EllipsisType, None] = None,
+        endex: OptionalAddress = None,
+        pattern: Union[AnyBytes, Value, None] = None,
+    ) -> Iterator[OptionalValue]:
 
         start_ = start  # backup
         if start is Ellipsis:
             start = None
+        start = _cast(OptionalAddress, start)
         start, endex = self._rectify_span(start, endex)
         if start_ is Ellipsis:
             start = start_  # restore
         yield from super().rvalues(start=start, endex=endex, pattern=pattern)
 
-    def setdefault(
+    def setdefault(  # type: ignore override
         self,
         address: Address,
-        default: Optional[Value] = None,
-    ) -> Optional[Value]:
+        default: OptionalValue = None,
+    ) -> OptionalValue:
 
         address = self._rectify_address(address)
         return super().setdefault(address, default=default)
@@ -3660,7 +3712,7 @@ class bytesparse(Memory, MutableBytesparse):
     def setdefault_backup(
         self,
         address: Address,
-    ) -> Tuple[Address, Optional[Value]]:
+    ) -> tuple[Address, OptionalValue]:
 
         address = self._rectify_address(address)
         return super().setdefault_backup(address)
@@ -3682,7 +3734,7 @@ class bytesparse(Memory, MutableBytesparse):
     def shift_backup(
         self,
         offset: Address,
-    ) -> Tuple[Address, ImmutableMemory]:
+    ) -> tuple[Address, ImmutableMemory]:
 
         if self._bound_start is None and offset < 0:
             blocks = self._blocks
@@ -3696,7 +3748,7 @@ class bytesparse(Memory, MutableBytesparse):
     @ImmutableMemory.bound_endex.getter
     def bound_endex(
         self,
-    ) -> Optional[Address]:
+    ) -> OptionalAddress:
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
         return self._bound_endex
@@ -3704,7 +3756,7 @@ class bytesparse(Memory, MutableBytesparse):
     @bound_endex.setter
     def bound_endex(
         self,
-        bound_endex: Optional[Address],
+        bound_endex: OptionalAddress,
     ) -> None:
 
         if bound_endex is not None and bound_endex < 0:
@@ -3730,7 +3782,7 @@ class bytesparse(Memory, MutableBytesparse):
     @bound_span.setter
     def bound_span(
         self,
-        bound_span: OpenInterval,
+        bound_span: Union[OpenInterval, None],
     ) -> None:
 
         if bound_span is None:
@@ -3754,7 +3806,7 @@ class bytesparse(Memory, MutableBytesparse):
     @ImmutableMemory.bound_start.getter
     def bound_start(
         self,
-    ) -> Optional[Address]:
+    ) -> OptionalAddress:
 
         # Copy-pasted from Memory, because I cannot figure out how to override properties
         return self._bound_start
@@ -3762,7 +3814,7 @@ class bytesparse(Memory, MutableBytesparse):
     @bound_start.setter
     def bound_start(
         self,
-        bound_start: Optional[Address],
+        bound_start: OptionalAddress,
     ) -> None:
 
         if bound_start is not None and bound_start < 0:
@@ -3781,22 +3833,23 @@ class bytesparse(Memory, MutableBytesparse):
         self,
     ) -> None:
 
-        for block in self._blocks:
-            if block[0] < 0:
+        for block_start, _ in self._blocks:
+            if block_start < 0:
                 raise ValueError('negative block start')
 
         super().validate()
 
     def values(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Union[Address, EllipsisType]] = None,
-        pattern: Optional[Union[AnyBytes, Value]] = None,
-    ) -> Iterator[Optional[Value]]:
+        start: OptionalAddress = None,
+        endex: Union[Address, EllipsisType, None] = None,
+        pattern: Union[ByteString, Value, None] = None,
+    ) -> Iterator[OptionalValue]:
 
         endex_ = endex  # backup
         if endex is Ellipsis:
             endex = None
+        endex = _cast(OptionalAddress, endex)
         start, endex = self._rectify_span(start, endex)
         if endex_ is Ellipsis:
             endex = endex_  # restore
@@ -3804,8 +3857,8 @@ class bytesparse(Memory, MutableBytesparse):
 
     def view(
         self,
-        start: Optional[Address] = None,
-        endex: Optional[Address] = None,
+        start: OptionalAddress = None,
+        endex: OptionalAddress = None,
     ) -> memoryview:
 
         start, endex = self._rectify_span(start, endex)
@@ -3814,7 +3867,7 @@ class bytesparse(Memory, MutableBytesparse):
     def write(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyItems, ImmutableMemory],
         clear: bool = False,
     ) -> None:
 
@@ -3824,9 +3877,9 @@ class bytesparse(Memory, MutableBytesparse):
     def write_backup(
         self,
         address: Address,
-        data: Union[AnyBytes, Value, ImmutableMemory],
+        data: Union[AnyItems, ImmutableMemory],
         clear: bool = False,
-    ) -> List[ImmutableMemory]:
+    ) -> list[ImmutableMemory]:
 
         address = self._rectify_address(address)
         return super().write_backup(address, data, clear=clear)

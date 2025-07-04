@@ -61,12 +61,12 @@ def test__repeat2_empty_pattern_sized():
 
 
 class TestMemory(BaseMemorySuite):
-    Memory: Type['_Memory'] = _Memory
+    Memory: type['_Memory'] = _Memory
 
     def test___init___nocopy(self):
         Memory = self.Memory
         data = b'5'
-        blocks = [[0, b'0'], [5, data], [9, b'9']]
+        blocks = [(0, b'0'), (5, data), (9, b'9')]
         offset = 123
 
         memory = Memory.from_bytes(data, copy=False)
@@ -99,7 +99,7 @@ class TestMemory(BaseMemorySuite):
 
     def test_from_blocks_nocopy(self):
         Memory = self.Memory
-        blocks = [[1, b'ABC'], [5, b'xyz']]
+        blocks = [(1, b'ABC'), (5, b'xyz')]
         memory = Memory.from_blocks(blocks, copy=False, validate=False)
         assert memory._blocks == blocks
         assert all(b1[1] is b2[1] for b1, b2 in zip(memory._blocks, blocks))
@@ -136,7 +136,7 @@ class TestMemory(BaseMemorySuite):
 
     def test_validate_invalid_block_data_size(self):
         Memory = self.Memory
-        blocks = [[0, b'ABC'], [5, b''], [10, b'xyz']]
+        blocks = [(0, b'ABC'), (5, b''), (10, b'xyz')]
         memory = Memory.from_blocks(blocks, validate=False)
 
         with pytest.raises(ValueError, match='invalid block data size'):
@@ -146,7 +146,7 @@ class TestMemory(BaseMemorySuite):
         Memory = self.Memory
 
         memory = Memory(start=3, endex=6)
-        blocks = [[1, b'ABC']]
+        blocks = [(1, b'ABC')]
         blocks = [[start, bytearray(data)] for start, data in blocks]
         memory._blocks = blocks
 
@@ -154,7 +154,7 @@ class TestMemory(BaseMemorySuite):
             memory.validate()
 
         memory = Memory(start=3, endex=6)
-        blocks = [[5, b'xyz']]
+        blocks = [(5, b'xyz')]
         blocks = [[start, bytearray(data)] for start, data in blocks]
         memory._blocks = blocks
 
@@ -162,7 +162,7 @@ class TestMemory(BaseMemorySuite):
             memory.validate()
 
         memory = Memory(start=3, endex=6)
-        blocks = [[0, b'123'], [10, b'ABC'], [5, b'xyz']]
+        blocks = [(0, b'123'), (10, b'ABC'), (5, b'xyz')]
         blocks = [[start, bytearray(data)] for start, data in blocks]
         memory._blocks = blocks
 
@@ -171,7 +171,7 @@ class TestMemory(BaseMemorySuite):
 
     def test__place_nothing(self):
         Memory = self.Memory
-        blocks = [[1, b'ABC'], [6, b'xyz']]
+        blocks = [(1, b'ABC'), (6, b'xyz')]
         memory = Memory.from_blocks(blocks)
         memory._place(0, bytearray(), True)
         memory.validate()
@@ -179,44 +179,45 @@ class TestMemory(BaseMemorySuite):
 
     def test__place_after_extend(self):
         Memory = self.Memory
-        blocks = [[1, b'ABC'], [6, b'xyz']]
+        blocks = [(1, b'ABC'), (6, b'xyz')]
         memory = Memory.from_blocks(blocks)
         memory._place(4, bytearray(b'123'), True)
         memory.validate()
-        assert memory._blocks == [[1, b'ABC123'], [9, b'xyz']]
+        assert memory._blocks == [(1, b'ABC123'), (9, b'xyz')]
 
     def test__place_alone(self):
         Memory = self.Memory
-        blocks = [[1, b'ABC'], [9, b'xyz']]
+        blocks = [(1, b'ABC'), (9, b'xyz')]
         memory = Memory.from_blocks(blocks)
         memory._place(5, bytearray(b'123'), True)
         memory.validate()
-        assert memory._blocks == [[1, b'ABC'], [5, b'123'], [12, b'xyz']]
+        assert memory._blocks == [(1, b'ABC'), (5, b'123'), (12, b'xyz')]
 
     def test__place_inside(self):
         Memory = self.Memory
-        blocks = [[1, b'ABC'], [6, b'xyz']]
+        blocks = [(1, b'ABC'), (6, b'xyz')]
         memory = Memory.from_blocks(blocks)
         memory._place(3, bytearray(b'123'), True)
         memory.validate()
-        assert memory._blocks == [[1, b'AB123C'], [9, b'xyz']]
+        assert memory._blocks == [(1, b'AB123C'), (9, b'xyz')]
 
 
 class TestMemoryNonNegative(BaseMemorySuite):
-    Memory: Type['_Memory'] = _Memory
+    Memory: type['_Memory'] = _Memory
     ADDR_NEG: bool = False
 
 
 class TestBytesparse(BaseBytearraySuite, BaseMemorySuite):
-    bytesparse: Type['_bytesparse'] = _bytesparse
+    bytesparse: type['_bytesparse'] = _bytesparse
 
     # Reuse some of BaseMemorySuite methods
-    Memory: Type['_Memory'] = _bytesparse
+    Memory: type['_Memory'] = _bytesparse
     ADDR_NEG: bool = False
 
     def test_validate_negative(self):
         bytesparse = self.bytesparse
         memory = bytesparse(b'ABC')
-        memory._blocks[0][0] = -1
+        _, data = memory._blocks[0]
+        memory._blocks[0] = -1, data
         with pytest.raises(ValueError, match='negative block start'):
             memory.validate()

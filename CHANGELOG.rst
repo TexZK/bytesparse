@@ -1,6 +1,15 @@
 Changelog
 =========
 
+1.1.0 (2025-07-04)
+------------------
+
+* Describing blocks with ``(start, data)`` tuples, instead of ambiguous lists.
+* Removed support for Python 3.7.
+* Removed support for Python 3.8.
+* Improved type support.
+
+
 1.0.2 (2025-06-09)
 ------------------
 

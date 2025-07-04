@@ -53,8 +53,8 @@ in which a block ``b`` does not start immediately after block ``a``:
 |   |   |   |   |   |[x | y | z]|   |
 +---+---+---+---+---+---+---+---+---+
 
->>> a = [1, b'ABC']
->>> b = [5, b'xyz']
+>>> a = (1, b'ABC')
+>>> b = (5, b'xyz')
 
 Instead, *overlapping* blocks have at least an addressed cell occupied by
 more items:
@@ -71,10 +71,10 @@ more items:
 |   |   |[!]|   |   |   |   |   |   |
 +---+---+---+---+---+---+---+---+---+
 
->>> a = [1, b'ABC']
->>> b = [3, b'xyz']
->>> c = [0, b'##']
->>> d = [2, b'!']
+>>> a = (1, b'ABC')
+>>> b = (3, b'xyz')
+>>> c = (0, b'##')
+>>> d = (2, b'!')
 
 Contiguous blocks are *non-overlapping*.
 
@@ -86,33 +86,33 @@ Contiguous blocks are *non-overlapping*.
 |   |   |   |   |[x | y | z]|   |   |
 +---+---+---+---+---+---+---+---+---+
 
->>> a = [1, b'ABC']
->>> b = [4, b'xyz']
+>>> a = (1, b'ABC')
+>>> b = (4, b'xyz')
 
 This module often deals with *sequences* of blocks, typically :obj:`list`
 objects containing blocks:
 
->>> seq = [[1, b'ABC'], [5, b'xyz']]
+>>> seq = [(1, b'ABC'), (5, b'xyz')]
 
 Sometimes *sequence generators* are allowed, in that blocks of the sequence
 are yielded on-the-fly by a generator, like `seq_gen`:
 
 >>> seq_gen = ([i, (i + 0x21).to_bytes(1, 'little') * 3] for i in range(0, 15, 5))
 >>> list(seq_gen)
-[[0, b'!!!'], [5, b'&&&'], [10, b'+++']]
+[(0, b'!!!'), (5, b'&&&'), (10, b'+++')]
 
 It is required that sequences are ordered, which means that a block ``b`` must
 follow a block ``a`` which end address is lesser than the `start` of ``b``,
 like in:
 
->>> a = [1, b'ABC']
->>> b = [5, b'xyz']
+>>> a = (1, b'ABC')
+>>> b = (5, b'xyz')
 >>> a[0] + len(a[1]) <= b[0]
 True
 
 """
 
-__version__ = '1.0.2'
+__version__ = '1.1.0'
 
 from .inplace import Memory
 from .inplace import bytesparse

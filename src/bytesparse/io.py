@@ -31,6 +31,7 @@ from typing import Iterator
 from typing import List
 from typing import Optional
 from typing import Union
+from typing import cast as _cast
 
 from . import Memory as _Memory
 from .base import Address
@@ -38,6 +39,7 @@ from .base import AnyBytes
 from .base import EllipsisType
 from .base import ImmutableMemory
 from .base import MutableMemory
+from .base import OptionalAddress
 
 # Not all the platforms support sparse files natively, thus they do not provide
 # os.SEEK_DATA and os.SEEK_HOLE by themselves; we do it here!
@@ -113,13 +115,13 @@ class MemoryIO(io.BufferedIOBase):
         >>> stream.write(b'Hello')
         5
         >>> str(stream.memory)
-        "<[[3, b'Hello']]>"
+        "<[(3, b'Hello')]>"
         >>> stream.seek(10)
         10
         >>> stream.write(b'World!')
         6
         >>> str(stream.memory)
-        "<[[3, b'Hello'], [10, b'World!']]>"
+        "<[(3, b'Hello'), (10, b'World!')]>"
 
         >>> memory = Memory.from_bytes(b'Hello, World!')
         >>> stream = MemoryIO(memory, seek=7)
@@ -140,10 +142,10 @@ class MemoryIO(io.BufferedIOBase):
         >>> stream.write(b'World')
         5
         >>> memory.to_blocks()
-        [[0, b'Hello'], [8, b'World']]
+        [(0, b'Hello'), (8, b'World')]
         >>> stream.close()
 
-        >>> blocks = [[3, b'Hello'], [10, b'World!']]
+        >>> blocks = [(3, b'Hello'), (10, b'World!')]
         >>> memory = Memory.from_blocks(blocks)
         >>> stream = MemoryIO(memory, seek=...)
         >>> stream.tell()
@@ -151,7 +153,7 @@ class MemoryIO(io.BufferedIOBase):
         >>> stream.read()
         b'Hello'
 
-        >>> blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        >>> blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         >>> with MemoryIO(Memory.from_blocks(blocks)) as stream:
         ...     lines = stream.readlines()
         >>> lines
@@ -215,6 +217,7 @@ class MemoryIO(io.BufferedIOBase):
             memory = _Memory()
             writable = True
         else:
+            memory = _cast(MutableMemory, memory)
             start = memory.start
             try:
                 memory.write(start, b'')
@@ -230,7 +233,7 @@ class MemoryIO(io.BufferedIOBase):
         if seek is Ellipsis:
             self.seek(memory.start)
         elif seek is not None:
-            self.seek(seek)
+            self.seek(_cast(int, seek))
 
     def __iter__(self) -> Iterator[bytes]:
         r"""Iterates over lines.
@@ -247,7 +250,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+            >>> blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
             >>> with MemoryIO(Memory.from_blocks(blocks)) as stream:
             ...     lines = [line for line in stream]
             >>> lines
@@ -257,10 +260,10 @@ class MemoryIO(io.BufferedIOBase):
         while 1:
             line = self.readline()
             try:
-                line < 0
+                line < 0  # type: ignore
             except TypeError:
                 if line:
-                    yield line
+                    yield line  # type: ignore
                 else:
                     break
 
@@ -278,13 +281,13 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+            >>> blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
             >>> with MemoryIO(Memory.from_blocks(blocks), seek=9) as stream:
             ...     print(next(stream))
             b'World!'
         """
 
-        return self.readline()
+        return self.readline()  # type: ignore
 
     def _check_closed(self) -> None:
         r"""Checks if the stream is closed.
@@ -373,7 +376,7 @@ class MemoryIO(io.BufferedIOBase):
 
         return self._memory is None
 
-    def detach(self) -> None:
+    def detach(self) -> io.RawIOBase:
         r"""Detaches the underlying raw stream.
 
         Warnings:
@@ -431,7 +434,7 @@ class MemoryIO(io.BufferedIOBase):
             ...         print(type(buffer), '=', bytes(buffer))
             <class 'memoryview'> = b'Hello, World!'
 
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> with MemoryIO(Memory.from_blocks(blocks)) as stream:
             ...     stream.getbuffer()
             Traceback (most recent call last):
@@ -440,7 +443,9 @@ class MemoryIO(io.BufferedIOBase):
         """
 
         self._check_closed()
-        return self._memory.view()
+        memory = self._memory
+        assert memory is not None
+        return memory.view()
 
     def getvalue(self) -> bytes:
         r"""Byte string copy of the underlying memory object.
@@ -463,7 +468,7 @@ class MemoryIO(io.BufferedIOBase):
             ...     print(type(value), '=', bytes(value))
             <class 'bytes'> = b'Hello, World!'
 
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> with MemoryIO(Memory.from_blocks(blocks)) as stream:
             ...     stream.getvalue()
             Traceback (most recent call last):
@@ -472,7 +477,9 @@ class MemoryIO(io.BufferedIOBase):
         """
 
         self._check_closed()
-        return self._memory.to_bytes()
+        memory = self._memory
+        assert memory is not None
+        return memory.to_bytes()
 
     def isatty(self) -> bool:
         r"""Interactive console stream.
@@ -506,7 +513,7 @@ class MemoryIO(io.BufferedIOBase):
 
     def peek(
         self,
-        size: Optional[Address] = 0,
+        size: OptionalAddress = 0,
         asmemview: bool = False,
     ) -> Union[bytes, memoryview, Address]:
         r"""Previews the next chunk of bytes.
@@ -541,7 +548,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> memory = Memory.from_blocks(blocks)
             >>> stream = MemoryIO(memory, seek=4)
             >>> stream.peek()
@@ -570,7 +577,9 @@ class MemoryIO(io.BufferedIOBase):
         self._check_closed()
         start = self._position
         memory = self._memory
+        assert memory is not None
         _, block_endex, block_value = memory.block_span(start)
+        assert block_endex is not None
 
         if block_value is None:
             return start - block_endex
@@ -588,9 +597,9 @@ class MemoryIO(io.BufferedIOBase):
             chunk = memory.to_bytes(start=start, endex=endex)
         return chunk
 
-    def read(
+    def read(  # type: ignore override
         self,
-        size: Optional[Address] = -1,
+        size: OptionalAddress = -1,
         asmemview: bool = False,
     ) -> Union[bytes, memoryview, Address]:
         r"""Reads a chunk of bytes.
@@ -621,7 +630,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> memory = Memory.from_blocks(blocks)
             >>> stream = MemoryIO(memory, seek=4)
             >>> stream.read(1)
@@ -654,6 +663,7 @@ class MemoryIO(io.BufferedIOBase):
         self._check_closed()
         start = self._position
         memory = self._memory
+        assert memory is not None
         _, block_endex, block_value = memory.block_span(start)
 
         if block_value is None:
@@ -666,10 +676,12 @@ class MemoryIO(io.BufferedIOBase):
         if size < 0:
             endex = block_endex
         else:
+            assert block_endex is not None
             endex = start + size
             if endex > block_endex:
                 endex = block_endex
 
+        assert endex is not None
         if asmemview:
             chunk = memory.view(start=start, endex=endex)
         else:
@@ -677,7 +689,7 @@ class MemoryIO(io.BufferedIOBase):
         self._position = endex
         return chunk
 
-    read1 = read
+    read1 = read  # type: ignore override
 
     def readable(self) -> bool:
         r"""Stream is readable.
@@ -689,9 +701,9 @@ class MemoryIO(io.BufferedIOBase):
         self._check_closed()
         return True
 
-    def readline(
+    def readline(  # type: ignore override
         self,
-        size: Optional[Address] = -1,
+        size: OptionalAddress = -1,
         skipgaps: bool = True,
         asmemview: bool = False,
     ) -> Union[bytes, memoryview, Address]:
@@ -735,7 +747,7 @@ class MemoryIO(io.BufferedIOBase):
 
         Examples:
             >>> from bytesparse import Memory, MemoryIO
-            >>> blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+            >>> blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
 
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.readline()
@@ -784,7 +796,7 @@ class MemoryIO(io.BufferedIOBase):
             ...     line = stream.readline(skipgaps=False)
             ...     lines.append(line)
             >>> lines
-            [-3, b'Hello\n', b'World!', -5, b'Bye\n', -4, b'Bye!']
+            (-3, b'Hello\n', b'World!', -5, b'Bye\n', -4, b'Bye!')
             >>> stream.tell()
             32
             >>> stream.readline(skipgaps=False)
@@ -798,6 +810,7 @@ class MemoryIO(io.BufferedIOBase):
         self._check_closed()
         memory = self._memory
         start = self._position
+        assert memory is not None
         try:
             block_start, block_endex = next(memory.intervals(start=start))
         except StopIteration:
@@ -828,9 +841,9 @@ class MemoryIO(io.BufferedIOBase):
         self._position = endex
         return chunk
 
-    def readlines(
+    def readlines(  # type: ignore override
         self,
-        hint: Optional[Address] = -1,
+        hint: OptionalAddress = -1,
         skipgaps: bool = True,
         asmemview: bool = False,
     ) -> List[Union[bytes, Address]]:
@@ -868,7 +881,7 @@ class MemoryIO(io.BufferedIOBase):
 
         Examples:
             >>> from bytesparse import Memory, MemoryIO
-            >>> blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+            >>> blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
 
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.readlines()
@@ -895,7 +908,7 @@ class MemoryIO(io.BufferedIOBase):
 
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.readlines(skipgaps=False)
-            [-3, b'Hello\n', b'World!', -5, b'Bye\n', -4, b'Bye!']
+            (-3, b'Hello\n', b'World!', -5, b'Bye\n', -4, b'Bye!')
             >>> stream.tell()
             32
             >>> stream.readlines(skipgaps=False)
@@ -907,23 +920,23 @@ class MemoryIO(io.BufferedIOBase):
         if hint is not None and hint < 0:
             hint = None
         total = 0
-        lines: List[bytes] = []
+        lines: List[Union[bytes, Address]] = []
 
         while hint is None or total < hint:
             line = self.readline(skipgaps=skipgaps, asmemview=asmemview)
             try:
-                line < 0
+                line < 0  # type: ignore
             except TypeError:
                 if line:
                     lines.append(line)
-                    total += len(line)
+                    total += len(line)  # type: ignore
                 else:
                     break
             else:  # skipgaps
                 lines.append(line)
         return lines
 
-    def readinto(
+    def readinto(  # type: ignore override
         self,
         buffer: Union[bytearray, memoryview, MutableMemory],
         skipgaps: bool = True,
@@ -957,7 +970,7 @@ class MemoryIO(io.BufferedIOBase):
 
         Examples:
             >>> from bytesparse import Memory, MemoryIO
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> memory = Memory.from_blocks(blocks)
 
             >>> stream = MemoryIO(memory, seek=4)
@@ -1013,6 +1026,7 @@ class MemoryIO(io.BufferedIOBase):
         size = len(buffer)
         pending = size
         offset = 0
+        assert memory is not None
 
         for block_start, block_endex in memory.intervals(start=start):
             if start < block_start:
@@ -1041,7 +1055,7 @@ class MemoryIO(io.BufferedIOBase):
                 break
         return offset
 
-    readinto1 = readinto
+    readinto1 = readinto  # type: ignore override
 
     def seek(
         self,
@@ -1092,7 +1106,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import *
 
-            >>> blocks = [[3, b'Hello'], [12, b'World!']]
+            >>> blocks = [(3, b'Hello'), (12, b'World!')]
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.seek(5)
             5
@@ -1121,6 +1135,8 @@ class MemoryIO(io.BufferedIOBase):
         """
 
         self._check_closed()
+        memory = self._memory
+        assert memory is not None
 
         if whence == SEEK_SET:
             self._position = offset
@@ -1129,16 +1145,17 @@ class MemoryIO(io.BufferedIOBase):
             self._position += offset
 
         elif whence == SEEK_END:
-            self._position = self._memory.endex + offset
+            self._position = memory.endex + offset
 
         elif whence == SEEK_DATA:
-            _, block_endex, block_value = self._memory.block_span(offset)
+            _, block_endex, block_value = memory.block_span(offset)
             if block_value is None and block_endex is not None:
                 self._position = block_endex
 
         elif whence == SEEK_HOLE:
-            _, block_endex, block_value = self._memory.block_span(offset)
+            _, block_endex, block_value = memory.block_span(offset)
             if block_value is not None:
+                assert block_endex is not None
                 self._position = block_endex
         else:
             raise ValueError('invalid whence')
@@ -1172,7 +1189,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [12, b'World!']]
+            >>> blocks = [(3, b'Hello'), (12, b'World!')]
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.skip_data()
             0
@@ -1194,8 +1211,12 @@ class MemoryIO(io.BufferedIOBase):
             20
         """
 
-        _, block_endex, block_value = self._memory.block_span(self._position)
+        memory = self._memory
+        assert memory is not None
+        _, block_endex, block_value = memory.block_span(self._position)
+
         if block_value is not None:
+            assert block_endex is not None
             self._position = block_endex
         return self._position
 
@@ -1217,7 +1238,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [12, b'World!']]
+            >>> blocks = [(3, b'Hello'), (12, b'World!')]
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.skip_hole()
             3
@@ -1235,7 +1256,10 @@ class MemoryIO(io.BufferedIOBase):
             20
         """
 
-        _, block_endex, block_value = self._memory.block_span(self._position)
+        memory = self._memory
+        assert memory is not None
+        _, block_endex, block_value = memory.block_span(self._position)
+
         if block_value is None and block_endex is not None:
             self._position = block_endex
         return self._position
@@ -1249,7 +1273,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [12, b'World!']]
+            >>> blocks = [(3, b'Hello'), (12, b'World!')]
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.tell()
             0
@@ -1278,7 +1302,7 @@ class MemoryIO(io.BufferedIOBase):
 
     def truncate(
         self,
-        size: Optional[Address] = None,
+        size: OptionalAddress = None,
     ) -> Address:
         r"""Truncates stream.
 
@@ -1304,7 +1328,7 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [12, b'World!']]
+            >>> blocks = [(3, b'Hello'), (12, b'World!')]
             >>> stream = MemoryIO(Memory.from_blocks(blocks))
             >>> stream.seek(7)
             7
@@ -1313,7 +1337,7 @@ class MemoryIO(io.BufferedIOBase):
             >>> stream.tell()
             7
             >>> stream.memory.to_blocks()
-            [[3, b'Hell']]
+            [(3, b'Hell')]
             >>> stream.truncate(10)
             10
             >>> stream.tell()
@@ -1337,7 +1361,9 @@ class MemoryIO(io.BufferedIOBase):
             else:
                 if size < 0:
                     raise ValueError('negative size value')
-            self._memory.delete(start=size)
+            memory = _cast(MutableMemory, self._memory)
+            assert memory is not None
+            memory.delete(start=size)
             self._position = size
             return size
         else:
@@ -1365,7 +1391,7 @@ class MemoryIO(io.BufferedIOBase):
         self._check_closed()
         return self._writable
 
-    def write(
+    def write(  # type: ignore override
         self,
         buffer: Union[AnyBytes, ImmutableMemory, int],
     ) -> Address:
@@ -1413,13 +1439,13 @@ class MemoryIO(io.BufferedIOBase):
         Examples:
             >>> from bytesparse import Memory, MemoryIO
 
-            >>> blocks = [[3, b'Hello'], [10, b'World!']]
+            >>> blocks = [(3, b'Hello'), (10, b'World!')]
             >>> memory = Memory.from_blocks(blocks)
             >>> stream = MemoryIO(memory, seek=10)
             >>> stream.write(b'Human')
             5
             >>> memory.to_blocks()
-            [[3, b'Hello'], [10, b'Human!']]
+            [(3, b'Hello'), (10, b'Human!')]
             >>> stream.tell()
             15
             >>> stream.seek(7)
@@ -1427,7 +1453,7 @@ class MemoryIO(io.BufferedIOBase):
             >>> stream.write(5)  # clear 5 bytes
             5
             >>> memory.to_blocks()
-            [[3, b'Hell'], [12, b'man!']]
+            [(3, b'Hell'), (12, b'man!')]
             >>> stream.tell()
             12
             >>> stream.seek(7)
@@ -1435,7 +1461,7 @@ class MemoryIO(io.BufferedIOBase):
             >>> stream.write(-5)  # delete 5 bytes
             5
             >>> memory.to_blocks()
-            [[3, b'Hellman!']]
+            [(3, b'Hellman!')]
             >>> stream.tell()
             7
 
@@ -1450,27 +1476,29 @@ class MemoryIO(io.BufferedIOBase):
 
         self._check_closed()
         if self._writable:
+            memory = _cast(MutableMemory, self._memory)
             start = self._position
+            assert memory is not None
             try:
-                size = buffer.__index__()
+                size = buffer.__index__()  # type: ignore
             except Exception:
-                size = len(buffer)
-                self._memory.write(start, buffer)
+                size = len(buffer)  # type: ignore
+                memory.write(start, buffer)
                 self._position = start + size
             else:
                 if size < 0:
                     size = -size
                     endex = start + size
-                    self._memory.delete(start=start, endex=endex)
+                    memory.delete(start=start, endex=endex)
                 else:
                     endex = start + size
-                    self._memory.clear(start=start, endex=endex)
+                    memory.clear(start=start, endex=endex)
                     self._position = endex
             return size
         else:
             raise io.UnsupportedOperation('not writable')
 
-    def writelines(
+    def writelines(  # type: ignore override
         self,
         lines: Iterable[Union[AnyBytes, int]],
     ) -> None:
@@ -1493,11 +1521,11 @@ class MemoryIO(io.BufferedIOBase):
 
         Examples:
             >>> from bytesparse import Memory, MemoryIO
-            >>> lines = [3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!']
+            >>> lines = (3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!')
             >>> stream = MemoryIO()
             >>> stream.writelines(lines)
             >>> stream.memory.to_blocks()
-            [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+            [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         """
 
         for line in lines:

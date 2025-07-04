@@ -128,7 +128,7 @@ Here's a quick usage example of ``bytesparse`` objects:
 >>> len(m)  # total length
 13
 >>> str(m)  # string representation, with bounds and data blocks
-"<[[0, b'Hello, World!']]>"
+"<[(0, b'Hello, World!')]>"
 >>> bytes(m)  # exports as bytes
 b'Hello, World!'
 >>> m.to_bytes()  # exports the whole range as bytes
@@ -174,7 +174,7 @@ b'Ciao, Word!'
 >>> i = m.index(b',')  # gets the address of the comma
 >>> m.clear(start=i, endex=(i + 2))  # makes empty space between the words
 >>> m.to_blocks()  # exports as data block list
-[[0, b'Ciao'], [6, b'Word!']]
+[(0, b'Ciao'), (6, b'Word!')]
 >>> m.contiguous  # multiple data blocks (emptiness inbetween)
 False
 >>> m.content_parts  # two data blocks
@@ -198,7 +198,7 @@ b'Ciao..Work!'
 
 >>> m.crop(start=m.index(b'W'))  # keeps 'Work!'
 >>> m.to_blocks()
-[[6, b'Work!']]
+[(6, b'Work!')]
 >>> m.span  # address range of the whole memory
 (6, 11)
 >>> m.start, m.endex  # same as above
@@ -206,45 +206,45 @@ b'Ciao..Work!'
 
 >>> m.bound_span = (2, 10)  # sets memory address bounds
 >>> str(m)
-"<2, [[6, b'Work']], 10>"
+"<2, [(6, b'Work')], 10>"
 >>> m.to_blocks()
-[[6, b'Work']]
+[(6, b'Work')]
 
 >>> m.shift(-6)  # shifts to the left; NOTE: address bounds will cut 2 bytes!
 >>> m.to_blocks()
-[[2, b'rk']]
+[(2, b'rk')]
 >>> str(m)
-"<2, [[2, b'rk']], 10>"
+"<2, [(2, b'rk')], 10>"
 
 >>> a = bytesparse(b'Ma')
->>> a.write(0, m)  # writes [2, b'rk'] --> 'Mark'
+>>> a.write(0, m)  # writes (2, b'rk') --> 'Mark'
 >>> a.to_blocks()
-[[0, b'Mark']]
+[(0, b'Mark')]
 
 >>> b = Memory.from_bytes(b'ing', offset=4)
 >>> b.to_blocks()
-[[4, b'ing']]
+[(4, b'ing')]
 
->>> a.write(0, b)  # writes [4, b'ing'] --> 'Marking'
+>>> a.write(0, b)  # writes (4, b'ing') --> 'Marking'
 >>> a.to_blocks()
-[[0, b'Marking']]
+[(0, b'Marking')]
 
 >>> a.reserve(4, 2)  # inserts 2 empty bytes after 'Mark'
 >>> a.to_blocks()
-[[0, b'Mark'], [6, b'ing']]
+[(0, b'Mark'), (6, b'ing')]
 
 >>> a.write(4, b'et')  # --> 'Marketing'
 >>> a.to_blocks()
-[[0, b'Marketing']]
+[(0, b'Marketing')]
 
 >>> a.fill(1, -1, b'*')  # fills asterisks between the first and last letters
 >>> a.to_blocks()
-[[0, b'M*******g']]
+[(0, b'M*******g')]
 
 >>> v = a.view(1, -1)  # creates a memory view spanning the asterisks
 >>> v[::2] = b'1234'  # replaces even asterisks with numbers
 >>> a.to_blocks()
-[[0, b'M1*2*3*4g']]
+[(0, b'M1*2*3*4g')]
 >>> a.count(b'*')  # counts all the asterisks
 3
 >>> v.release()  # release memory view
@@ -257,11 +257,11 @@ False
 
 >>> del a[a.index(b'*')::2]  # deletes every other byte from the first asterisk
 >>> a.to_blocks()
-[[0, b'M1234']]
+[(0, b'M1234')]
 
 >>> a.shift(3)  # moves away from the trivial 0 index
 >>> a.to_blocks()
-[[3, b'M1234']]
+[(3, b'M1234')]
 >>> list(a.keys())
 [3, 4, 5, 6, 7]
 >>> list(a.values())
@@ -270,10 +270,10 @@ False
 [(3, 77), (4, 49), (5, 50), (6, 51), (7, 52)]
 
 >>> c.to_blocks()  # reminder
-[[0, b'M1*2*3*4g']]
+[(0, b'M1*2*3*4g')]
 >>> c[2::2] = None  # clears (empties) every other byte from the first asterisk
 >>> c.to_blocks()
-[[0, b'M1'], [3, b'2'], [5, b'3'], [7, b'4']]
+[(0, b'M1'), (3, b'2'), (5, b'3'), (7, b'4')]
 >>> list(c.intervals())  # lists all the block ranges
 [(0, 2), (3, 4), (5, 6), (7, 8)]
 >>> list(c.gaps())  # lists all the empty ranges
@@ -281,19 +281,19 @@ False
 
 >>> c.flood(pattern=b'xy')  # fills empty spaces
 >>> c.to_blocks()
-[[0, b'M1x2x3x4']]
+[(0, b'M1x2x3x4')]
 
 >>> t = c.cut(c.index(b'1'), c.index(b'3'))  # cuts an inner slice
 >>> t.to_blocks()
-[[1, b'1x2x']]
+[(1, b'1x2x')]
 >>> c.to_blocks()
-[[0, b'M'], [5, b'3x4']]
+[(0, b'M'), (5, b'3x4')]
 >>> t.bound_span  # address bounds of the slice (automatically activated)
 (1, 5)
 
->>> k = bytesparse.from_blocks([[4, b'ABC'], [9, b'xy']], start=2, endex=15)  # bounded
+>>> k = bytesparse.from_blocks([(4, b'ABC'), (9, b'xy')], start=2, endex=15)  # bounded
 >>> str(k)  # shows summary
-"<2, [[4, b'ABC'], [9, b'xy']], 15>"
+"<2, [(4, b'ABC'), (9, b'xy')], 15>"
 >>> k.bound_span  # defined at creation
 (2, 15)
 >>> k.span  # superseded by bounds
@@ -307,7 +307,7 @@ False
 
 >>> k.flood(pattern=b'.')  # floods between span
 >>> k.to_blocks()
-[[2, b'..ABC..xy....']]
+[(2, b'..ABC..xy....')]
 
 
 Background

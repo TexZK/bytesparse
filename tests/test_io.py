@@ -56,11 +56,11 @@ class TestMemoryIO:
     def test___init___doctest(self):
         stream = MemoryIO(seek=3)
         assert stream.write(b'Hello') == 5
-        ref = [[3, b'Hello']]
+        ref = [(3, b'Hello')]
         assert stream.memory.to_blocks() == ref
         assert stream.seek(10) == 10
         assert stream.write(b'World!') == 6
-        ref = [[3, b'Hello'], [10, b'World!']]
+        ref = [(3, b'Hello'), (10, b'World!')]
         assert stream.memory.to_blocks() == ref
 
         memory = Memory.from_bytes(b'Hello, World!')
@@ -73,16 +73,16 @@ class TestMemoryIO:
         assert stream.truncate(5) == 5
         assert stream.seek(3, SEEK_CUR) == 8
         assert stream.write(b'World') == 5
-        assert memory.to_blocks() == [[0, b'Hello'], [8, b'World']]
+        assert memory.to_blocks() == [(0, b'Hello'), (8, b'World')]
         stream.close()
 
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         memory = Memory.from_blocks(blocks)
         stream = MemoryIO(memory, seek=...)
         assert stream.tell() == 3
         assert stream.read() == b'Hello'
 
-        blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         with MemoryIO(Memory.from_blocks(blocks)) as stream:
             lines = stream.readlines()
         assert lines == [b'Hello\n', b'World!', b'Bye\n', b'Bye!']
@@ -90,13 +90,13 @@ class TestMemoryIO:
             stream.seek(0)
 
     def test___iter___doctest(self):
-        blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         with MemoryIO(Memory.from_blocks(blocks)) as stream:
             lines = [line for line in stream]
         assert lines == [b'Hello\n', b'World!', b'Bye\n', b'Bye!']
 
     def test___next__doctest(self):
-        blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         with MemoryIO(Memory.from_blocks(blocks), seek=9) as stream:
             assert next(stream) == b'World!'
 
@@ -147,7 +147,7 @@ class TestMemoryIO:
                 assert type(buffer) is memoryview
                 assert bytes(buffer) ==  b'Hello, World!'
 
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         with pytest.raises(ValueError, match='non-contiguous data within range'):
             with MemoryIO(Memory.from_blocks(blocks)) as stream:
                 stream.getbuffer()
@@ -158,7 +158,7 @@ class TestMemoryIO:
             assert type(value) is bytes
             assert bytes(value) ==  b'Hello, World!'
 
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         with MemoryIO(Memory.from_blocks(blocks)) as stream:
             with pytest.raises(ValueError, match='non-contiguous data within range'):
                 stream.getvalue()
@@ -175,7 +175,7 @@ class TestMemoryIO:
         assert (stream.memory is None) is True
 
     def test_peek_doctest(self):
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         memory = Memory.from_blocks(blocks)
         stream = MemoryIO(memory, seek=4)
         assert stream.peek() == b''
@@ -190,7 +190,7 @@ class TestMemoryIO:
         assert stream.peek() == -2
 
     def test_read_doctest(self):
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         memory = Memory.from_blocks(blocks)
         stream = MemoryIO(memory, seek=4)
         assert stream.read(1) == b'e'
@@ -211,7 +211,7 @@ class TestMemoryIO:
             assert stream.readable() is True
 
     def test_readline_doctest(self):
-        blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
 
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.readline() == b'Hello\n'
@@ -251,7 +251,7 @@ class TestMemoryIO:
         assert stream.tell() == 32
 
     def test_readlines_doctest(self):
-        blocks = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        blocks = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
 
         stream = MemoryIO(Memory.from_blocks(blocks))
         ref = [b'Hello\n', b'World!', b'Bye\n', b'Bye!']
@@ -279,7 +279,7 @@ class TestMemoryIO:
         assert stream.tell() == 32
 
     def test_readinto_doctest(self):
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         memory = Memory.from_blocks(blocks)
 
         stream = MemoryIO(memory, seek=4)
@@ -309,7 +309,7 @@ class TestMemoryIO:
         assert stream.tell() == 16
 
     def test_seek_doctest(self):
-        blocks = [[3, b'Hello'], [12, b'World!']]
+        blocks = [(3, b'Hello'), (12, b'World!')]
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.seek(5) == 5
         assert stream.seek(-3, SEEK_END) == 15
@@ -339,7 +339,7 @@ class TestMemoryIO:
             assert stream.seekable() is True
 
     def test_skip_data_doctest(self):
-        blocks = [[3, b'Hello'], [12, b'World!']]
+        blocks = [(3, b'Hello'), (12, b'World!')]
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.skip_data() == 0
         assert stream.seek(6) == 6
@@ -352,7 +352,7 @@ class TestMemoryIO:
         assert stream.skip_data() == 20
 
     def test_skip_hole_doctest(self):
-        blocks = [[3, b'Hello'], [12, b'World!']]
+        blocks = [(3, b'Hello'), (12, b'World!')]
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.skip_hole() == 3
         assert stream.skip_hole() == 3
@@ -363,7 +363,7 @@ class TestMemoryIO:
         assert stream.skip_data() == 20
 
     def test_tell_doctest(self):
-        blocks = [[3, b'Hello'], [12, b'World!']]
+        blocks = [(3, b'Hello'), (12, b'World!')]
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.tell() == 0
         assert stream.skip_hole() == 3
@@ -377,12 +377,12 @@ class TestMemoryIO:
         assert stream.tell() == 20
 
     def test_truncate_doctest(self):
-        blocks = [[3, b'Hello'], [12, b'World!']]
+        blocks = [(3, b'Hello'), (12, b'World!')]
         stream = MemoryIO(Memory.from_blocks(blocks))
         assert stream.seek(7) == 7
         assert stream.truncate() == 7
         assert stream.tell() == 7
-        assert stream.memory.to_blocks() == [[3, b'Hell']]
+        assert stream.memory.to_blocks() == [(3, b'Hell')]
         assert stream.truncate(10) == 10
         assert stream.tell() == 10
 
@@ -407,19 +407,19 @@ class TestMemoryIO:
             assert stream.writable() is False
 
     def test_write_doctest(self):
-        blocks = [[3, b'Hello'], [10, b'World!']]
+        blocks = [(3, b'Hello'), (10, b'World!')]
         memory = Memory.from_blocks(blocks)
         stream = MemoryIO(memory, seek=10)
         assert stream.write(b'Human') == 5
-        assert memory.to_blocks() == [[3, b'Hello'], [10, b'Human!']]
+        assert memory.to_blocks() == [(3, b'Hello'), (10, b'Human!')]
         assert stream.tell() == 15
         assert stream.seek(7) == 7
         assert stream.write(5) == 5
-        assert memory.to_blocks() == [[3, b'Hell'], [12, b'man!']]
+        assert memory.to_blocks() == [(3, b'Hell'), (12, b'man!')]
         assert stream.tell() == 12
         assert stream.seek(7) == 7
         assert stream.write(-5) == 5
-        assert memory.to_blocks() == [[3, b'Hellman!']]
+        assert memory.to_blocks() == [(3, b'Hellman!')]
         assert stream.tell() == 7
 
         memory = Memory.from_bytes(b'Hello, World!')
@@ -436,8 +436,8 @@ class TestMemoryIO:
                 stream.write(b'')
 
     def test_writelines_doctest(self):
-        lines = [3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!']
+        lines = (3, b'Hello\n', b'World!', 5, b'Bye\n', 4, b'Bye!')
         stream = MemoryIO()
         assert stream.writelines(lines) is None
-        ref = [[3, b'Hello\nWorld!'], [20, b'Bye\n'], [28, b'Bye!']]
+        ref = [(3, b'Hello\nWorld!'), (20, b'Bye\n'), (28, b'Bye!')]
         assert stream.memory.to_blocks() == ref
