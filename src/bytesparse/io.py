@@ -29,7 +29,6 @@ import io
 from typing import Iterable
 from typing import Iterator
 from typing import List
-from typing import Optional
 from typing import Union
 from typing import cast as _cast
 
@@ -209,8 +208,8 @@ class MemoryIO(io.BufferedIOBase):
 
     def __init__(
         self,
-        memory: Optional[Union[ImmutableMemory, MutableMemory]] = None,
-        seek: Optional[Union[Address, EllipsisType]] = None,
+        memory: Union[ImmutableMemory, MutableMemory, None] = None,
+        seek: Union[Address, EllipsisType, None] = None,
     ):
 
         if memory is None:
@@ -226,7 +225,7 @@ class MemoryIO(io.BufferedIOBase):
             else:
                 writable = True
 
-        self._memory: Optional[Union[ImmutableMemory, MutableMemory]] = memory
+        self._memory: Union[ImmutableMemory, MutableMemory, None] = memory
         self._writable: bool = writable
         self._position: Address = 0
 
@@ -491,7 +490,7 @@ class MemoryIO(io.BufferedIOBase):
         return False
 
     @property
-    def memory(self) -> Optional[ImmutableMemory]:
+    def memory(self) -> Union[ImmutableMemory, None]:
         r""":obj:`ImmutableMemory`: Underlying memory object.
 
         ``None`` when :attr:`closed`.
